@@ -3,6 +3,7 @@ export interface Airline {
   name: string;
   iataCode: string;
   contactEmail: string;
+  country: string;
   status: "active" | "disabled" | "suspended";
   onboardingDate: string;
   cancelledFlights: number;
@@ -14,6 +15,8 @@ export interface Airline {
   avgCostPerPassenger: number;
   failedPayments: number;
   allocationFailures: number;
+  totalBookings: number;
+  totalPayouts: number;
 }
 
 export interface CancelledFlight {
@@ -34,21 +37,25 @@ export interface Invite {
   airlineName: string;
   iataCode: string;
   contactEmail: string;
+  country: string;
   initialAllowance: number;
-  status: "sent" | "accepted" | "expired" | "revoked";
-  sentDate: string;
-  expiresAt: string;
+  status: "pending" | "accepted" | "expired" | "revoked";
+  invitedBy: string;
+  invitedDate: string;
+  expiryDate: string;
 }
 
 export interface Payment {
   id: string;
   airlineId: string;
   airlineName: string;
+  country: string;
   amount: number;
-  type: "payout" | "fee" | "refund";
+  type: "payout" | "adjustment" | "refund";
   status: "completed" | "pending" | "failed";
   date: string;
   description: string;
+  reference: string;
 }
 
 export interface AuditLog {
@@ -93,9 +100,41 @@ export interface DashboardStats {
   totalAirlines: number;
   activeAirlines: number;
   cancelledFlightsThisMonth: number;
-  passengersImpacted: number;
   platformRevenue: number;
   totalHotelSpend: number;
+  revenueToSpendRatio: number;
+  avgRevenuePerAirline: number;
+  topAirlineByRevenue: string;
   monthlyCancellations: { month: string; count: number }[];
   monthlyRevenue: { month: string; revenue: number }[];
 }
+
+export interface RevenueByAirline {
+  airlineId: string;
+  airlineName: string;
+  iataCode: string;
+  country: string;
+  revenue: number;
+  percentage: number;
+  totalBookings: number;
+  totalPayouts: number;
+}
+
+export interface RevenueByCountry {
+  country: string;
+  airlinesCount: number;
+  revenue: number;
+  percentage: number;
+}
+
+export interface PaymentStats {
+  totalRevenue: number;
+  pendingPayouts: number;
+  pendingAirlinesCount: number;
+  failedPayouts: number;
+  activeAirlines: number;
+  totalOnboarded: number;
+  revenueChange: number;
+}
+
+export type DateRangeFilter = "this_month" | "last_month" | "custom";

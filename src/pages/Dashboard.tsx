@@ -5,22 +5,22 @@ import { KpiCard } from "@/components/ui/KpiCard";
 import { LoadingState } from "@/components/ui/Spinner";
 import { getDashboardStats } from "@/services/api";
 import { DashboardStats } from "@/types";
-import { 
-  Plane, 
-  PlaneTakeoff, 
-  Users, 
-  DollarSign, 
-  Building2,
-  TrendingUp 
-} from "lucide-react";
+import { Plane, Building2, PlaneTakeoff, DollarSign, TrendingUp, Award } from "lucide-react";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
-import { 
-  LineChart, 
-  Line, 
-  XAxis, 
-  YAxis, 
-  CartesianGrid, 
-  Tooltip, 
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "@/components/ui/select";
+import {
+  LineChart,
+  Line,
+  XAxis,
+  YAxis,
+  CartesianGrid,
+  Tooltip,
   ResponsiveContainer,
   BarChart,
   Bar,
@@ -29,6 +29,7 @@ import {
 export default function Dashboard() {
   const [stats, setStats] = useState<DashboardStats | null>(null);
   const [loading, setLoading] = useState(true);
+  const [dateRange, setDateRange] = useState("this_month");
 
   useEffect(() => {
     const loadStats = async () => {
@@ -61,15 +62,24 @@ export default function Dashboard() {
     }).format(value);
   };
 
+  const adoptionPercentage = Math.round((stats.activeAirlines / stats.totalAirlines) * 100);
+
   return (
     <MainLayout>
-      <Header 
-        title="Dashboard" 
-        subtitle="Platform health overview and key metrics"
-      />
+      <Header title="Dashboard" subtitle="Platform health and operational overview">
+        <Select value={dateRange} onValueChange={setDateRange}>
+          <SelectTrigger className="w-[160px]">
+            <SelectValue />
+          </SelectTrigger>
+          <SelectContent>
+            <SelectItem value="this_month">This Month</SelectItem>
+            <SelectItem value="last_3_months">Last 3 Months</SelectItem>
+          </SelectContent>
+        </Select>
+      </Header>
 
-      {/* KPI Cards */}
-      <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4 mb-8">
+      {/* KPI Cards - 4 cards only */}
+      <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4 mb-8">
         <KpiCard
           title="Total Airlines"
           value={stats.totalAirlines}
@@ -80,7 +90,7 @@ export default function Dashboard() {
           title="Active Airlines"
           value={stats.activeAirlines}
           icon={Building2}
-          trend={{ value: 0, label: "no change" }}
+          trend={{ value: 0, label: `${adoptionPercentage}% of onboarded` }}
         />
         <KpiCard
           title="Cancelled Flights (This Month)"
@@ -89,55 +99,41 @@ export default function Dashboard() {
           trend={{ value: -36, label: "vs last month" }}
         />
         <KpiCard
-          title="Passengers Impacted"
-          value={stats.passengersImpacted.toLocaleString()}
-          icon={Users}
-          trend={{ value: -28, label: "vs last month" }}
-        />
-        <KpiCard
           title="Platform Revenue"
           value={formatCurrency(stats.platformRevenue)}
           icon={DollarSign}
           trend={{ value: 18, label: "vs last month" }}
         />
-        <KpiCard
-          title="Total Hotel Spend"
-          value={formatCurrency(stats.totalHotelSpend)}
-          icon={TrendingUp}
-          trend={{ value: 8, label: "vs last month" }}
-        />
       </div>
 
-      {/* Charts */}
-      <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
+      {/* Charts Section */}
+      <div className="grid grid-cols-1 lg:grid-cols-2 gap-6 mb-6">
         <Card className="animate-fade-in">
           <CardHeader>
-            <CardTitle className="text-base font-medium">Monthly Cancellations</CardTitle>
+            <CardTitle className="text-base font-medium">Monthly Cancelled Flights</CardTitle>
           </CardHeader>
           <CardContent>
-            <div className="h-[300px]">
+            <div className="h-[280px]">
               <ResponsiveContainer width="100%" height="100%">
                 <BarChart data={stats.monthlyCancellations}>
                   <CartesianGrid strokeDasharray="3 3" stroke="hsl(var(--border))" />
-                  <XAxis 
-                    dataKey="month" 
-                    stroke="hsl(var(--muted-foreground))" 
+                  <XAxis
+                    dataKey="month"
+                    stroke="hsl(var(--muted-foreground))"
                     fontSize={12}
                   />
-                  <YAxis 
-                    stroke="hsl(var(--muted-foreground))" 
-                    fontSize={12}
-                  />
-                  <Tooltip 
-                    contentStyle={{ 
+                  <YAxis stroke="hsl(var(--muted-foreground))" fontSize={12} />
+                  <Tooltip
+                    contentStyle={{
                       backgroundColor: "hsl(var(--card))",
                       border: "1px solid hsl(var(--border))",
                       borderRadius: "8px",
                     }}
+                    formatter={(value: number) => [value, "Flights"]}
                   />
-                  <Bar 
-                    dataKey="count" 
-                    fill="hsl(var(--primary))" 
+                  <Bar
+                    dataKey="count"
+                    fill="hsl(var(--primary))"
                     radius={[4, 4, 0, 0]}
                   />
                 </BarChart>
@@ -151,34 +147,34 @@ export default function Dashboard() {
             <CardTitle className="text-base font-medium">Monthly Revenue</CardTitle>
           </CardHeader>
           <CardContent>
-            <div className="h-[300px]">
+            <div className="h-[280px]">
               <ResponsiveContainer width="100%" height="100%">
                 <LineChart data={stats.monthlyRevenue}>
                   <CartesianGrid strokeDasharray="3 3" stroke="hsl(var(--border))" />
-                  <XAxis 
-                    dataKey="month" 
-                    stroke="hsl(var(--muted-foreground))" 
+                  <XAxis
+                    dataKey="month"
+                    stroke="hsl(var(--muted-foreground))"
                     fontSize={12}
                   />
-                  <YAxis 
-                    stroke="hsl(var(--muted-foreground))" 
+                  <YAxis
+                    stroke="hsl(var(--muted-foreground))"
                     fontSize={12}
                     tickFormatter={(value) => `$${value / 1000}k`}
                   />
-                  <Tooltip 
+                  <Tooltip
                     formatter={(value: number) => [`$${value.toLocaleString()}`, "Revenue"]}
-                    contentStyle={{ 
+                    contentStyle={{
                       backgroundColor: "hsl(var(--card))",
                       border: "1px solid hsl(var(--border))",
                       borderRadius: "8px",
                     }}
                   />
-                  <Line 
-                    type="monotone" 
-                    dataKey="revenue" 
-                    stroke="hsl(var(--success))" 
+                  <Line
+                    type="monotone"
+                    dataKey="revenue"
+                    stroke="hsl(var(--success))"
                     strokeWidth={2}
-                    dot={{ fill: "hsl(var(--success))", strokeWidth: 0 }}
+                    dot={{ fill: "hsl(var(--success))", strokeWidth: 0, r: 4 }}
                   />
                 </LineChart>
               </ResponsiveContainer>
@@ -186,6 +182,49 @@ export default function Dashboard() {
           </CardContent>
         </Card>
       </div>
+
+      {/* Insight Strip */}
+      <Card className="animate-fade-in">
+        <CardContent className="py-4">
+          <div className="grid grid-cols-1 sm:grid-cols-3 gap-4 sm:gap-8">
+            <div className="flex items-center gap-3">
+              <div className="w-10 h-10 rounded-lg bg-muted flex items-center justify-center">
+                <TrendingUp className="w-5 h-5 text-primary" />
+              </div>
+              <div>
+                <p className="text-xs text-muted-foreground uppercase tracking-wide">
+                  Revenue to Spend Ratio
+                </p>
+                <p className="text-lg font-semibold">
+                  {(stats.revenueToSpendRatio * 100).toFixed(1)}%
+                </p>
+              </div>
+            </div>
+            <div className="flex items-center gap-3">
+              <div className="w-10 h-10 rounded-lg bg-muted flex items-center justify-center">
+                <DollarSign className="w-5 h-5 text-primary" />
+              </div>
+              <div>
+                <p className="text-xs text-muted-foreground uppercase tracking-wide">
+                  Avg Revenue per Airline
+                </p>
+                <p className="text-lg font-semibold">{formatCurrency(stats.avgRevenuePerAirline)}</p>
+              </div>
+            </div>
+            <div className="flex items-center gap-3">
+              <div className="w-10 h-10 rounded-lg bg-muted flex items-center justify-center">
+                <Award className="w-5 h-5 text-primary" />
+              </div>
+              <div>
+                <p className="text-xs text-muted-foreground uppercase tracking-wide">
+                  Top Airline (This Month)
+                </p>
+                <p className="text-lg font-semibold truncate">{stats.topAirlineByRevenue}</p>
+              </div>
+            </div>
+          </div>
+        </CardContent>
+      </Card>
     </MainLayout>
   );
 }
