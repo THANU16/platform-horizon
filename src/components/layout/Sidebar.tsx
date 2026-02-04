@@ -1,4 +1,3 @@
-import { useState } from "react";
 import { Link, useLocation } from "react-router-dom";
 import {
   LayoutDashboard,
@@ -12,6 +11,7 @@ import {
   ChevronLeft,
   ChevronRight,
   Menu,
+  LogOut,
 } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { Button } from "@/components/ui/button";
@@ -38,23 +38,50 @@ export function Sidebar({ collapsed, onCollapsedChange }: SidebarProps) {
 
   const NavContent = ({ mobile = false }: { mobile?: boolean }) => (
     <div className="flex flex-col h-full">
-      {/* Logo */}
+      {/* Logo Header */}
       <div className={cn(
         "flex items-center h-16 px-4 border-b border-sidebar-border",
-        collapsed && !mobile ? "justify-center" : "gap-3"
+        collapsed && !mobile ? "justify-center" : "justify-between"
       )}>
-        <div className="w-8 h-8 rounded-lg bg-success flex items-center justify-center">
-          <Plane className="w-5 h-5 text-success-foreground" />
+        <div className="flex items-center gap-3">
+          <div className="w-10 h-10 rounded-lg bg-sidebar-accent flex items-center justify-center">
+            <PlaneTakeoff className="w-5 h-5 text-sidebar-foreground" />
+          </div>
+          {(!collapsed || mobile) && (
+            <div className="flex flex-col">
+              <span className="font-semibold text-sidebar-foreground text-base leading-tight">
+                FlyVoid Admin
+              </span>
+              <span className="text-xs text-sidebar-muted">
+                FV
+              </span>
+            </div>
+          )}
         </div>
-        {(!collapsed || mobile) && (
-          <span className="font-semibold text-sidebar-foreground text-lg">
-            FlyVoid
-          </span>
+        {(!collapsed || mobile) && !mobile && (
+          <Button
+            variant="ghost"
+            size="icon"
+            onClick={() => onCollapsedChange(!collapsed)}
+            className="h-8 w-8 text-sidebar-foreground hover:bg-sidebar-accent hover:text-sidebar-foreground"
+          >
+            <ChevronLeft className="w-4 h-4" />
+          </Button>
+        )}
+        {collapsed && !mobile && (
+          <Button
+            variant="ghost"
+            size="icon"
+            onClick={() => onCollapsedChange(!collapsed)}
+            className="absolute -right-3 top-5 h-6 w-6 rounded-full bg-sidebar border border-sidebar-border text-sidebar-foreground hover:bg-sidebar-accent"
+          >
+            <ChevronRight className="w-3 h-3" />
+          </Button>
         )}
       </div>
 
       {/* Navigation */}
-      <nav className="flex-1 py-4 px-2 space-y-1 overflow-y-auto">
+      <nav className="flex-1 py-4 px-3 space-y-1 overflow-y-auto">
         {navItems.map((item) => {
           const isActive = location.pathname === item.path;
           return (
@@ -67,7 +94,7 @@ export function Sidebar({ collapsed, onCollapsedChange }: SidebarProps) {
                 isActive 
                   ? "bg-sidebar-primary text-sidebar-primary-foreground" 
                   : "text-sidebar-foreground",
-                collapsed && !mobile ? "justify-center" : ""
+                collapsed && !mobile ? "justify-center px-2" : ""
               )}
               title={collapsed && !mobile ? item.title : undefined}
             >
@@ -80,38 +107,31 @@ export function Sidebar({ collapsed, onCollapsedChange }: SidebarProps) {
         })}
       </nav>
 
-      {/* Collapse Button - Desktop Only */}
-      {!mobile && (
-        <div className="p-2 border-t border-sidebar-border">
-          <Button
-            variant="ghost"
-            size="sm"
-            onClick={() => onCollapsedChange(!collapsed)}
-            className={cn(
-              "w-full text-sidebar-foreground hover:bg-sidebar-accent hover:text-sidebar-foreground",
-              collapsed ? "justify-center" : "justify-start gap-2"
-            )}
-          >
-            {collapsed ? (
-              <ChevronRight className="w-4 h-4" />
-            ) : (
-              <>
-                <ChevronLeft className="w-4 h-4" />
-                <span className="text-sm">Collapse</span>
-              </>
-            )}
-          </Button>
-        </div>
-      )}
+      {/* Logout Button */}
+      <div className="p-3 border-t border-sidebar-border">
+        <button
+          className={cn(
+            "flex items-center gap-3 px-3 py-2.5 rounded-lg transition-all duration-200 w-full",
+            "text-destructive hover:bg-destructive/10",
+            collapsed && !mobile ? "justify-center px-2" : ""
+          )}
+          title={collapsed && !mobile ? "Logout" : undefined}
+        >
+          <LogOut className="w-5 h-5 shrink-0" />
+          {(!collapsed || mobile) && (
+            <span className="text-sm font-medium">Logout</span>
+          )}
+        </button>
+      </div>
     </div>
   );
 
   return (
     <>
-      {/* Desktop Sidebar */}
+      {/* Desktop Sidebar - Fixed */}
       <aside
         className={cn(
-          "hidden lg:flex flex-col bg-sidebar border-r border-sidebar-border transition-all duration-300",
+          "hidden lg:flex flex-col fixed top-0 left-0 h-screen bg-sidebar border-r border-sidebar-border transition-all duration-300 z-40",
           collapsed ? "w-20" : "w-64"
         )}
       >
