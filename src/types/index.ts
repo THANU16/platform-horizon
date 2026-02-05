@@ -51,11 +51,12 @@ export interface Payment {
   airlineName: string;
   country: string;
   amount: number;
-  type: "payout" | "adjustment" | "refund";
+  type: TransactionType;
   status: "completed" | "pending" | "failed";
   date: string;
   description: string;
   reference: string;
+  failureReason?: string;
 }
 
 export interface AuditLog {
@@ -118,6 +119,9 @@ export interface RevenueByAirline {
   percentage: number;
   totalBookings: number;
   totalPayouts: number;
+  topUpBalance: number;
+  adminCreditBalance: number;
+  remainingAllowance: number;
 }
 
 export interface RevenueByCountry {
@@ -138,3 +142,32 @@ export interface PaymentStats {
 }
 
 export type DateRangeFilter = "this_month" | "last_month" | "custom";
+
+export type TransactionType = "payout" | "adjustment" | "refund" | "top_up" | "revenue_fee" | "admin_credit";
+
+export interface AllowanceOverview {
+  totalTopUp: number;
+  usedTopUp: number;
+  remainingTopUp: number;
+  totalAdminCredit: number;
+  usedAdminCredit: number;
+  remainingAdminCredit: number;
+  totalRemaining: number;
+}
+
+export interface AirlineAllowance {
+  airlineId: string;
+  airlineName: string;
+  topUpBalance: number;
+  adminCreditBalance: number;
+  totalAllowance: number;
+  usedAllowance: number;
+  remainingAllowance: number;
+}
+
+export interface PaymentFilters {
+  country: string;
+  airline: string;
+  search: string;
+  dateRange: DateRangeFilter;
+}
