@@ -9,7 +9,9 @@ import {
   AdminProfile,
   RevenueByAirline,
   RevenueByCountry,
-  PaymentStats
+  PaymentStats,
+  AllowanceOverview,
+  PaymentFilters
 } from "@/types";
 
 // Simulated delay
@@ -306,6 +308,7 @@ const paymentsData: Payment[] = [
     status: "failed",
     date: "2025-01-28",
     description: "Payment failed - Stripe disconnected",
+    failureReason: "Stripe account disconnected. Reconnection required.",
     reference: "PAY-2025-001230",
   },
   {
@@ -354,7 +357,56 @@ const paymentsData: Payment[] = [
     status: "failed",
     date: "2025-01-30",
     description: "Failed due to bank verification",
+    failureReason: "Bank account verification pending. Contact airline.",
     reference: "PAY-2025-001232",
+  },
+  {
+    id: "9",
+    airlineId: "1",
+    airlineName: "SkyLine Airways",
+    country: "United States",
+    amount: 100000,
+    type: "top_up",
+    status: "completed",
+    date: "2025-01-15",
+    description: "Airline top-up payment received",
+    reference: "TOP-2025-000089",
+  },
+  {
+    id: "10",
+    airlineId: "4",
+    airlineName: "Northern Star Airlines",
+    country: "Canada",
+    amount: 150000,
+    type: "top_up",
+    status: "completed",
+    date: "2025-01-18",
+    description: "Airline top-up payment received",
+    reference: "TOP-2025-000092",
+  },
+  {
+    id: "11",
+    airlineId: "2",
+    airlineName: "Atlantic Express",
+    country: "United Kingdom",
+    amount: 50000,
+    type: "admin_credit",
+    status: "completed",
+    date: "2025-01-10",
+    description: "Admin credit allocation",
+    reference: "CRD-2025-000045",
+  },
+  {
+    id: "12",
+    airlineId: "1",
+    airlineName: "SkyLine Airways",
+    country: "United States",
+    amount: 2250,
+    type: "revenue_fee",
+    status: "completed",
+    date: "2025-02-01",
+    description: "Platform fee (5% of bookings)",
+    reference: "FEE-2025-001234",
   },
 ];
 
@@ -572,6 +624,9 @@ export const getRevenueByAirline = async (): Promise<RevenueByAirline[]> => {
       percentage: (airline.platformRevenue / totalRevenue) * 100,
       totalBookings: airline.totalBookings,
       totalPayouts: airline.totalPayouts,
+      topUpBalance: Math.floor(airline.allowanceBalance * 0.6),
+      adminCreditBalance: Math.floor(airline.allowanceBalance * 0.4),
+      remainingAllowance: airline.allowanceBalance,
     }))
     .sort((a, b) => b.revenue - a.revenue);
 };
@@ -640,4 +695,135 @@ export const updateAdminProfile = async (profile: Partial<AdminProfile>): Promis
   await delay(300);
   Object.assign(adminProfileData, profile);
   return adminProfileData;
+};
+
+export const getAllowanceOverview = async (): Promise<AllowanceOverview> => {
+  await delay(200);
+  const totalTopUp = airlinesData.reduce((sum, a) => sum + Math.floor(a.allowanceBalance * 0.6), 0);
+  const totalAdminCredit = airlinesData.reduce((sum, a) => sum + Math.floor(a.allowanceBalance * 0.4), 0);
+  const usedTopUp = Math.floor(totalTopUp * 0.35);
+  const usedAdminCredit = Math.floor(totalAdminCredit * 0.2);
+  
+  return {
+    totalTopUp,
+    usedTopUp,
+    remainingTopUp: totalTopUp - usedTopUp,
+    totalAdminCredit,
+    usedAdminCredit,
+    remainingAdminCredit: totalAdminCredit - usedAdminCredit,
+    totalRemaining: (totalTopUp - usedTopUp) + (totalAdminCredit - usedAdminCredit),
+  };
+};
+
+export const getFilteredPaymentData = async (filters: PaymentFilters) => {
+  await delay(400);
+  
+  // Filter airlines based on filters
+  let filteredAirlines = [...airlinesData];
+  
+  if (filters.country && filters.country !== "all") {
+    filteredAirlines = filteredAirlines.filter(a => a.country === filters.country);
+  }
+  if (filters.airline && filters.airline !== "all") {
+    filteredAirlines = filteredAirlines.filter(a => a.id === filters.airline);
+  }
+  if (filters.search) {
+    const searchLower = filters.search.toLowerCase();
+    filteredAirlines = filteredAirlines.filter(a => 
+      a.name.toLowerCase().includes(searchLower) ||
+      a.iataCode.toLowerCase().includes(searchLower)
+    );
+  }
+  
+  const airlineIds = new Set(filteredAirlines.map(a => a.id));
+  
+  // Calculate filtered stats
+  const filteredPayments = paymentsData.filter(p => airlineIds.has(p.airlineId));
+  const totalRevenue = filteredPayments
+    .filter(p => p.type === "payout" && p.status === "completed")
+    .reduce((sum, p) => sum + p.amount, 0);
+  const pendingPayouts = filteredPayments
+    .filter(p => p.status === "pending")
+    .reduce((sum, p) => sum + p.amount, 0);
+  const pendingAirlinesCount = new Set(
+    filteredPayments.filter(p => p.status === "pending").map(p => p.airlineId)
+  ).size;
+  const failedPayouts = filteredPayments.filter(p => p.status === "failed").length;
+  const activeAirlines = filteredAirlines.filter(a => a.status === "active").length;
+  
+  const stats: PaymentStats = {
+    totalRevenue,
+    pendingPayouts,
+    pendingAirlinesCount,
+    failedPayouts,
+    activeAirlines,
+    totalOnboarded: filteredAirlines.length,
+    revenueChange: 18,
+  };
+  
+  // Calculate filtered allowance
+  const totalTopUp = filteredAirlines.reduce((sum, a) => sum + Math.floor(a.allowanceBalance * 0.6), 0);
+  const totalAdminCredit = filteredAirlines.reduce((sum, a) => sum + Math.floor(a.allowanceBalance * 0.4), 0);
+  const usedTopUp = Math.floor(totalTopUp * 0.35);
+  const usedAdminCredit = Math.floor(totalAdminCredit * 0.2);
+  
+  const allowance: AllowanceOverview = {
+    totalTopUp,
+    usedTopUp,
+    remainingTopUp: totalTopUp - usedTopUp,
+    totalAdminCredit,
+    usedAdminCredit,
+    remainingAdminCredit: totalAdminCredit - usedAdminCredit,
+    totalRemaining: (totalTopUp - usedTopUp) + (totalAdminCredit - usedAdminCredit),
+  };
+  
+  // Calculate filtered revenue by airline
+  const filteredTotalRevenue = filteredAirlines.reduce((sum, a) => sum + a.platformRevenue, 0);
+  const revenueByAirline: RevenueByAirline[] = filteredAirlines
+    .map(airline => ({
+      airlineId: airline.id,
+      airlineName: airline.name,
+      iataCode: airline.iataCode,
+      country: airline.country,
+      revenue: airline.platformRevenue,
+      percentage: filteredTotalRevenue > 0 ? (airline.platformRevenue / filteredTotalRevenue) * 100 : 0,
+      totalBookings: airline.totalBookings,
+      totalPayouts: airline.totalPayouts,
+      topUpBalance: Math.floor(airline.allowanceBalance * 0.6),
+      adminCreditBalance: Math.floor(airline.allowanceBalance * 0.4),
+      remainingAllowance: airline.allowanceBalance,
+    }))
+    .sort((a, b) => b.revenue - a.revenue);
+  
+  // Calculate filtered revenue by country
+  const countryMap = new Map<string, { airlines: Set<string>; revenue: number }>();
+  filteredAirlines.forEach(airline => {
+    const existing = countryMap.get(airline.country);
+    if (existing) {
+      existing.airlines.add(airline.id);
+      existing.revenue += airline.platformRevenue;
+    } else {
+      countryMap.set(airline.country, {
+        airlines: new Set([airline.id]),
+        revenue: airline.platformRevenue,
+      });
+    }
+  });
+  
+  const revenueByCountry = Array.from(countryMap.entries())
+    .map(([country, data]) => ({
+      country,
+      airlinesCount: data.airlines.size,
+      revenue: data.revenue,
+      percentage: filteredTotalRevenue > 0 ? (data.revenue / filteredTotalRevenue) * 100 : 0,
+    }))
+    .sort((a, b) => b.revenue - a.revenue);
+  
+  return {
+    stats,
+    allowance,
+    revenueByAirline,
+    revenueByCountry,
+    payments: filteredPayments,
+  };
 };

@@ -5,6 +5,7 @@ interface KpiCardProps {
   title: string;
   value: string | number;
   icon: LucideIcon;
+  subtext?: string;
   trend?: {
     value: number;
     label: string;
@@ -12,7 +13,7 @@ interface KpiCardProps {
   className?: string;
 }
 
-export function KpiCard({ title, value, icon: Icon, trend, className }: KpiCardProps) {
+export function KpiCard({ title, value, icon: Icon, subtext, trend, className }: KpiCardProps) {
   const isPositive = trend && trend.value > 0;
   const isNegative = trend && trend.value < 0;
 
@@ -22,6 +23,9 @@ export function KpiCard({ title, value, icon: Icon, trend, className }: KpiCardP
         <div className="space-y-2">
           <p className="text-sm font-medium text-muted-foreground">{title}</p>
           <p className="text-2xl font-semibold text-foreground">{value}</p>
+          {subtext && !trend && (
+            <p className="text-xs text-muted-foreground">{subtext}</p>
+          )}
           {trend && (
             <p className="text-xs">
               <span
