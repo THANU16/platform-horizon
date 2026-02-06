@@ -78,31 +78,35 @@ export default function Dashboard() {
         </Select>
       </Header>
 
-      {/* KPI Cards - 4 cards only */}
+      {/* KPI Cards - 4 cards */}
       <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4 mb-8">
         <KpiCard
           title="Total Airlines"
           value={stats.totalAirlines}
           icon={Plane}
-          trend={{ value: 12, label: "vs last month" }}
+          trend={{ value: stats.airlineGrowthPercent, label: "vs last month" }}
+          subtext="Platform growth"
         />
         <KpiCard
           title="Active Airlines"
           value={stats.activeAirlines}
           icon={Building2}
           trend={{ value: 0, label: `${adoptionPercentage}% of onboarded` }}
+          subtext="Adoption & retention"
         />
         <KpiCard
-          title="Cancelled Flights (This Month)"
+          title="Cancelled Flights"
           value={stats.cancelledFlightsThisMonth}
           icon={PlaneTakeoff}
-          trend={{ value: -36, label: "vs last month" }}
+          trend={{ value: stats.flightChangePercent, label: "vs last month" }}
+          subtext="This month"
         />
         <KpiCard
           title="Platform Revenue"
           value={formatCurrency(stats.platformRevenue)}
           icon={DollarSign}
-          trend={{ value: 18, label: "vs last month" }}
+          trend={{ value: stats.revenueChangePercent, label: "vs last month" }}
+          subtext="Platform fees only"
         />
       </div>
 
@@ -144,7 +148,7 @@ export default function Dashboard() {
 
         <Card className="animate-fade-in">
           <CardHeader>
-            <CardTitle className="text-base font-medium">Monthly Revenue</CardTitle>
+            <CardTitle className="text-base font-medium">Monthly Platform Revenue</CardTitle>
           </CardHeader>
           <CardContent>
             <div className="h-[280px]">
@@ -183,7 +187,7 @@ export default function Dashboard() {
         </Card>
       </div>
 
-      {/* Insight Strip */}
+      {/* Performance Indicators Strip */}
       <Card className="animate-fade-in">
         <CardContent className="py-4">
           <div className="grid grid-cols-1 sm:grid-cols-3 gap-4 sm:gap-8">
@@ -217,7 +221,7 @@ export default function Dashboard() {
               </div>
               <div>
                 <p className="text-xs text-muted-foreground uppercase tracking-wide">
-                  Top Airline (This Month)
+                  Top Airline (Revenue)
                 </p>
                 <p className="text-lg font-semibold truncate">{stats.topAirlineByRevenue}</p>
               </div>

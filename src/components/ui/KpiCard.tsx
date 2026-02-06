@@ -23,9 +23,6 @@ export function KpiCard({ title, value, icon: Icon, subtext, trend, className }:
         <div className="space-y-2">
           <p className="text-sm font-medium text-muted-foreground">{title}</p>
           <p className="text-2xl font-semibold text-foreground">{value}</p>
-          {subtext && !trend && (
-            <p className="text-xs text-muted-foreground">{subtext}</p>
-          )}
           {trend && (
             <p className="text-xs">
               <span
@@ -41,6 +38,9 @@ export function KpiCard({ title, value, icon: Icon, subtext, trend, className }:
               </span>
               <span className="text-muted-foreground ml-1">{trend.label}</span>
             </p>
+          )}
+          {subtext && (
+            <p className="text-xs text-muted-foreground">{subtext}</p>
           )}
         </div>
         <div className="icon-container">

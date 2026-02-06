@@ -6,9 +6,20 @@ import { LoadingState } from "@/components/ui/Spinner";
 import {
   getCountries,
   getAirlines,
+  getAirports,
   getFilteredPaymentData,
 } from "@/services/api";
-import { Payment, PaymentStats, RevenueByAirline, RevenueByCountry, Airline, AllowanceOverview, PaymentFilters } from "@/types";
+import { 
+  Airline, 
+  Airport,
+  PlatformFinancialSnapshot, 
+  CreditRiskOverview, 
+  RevenueByAirline, 
+  RevenueByCountry, 
+  AirlineFinancialHealth,
+  WalletTransaction,
+  PaymentFilters 
+} from "@/types";
 import {
   Select,
   SelectContent,
@@ -16,38 +27,49 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@/components/ui/select";
-import { PaymentsKpiCards } from "@/components/payments/PaymentsKpiCards";
+import { PlatformKpiCards } from "@/components/payments/PlatformKpiCards";
+import { CreditRiskSection } from "@/components/payments/CreditRiskSection";
 import { RevenueByAirlineSection } from "@/components/payments/RevenueByAirlineSection";
 import { RevenueByCountrySection } from "@/components/payments/RevenueByCountrySection";
-import { PayoutHistoryTable } from "@/components/payments/PayoutHistoryTable";
+import { AirlineFinancialHealthTable } from "@/components/payments/AirlineFinancialHealthTable";
+import { WalletTransactionsTable } from "@/components/payments/WalletTransactionsTable";
 
 export default function Payments() {
-  const [payments, setPayments] = useState<Payment[]>([]);
-  const [stats, setStats] = useState<PaymentStats | null>(null);
-  const [allowance, setAllowance] = useState<AllowanceOverview | null>(null);
+  // Data states
+  const [snapshot, setSnapshot] = useState<PlatformFinancialSnapshot | null>(null);
+  const [creditRisk, setCreditRisk] = useState<CreditRiskOverview | null>(null);
   const [revenueByAirline, setRevenueByAirline] = useState<RevenueByAirline[]>([]);
   const [revenueByCountry, setRevenueByCountry] = useState<RevenueByCountry[]>([]);
+  const [airlineHealth, setAirlineHealth] = useState<AirlineFinancialHealth[]>([]);
+  const [transactions, setTransactions] = useState<WalletTransaction[]>([]);
+  
+  // Reference data
   const [countries, setCountries] = useState<string[]>([]);
   const [airlines, setAirlines] = useState<Airline[]>([]);
+  const [airports, setAirports] = useState<Airport[]>([]);
+  
+  // Loading states
   const [loading, setLoading] = useState(true);
   const [isFiltering, setIsFiltering] = useState(false);
 
-  // Filter states (draft)
+  // Global filter states (draft)
   const [search, setSearch] = useState("");
   const [countryFilter, setCountryFilter] = useState("all");
   const [airlineFilter, setAirlineFilter] = useState("all");
+  const [airportFilter, setAirportFilter] = useState("all");
   const [dateRange, setDateRange] = useState("this_month");
 
   // Applied filters
-  const [appliedFilters, setAppliedFilters] = useState({
+  const [appliedFilters, setAppliedFilters] = useState<PaymentFilters>({
     search: "",
     country: "all",
     airline: "all",
+    airport: "all",
     dateRange: "this_month",
   });
 
   // Table-specific filters
-  const [tableStatusFilter, setTableStatusFilter] = useState("all");
+  const [tableTypeFilter, setTableTypeFilter] = useState("all");
   const [tableCountryFilter, setTableCountryFilter] = useState("all");
   const [tableAirlineFilter, setTableAirlineFilter] = useState("all");
 
@@ -55,11 +77,12 @@ export default function Payments() {
     setIsFiltering(true);
     try {
       const data = await getFilteredPaymentData(filters);
-      setStats(data.stats);
-      setAllowance(data.allowance);
+      setSnapshot(data.snapshot);
+      setCreditRisk(data.creditRisk);
       setRevenueByAirline(data.revenueByAirline);
       setRevenueByCountry(data.revenueByCountry);
-      setPayments(data.payments);
+      setAirlineHealth(data.airlineHealth);
+      setTransactions(data.transactions);
     } finally {
       setIsFiltering(false);
     }
@@ -68,17 +91,20 @@ export default function Payments() {
   useEffect(() => {
     const loadData = async () => {
       try {
-        const [countriesData, airlinesData] = await Promise.all([
+        const [countriesData, airlinesData, airportsData] = await Promise.all([
           getCountries(),
           getAirlines(),
+          getAirports(),
         ]);
         setCountries(countriesData);
         setAirlines(airlinesData);
+        setAirports(airportsData);
         
         // Load initial data with default filters
         await fetchPaymentData({
           country: "all",
           airline: "all",
+          airport: "all",
           search: "",
           dateRange: "this_month",
         });
@@ -94,34 +120,38 @@ export default function Payments() {
       search !== appliedFilters.search ||
       countryFilter !== appliedFilters.country ||
       airlineFilter !== appliedFilters.airline ||
+      airportFilter !== appliedFilters.airport ||
       dateRange !== appliedFilters.dateRange
     );
-  }, [search, countryFilter, airlineFilter, dateRange, appliedFilters]);
+  }, [search, countryFilter, airlineFilter, airportFilter, dateRange, appliedFilters]);
 
   const handleApplyFilters = async () => {
-    const newFilters = {
+    const newFilters: PaymentFilters = {
       search,
       country: countryFilter,
       airline: airlineFilter,
-      dateRange,
+      airport: airportFilter,
+      dateRange: dateRange as PaymentFilters["dateRange"],
     };
     setAppliedFilters(newFilters);
-    await fetchPaymentData(newFilters as PaymentFilters);
+    await fetchPaymentData(newFilters);
   };
 
   const handleClearFilters = async () => {
     setSearch("");
     setCountryFilter("all");
     setAirlineFilter("all");
+    setAirportFilter("all");
     setDateRange("this_month");
-    const defaultFilters = {
+    const defaultFilters: PaymentFilters = {
       search: "",
       country: "all",
       airline: "all",
+      airport: "all",
       dateRange: "this_month",
     };
     setAppliedFilters(defaultFilters);
-    await fetchPaymentData(defaultFilters as PaymentFilters);
+    await fetchPaymentData(defaultFilters);
   };
 
   const appliedFiltersCount = useMemo(() => {
@@ -129,21 +159,27 @@ export default function Payments() {
     if (appliedFilters.search) count++;
     if (appliedFilters.country !== "all") count++;
     if (appliedFilters.airline !== "all") count++;
+    if (appliedFilters.airport !== "all") count++;
     if (appliedFilters.dateRange !== "this_month") count++;
     return count;
   }, [appliedFilters]);
 
+  const handleAirlineClick = (airlineId: string) => {
+    // Navigate to airline detail or open modal
+    console.log("View airline:", airlineId);
+  };
+
   if (loading) {
     return (
       <MainLayout>
-        <LoadingState message="Loading payments..." />
+        <LoadingState message="Loading financial data..." />
       </MainLayout>
     );
   }
 
   return (
     <MainLayout>
-      <Header title="Payments & Revenue" subtitle="Platform financial overview and payout management">
+      <Header title="Payments & Revenue" subtitle="Financial control, revenue analysis, and credit risk management">
         <Select value={dateRange} onValueChange={setDateRange}>
           <SelectTrigger className="w-[160px]">
             <SelectValue />
@@ -151,6 +187,9 @@ export default function Payments() {
           <SelectContent>
             <SelectItem value="this_month">This Month</SelectItem>
             <SelectItem value="last_month">Last Month</SelectItem>
+            <SelectItem value="last_7_days">Last 7 Days</SelectItem>
+            <SelectItem value="last_30_days">Last 30 Days</SelectItem>
+            <SelectItem value="last_90_days">Last 90 Days</SelectItem>
             <SelectItem value="custom">Custom Range</SelectItem>
           </SelectContent>
         </Select>
@@ -158,7 +197,7 @@ export default function Payments() {
 
       {/* Global Filter Bar */}
       <FilterBar
-        searchPlaceholder="Search by airline name, IATA code, or payout reference..."
+        searchPlaceholder="Search by airline name, IATA code, or reference..."
         searchValue={search}
         onSearchChange={setSearch}
         filters={[
@@ -170,6 +209,16 @@ export default function Payments() {
             options: [
               { value: "all", label: "All Countries" },
               ...countries.map((c) => ({ value: c, label: c })),
+            ],
+          },
+          {
+            name: "Airport",
+            value: airportFilter,
+            onChange: setAirportFilter,
+            placeholder: "All Airports",
+            options: [
+              { value: "all", label: "All Airports" },
+              ...airports.map((a) => ({ value: a.code, label: `${a.code} - ${a.name}` })),
             ],
           },
           {
@@ -198,26 +247,40 @@ export default function Payments() {
         </div>
       )}
 
-      {/* KPI Cards with Allowance */}
-      {stats && allowance && (
-        <PaymentsKpiCards stats={stats} allowance={allowance} />
+      {/* Platform Financial Snapshot KPIs */}
+      {snapshot && creditRisk && (
+        <PlatformKpiCards snapshot={snapshot} creditRisk={creditRisk} />
       )}
 
-      {/* Revenue Sections */}
-      <div className="grid grid-cols-1 lg:grid-cols-2 gap-6 mb-8">
-        <RevenueByAirlineSection data={revenueByAirline} />
-        <RevenueByCountrySection data={revenueByCountry} />
+      {/* Revenue Analytics & Credit Risk */}
+      <div className="grid grid-cols-1 lg:grid-cols-3 gap-6 mb-8">
+        <div className="lg:col-span-2 space-y-6">
+          <RevenueByAirlineSection data={revenueByAirline} showTop={5} />
+          <RevenueByCountrySection data={revenueByCountry} />
+        </div>
+        <div>
+          {creditRisk && <CreditRiskSection data={creditRisk} />}
+        </div>
       </div>
 
-      {/* Payout & Transaction History */}
-      <PayoutHistoryTable
-        payments={payments}
+      {/* Airline Financial Health Table */}
+      <div className="mb-8">
+        <AirlineFinancialHealthTable 
+          data={airlineHealth} 
+          onAirlineClick={handleAirlineClick}
+        />
+      </div>
+
+      {/* Transactions & Audit Trail */}
+      <WalletTransactionsTable
+        transactions={transactions}
         airlines={airlines}
         countries={countries}
-        tableStatusFilter={tableStatusFilter}
-        tableCountryFilter={tableCountryFilter}
-        tableAirlineFilter={tableAirlineFilter}
-        onStatusFilterChange={setTableStatusFilter}
+        airports={airports}
+        typeFilter={tableTypeFilter}
+        countryFilter={tableCountryFilter}
+        airlineFilter={tableAirlineFilter}
+        onTypeFilterChange={setTableTypeFilter}
         onCountryFilterChange={setTableCountryFilter}
         onAirlineFilterChange={setTableAirlineFilter}
       />
