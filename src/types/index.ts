@@ -16,7 +16,11 @@ export interface Airline {
   failedPayments: number;
   allocationFailures: number;
   totalBookings: number;
-  totalPayouts: number;
+  // Wallet & Credit fields
+  totalTopUps: number;
+  walletBalance: number;
+  creditLimit: number;
+  creditUsed: number;
 }
 
 export interface CancelledFlight {
@@ -43,20 +47,6 @@ export interface Invite {
   invitedBy: string;
   invitedDate: string;
   expiryDate: string;
-}
-
-export interface Payment {
-  id: string;
-  airlineId: string;
-  airlineName: string;
-  country: string;
-  amount: number;
-  type: TransactionType;
-  status: "completed" | "pending" | "failed";
-  date: string;
-  description: string;
-  reference: string;
-  failureReason?: string;
 }
 
 export interface AuditLog {
@@ -108,6 +98,10 @@ export interface DashboardStats {
   topAirlineByRevenue: string;
   monthlyCancellations: { month: string; count: number }[];
   monthlyRevenue: { month: string; revenue: number }[];
+  // Trend indicators
+  airlineGrowthPercent: number;
+  flightChangePercent: number;
+  revenueChangePercent: number;
 }
 
 export interface RevenueByAirline {
@@ -118,10 +112,6 @@ export interface RevenueByAirline {
   revenue: number;
   percentage: number;
   totalBookings: number;
-  totalPayouts: number;
-  topUpBalance: number;
-  adminCreditBalance: number;
-  remainingAllowance: number;
 }
 
 export interface RevenueByCountry {
@@ -129,6 +119,101 @@ export interface RevenueByCountry {
   airlinesCount: number;
   revenue: number;
   percentage: number;
+}
+
+export type DateRangeFilter = "this_month" | "last_month" | "last_7_days" | "last_30_days" | "last_90_days" | "custom";
+
+// Wallet Transaction Types (NO payouts)
+export type WalletTransactionType = "top_up" | "booking_charge" | "refund" | "adjustment" | "credit_change" | "platform_fee";
+
+export interface WalletTransaction {
+  id: string;
+  airlineId: string;
+  airlineName: string;
+  country: string;
+  airport?: string;
+  amount: number;
+  type: WalletTransactionType;
+  status: "completed" | "pending" | "failed";
+  date: string;
+  description: string;
+  reference: string;
+}
+
+// Platform Financial Snapshot
+export interface PlatformFinancialSnapshot {
+  totalTopUpBalance: number;
+  totalAdminCreditIssued: number;
+  totalCreditUsed: number;
+  netPlatformExposure: number;
+  totalPlatformRevenue: number;
+  revenueChangePercent: number;
+}
+
+// Credit Risk Overview
+export interface CreditRiskOverview {
+  totalCreditAllowed: number;
+  totalCreditUsed: number;
+  creditUtilizationPercent: number;
+  airlinesUsingCredit: number;
+  totalAirlines: number;
+}
+
+// Airline Financial Health Status
+export type AirlineFinancialStatus = "healthy" | "using_credit" | "critical" | "topup_required";
+
+export interface AirlineFinancialHealth {
+  airlineId: string;
+  airlineName: string;
+  iataCode: string;
+  country: string;
+  totalTopUps: number;
+  totalBookingSpend: number;
+  platformRevenue: number;
+  walletBalance: number;
+  creditLimit: number;
+  creditUsed: number;
+  remainingCredit: number;
+  status: AirlineFinancialStatus;
+}
+
+// Airline Detail for drill-down
+export interface AirlineTransactionHistory {
+  topUps: WalletTransaction[];
+  bookingCharges: WalletTransaction[];
+  refunds: WalletTransaction[];
+  platformFees: WalletTransaction[];
+}
+
+// Filters for Payments page
+export interface PaymentFilters {
+  country: string;
+  airline: string;
+  airport: string;
+  search: string;
+  dateRange: DateRangeFilter;
+}
+
+// Airports list
+export interface Airport {
+  code: string;
+  name: string;
+  country: string;
+}
+
+// Legacy types kept for compatibility
+export interface Payment {
+  id: string;
+  airlineId: string;
+  airlineName: string;
+  country: string;
+  amount: number;
+  type: WalletTransactionType;
+  status: "completed" | "pending" | "failed";
+  date: string;
+  description: string;
+  reference: string;
+  failureReason?: string;
 }
 
 export interface PaymentStats {
@@ -141,10 +226,6 @@ export interface PaymentStats {
   revenueChange: number;
 }
 
-export type DateRangeFilter = "this_month" | "last_month" | "custom";
-
-export type TransactionType = "payout" | "adjustment" | "refund" | "top_up" | "revenue_fee" | "admin_credit";
-
 export interface AllowanceOverview {
   totalTopUp: number;
   usedTopUp: number;
@@ -153,21 +234,4 @@ export interface AllowanceOverview {
   usedAdminCredit: number;
   remainingAdminCredit: number;
   totalRemaining: number;
-}
-
-export interface AirlineAllowance {
-  airlineId: string;
-  airlineName: string;
-  topUpBalance: number;
-  adminCreditBalance: number;
-  totalAllowance: number;
-  usedAllowance: number;
-  remainingAllowance: number;
-}
-
-export interface PaymentFilters {
-  country: string;
-  airline: string;
-  search: string;
-  dateRange: DateRangeFilter;
 }
