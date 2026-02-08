@@ -2,7 +2,9 @@ import { Toaster } from "@/components/ui/toaster";
 import { Toaster as Sonner } from "@/components/ui/sonner";
 import { TooltipProvider } from "@/components/ui/tooltip";
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
-import { BrowserRouter, Routes, Route, Navigate } from "react-router-dom";
+import { BrowserRouter, Routes, Route } from "react-router-dom";
+import { AuthProvider } from "./contexts/AuthContext";
+import { ProtectedRoute } from "./components/ProtectedRoute";
 import Dashboard from "./pages/Dashboard";
 import Airlines from "./pages/Airlines";
 import AirlineDetail from "./pages/AirlineDetail";
@@ -19,26 +21,28 @@ const queryClient = new QueryClient();
 
 const App = () => (
   <QueryClientProvider client={queryClient}>
-    <TooltipProvider>
-      <Toaster />
-      <Sonner />
-      <BrowserRouter>
-        <Routes>
-          <Route path="/auth" element={<Auth />} />
-          <Route path="/" element={<Dashboard />} />
-          <Route path="/airlines" element={<Airlines />} />
-          <Route path="/airlines/:id" element={<AirlineDetail />} />
-          <Route path="/cancelled-flights" element={<CancelledFlights />} />
-          <Route path="/payments" element={<Payments />} />
-          <Route path="/invites" element={<Invites />} />
-          <Route path="/settings" element={<SystemSettings />} />
-          <Route path="/audit-logs" element={<AuditLogs />} />
-          <Route path="/profile" element={<AdminProfile />} />
-          {/* ADD ALL CUSTOM ROUTES ABOVE THE CATCH-ALL "*" ROUTE */}
-          <Route path="*" element={<NotFound />} />
-        </Routes>
-      </BrowserRouter>
-    </TooltipProvider>
+    <AuthProvider>
+      <TooltipProvider>
+        <Toaster />
+        <Sonner />
+        <BrowserRouter>
+          <Routes>
+            <Route path="/auth" element={<Auth />} />
+            <Route path="/" element={<ProtectedRoute><Dashboard /></ProtectedRoute>} />
+            <Route path="/airlines" element={<ProtectedRoute><Airlines /></ProtectedRoute>} />
+            <Route path="/airlines/:id" element={<ProtectedRoute><AirlineDetail /></ProtectedRoute>} />
+            <Route path="/cancelled-flights" element={<ProtectedRoute><CancelledFlights /></ProtectedRoute>} />
+            <Route path="/payments" element={<ProtectedRoute><Payments /></ProtectedRoute>} />
+            <Route path="/invites" element={<ProtectedRoute><Invites /></ProtectedRoute>} />
+            <Route path="/settings" element={<ProtectedRoute><SystemSettings /></ProtectedRoute>} />
+            <Route path="/audit-logs" element={<ProtectedRoute><AuditLogs /></ProtectedRoute>} />
+            <Route path="/profile" element={<ProtectedRoute><AdminProfile /></ProtectedRoute>} />
+            {/* ADD ALL CUSTOM ROUTES ABOVE THE CATCH-ALL "*" ROUTE */}
+            <Route path="*" element={<NotFound />} />
+          </Routes>
+        </BrowserRouter>
+      </TooltipProvider>
+    </AuthProvider>
   </QueryClientProvider>
 );
 
