@@ -12,6 +12,7 @@ import Invites from "./pages/Invites";
 import SystemSettings from "./pages/SystemSettings";
 import AuditLogs from "./pages/AuditLogs";
 import AdminProfile from "./pages/AdminProfile";
+import Auth from "./pages/Auth";
 import NotFound from "./pages/NotFound";
 
 const queryClient = new QueryClient();
@@ -23,6 +24,7 @@ const App = () => (
       <Sonner />
       <BrowserRouter>
         <Routes>
+          <Route path="/auth" element={<Auth />} />
           <Route path="/" element={<Dashboard />} />
           <Route path="/airlines" element={<Airlines />} />
           <Route path="/airlines/:id" element={<AirlineDetail />} />
