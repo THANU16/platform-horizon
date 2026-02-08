@@ -1,4 +1,5 @@
-import { Link, useLocation } from "react-router-dom";
+import { Link, useLocation, useNavigate } from "react-router-dom";
+import { useAuth } from "@/contexts/AuthContext";
 import {
   LayoutDashboard,
   Plane,
@@ -35,6 +36,13 @@ interface SidebarProps {
 
 export function Sidebar({ collapsed, onCollapsedChange }: SidebarProps) {
   const location = useLocation();
+  const navigate = useNavigate();
+  const { logout } = useAuth();
+
+  const handleLogout = () => {
+    logout();
+    navigate("/auth");
+  };
 
   const NavContent = ({ mobile = false }: { mobile?: boolean }) => (
     <div className="flex flex-col h-full">
@@ -110,6 +118,7 @@ export function Sidebar({ collapsed, onCollapsedChange }: SidebarProps) {
       {/* Logout Button */}
       <div className="p-3 border-t border-sidebar-border">
         <button
+          onClick={handleLogout}
           className={cn(
             "flex items-center gap-3 px-4 py-3 rounded-lg transition-all duration-200 w-full",
             "text-destructive hover:bg-destructive/10",
