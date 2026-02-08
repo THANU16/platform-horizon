@@ -89,18 +89,18 @@ export function Sidebar({ collapsed, onCollapsedChange }: SidebarProps) {
               key={item.path}
               to={item.path}
               className={cn(
-                "flex items-center gap-3 px-3 py-2.5 rounded-lg transition-all duration-200",
+                "flex items-center gap-3 px-4 py-3 rounded-lg transition-all duration-200",
                 "hover:bg-sidebar-accent",
                 isActive 
-                  ? "bg-sidebar-primary text-sidebar-primary-foreground" 
+                  ? "bg-sidebar-primary text-sidebar-primary-foreground font-medium" 
                   : "text-sidebar-foreground",
-                collapsed && !mobile ? "justify-center px-2" : ""
+                collapsed && !mobile ? "justify-center px-3" : ""
               )}
               title={collapsed && !mobile ? item.title : undefined}
             >
               <item.icon className={cn("w-5 h-5 shrink-0")} />
               {(!collapsed || mobile) && (
-                <span className="text-sm font-medium">{item.title}</span>
+                <span className="text-sm">{item.title}</span>
               )}
             </Link>
           );
@@ -111,15 +111,15 @@ export function Sidebar({ collapsed, onCollapsedChange }: SidebarProps) {
       <div className="p-3 border-t border-sidebar-border">
         <button
           className={cn(
-            "flex items-center gap-3 px-3 py-2.5 rounded-lg transition-all duration-200 w-full",
+            "flex items-center gap-3 px-4 py-3 rounded-lg transition-all duration-200 w-full",
             "text-destructive hover:bg-destructive/10",
-            collapsed && !mobile ? "justify-center px-2" : ""
+            collapsed && !mobile ? "justify-center px-3" : ""
           )}
           title={collapsed && !mobile ? "Logout" : undefined}
         >
           <LogOut className="w-5 h-5 shrink-0" />
           {(!collapsed || mobile) && (
-            <span className="text-sm font-medium">Logout</span>
+            <span className="text-sm">Logout</span>
           )}
         </button>
       </div>
