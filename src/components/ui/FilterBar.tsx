@@ -63,19 +63,22 @@ export function FilterBar({
   };
 
   return (
-    <div className="space-y-3 mb-6">
-      <div className="filter-bar">
-        <div className="flex flex-col sm:flex-row gap-3 flex-1">
-          <div className="relative flex-1 max-w-sm">
-            <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-muted-foreground" />
-            <Input
-              placeholder={searchPlaceholder}
-              value={searchValue}
-              onChange={(e) => onSearchChange(e.target.value)}
-              onKeyDown={handleKeyDown}
-              className="pl-9"
-            />
-          </div>
+    <div className="mb-6">
+      <div className="border rounded-lg bg-card p-4 space-y-3">
+        {/* Search row */}
+        <div className="relative max-w-full">
+          <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-muted-foreground" />
+          <Input
+            placeholder={searchPlaceholder}
+            value={searchValue}
+            onChange={(e) => onSearchChange(e.target.value)}
+            onKeyDown={handleKeyDown}
+            className="pl-9"
+          />
+        </div>
+        
+        {/* Filters row */}
+        <div className="flex flex-wrap items-center gap-3">
           {filters.map((filter) => (
             <Select
               key={filter.name}
@@ -96,54 +99,57 @@ export function FilterBar({
             </Select>
           ))}
           {children}
+          
+          {/* Spacer to push Apply button to the right */}
+          <div className="flex-1" />
+          
+          {needsApplyButton && (
+            <div className="flex items-center gap-2">
+              {onClear && (
+                <Button
+                  variant="ghost"
+                  size="sm"
+                  onClick={onClear}
+                  className="text-muted-foreground"
+                >
+                  <X className="w-4 h-4 mr-1" />
+                  Clear All
+                </Button>
+              )}
+              {onApply && (
+                <Button
+                  onClick={onApply}
+                  size="sm"
+                  disabled={!hasChanges}
+                  className="min-w-[80px]"
+                >
+                  Apply
+                </Button>
+              )}
+            </div>
+          )}
         </div>
         
-        {needsApplyButton && (
-          <div className="flex items-center gap-2">
-            {onClear && (
-              <Button
-                variant="ghost"
-                size="sm"
-                onClick={onClear}
-                className="text-muted-foreground"
-              >
-                <X className="w-4 h-4 mr-1" />
-                Clear All
-              </Button>
-            )}
-            {onApply && (
-              <Button
-                onClick={onApply}
-                size="sm"
-                disabled={!hasChanges}
-                className="min-w-[80px]"
-              >
-                Apply
-              </Button>
+        {/* Pending changes message */}
+        {hasChanges && (
+          <div className="flex items-center gap-2 text-sm text-warning">
+            <AlertCircle className="w-4 h-4" />
+            <span>Pending changes. Click Apply or press Enter.</span>
+          </div>
+        )}
+        
+        {/* Helper text and applied filters count */}
+        {!hasChanges && (helperText || appliedFiltersCount > 0) && (
+          <div className="flex items-center gap-2 text-sm text-muted-foreground">
+            {helperText && <span>{helperText}</span>}
+            {appliedFiltersCount > 0 && (
+              <Badge variant="secondary" className="text-xs">
+                {appliedFiltersCount} filter{appliedFiltersCount !== 1 ? 's' : ''} applied
+              </Badge>
             )}
           </div>
         )}
       </div>
-      
-      {/* Pending changes message */}
-      {hasChanges && (
-        <div className="flex items-center gap-2 text-sm text-warning">
-          <AlertCircle className="w-4 h-4" />
-          <span>Pending changes. Click Apply or press Enter.</span>
-        </div>
-      )}
-      
-      {/* Helper text and applied filters count */}
-      {!hasChanges && (helperText || appliedFiltersCount > 0) && (
-        <div className="flex items-center gap-2 text-sm text-muted-foreground">
-          {helperText && <span>{helperText}</span>}
-          {appliedFiltersCount > 0 && (
-            <Badge variant="secondary" className="text-xs">
-              {appliedFiltersCount} filter{appliedFiltersCount !== 1 ? 's' : ''} applied
-            </Badge>
-          )}
-        </div>
-      )}
     </div>
   );
 }
