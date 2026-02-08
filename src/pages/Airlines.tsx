@@ -1,4 +1,4 @@
-import { useEffect, useState } from "react";
+import { useEffect, useState, useMemo } from "react";
 import { useNavigate } from "react-router-dom";
 import { MainLayout } from "@/components/layout/MainLayout";
 import { Header } from "@/components/layout/Header";
@@ -35,11 +35,20 @@ import { Card, CardContent } from "@/components/ui/card";
 export default function Airlines() {
   const [airlines, setAirlines] = useState<Airline[]>([]);
   const [loading, setLoading] = useState(true);
-  const [search, setSearch] = useState("");
-  const [statusFilter, setStatusFilter] = useState("all");
-  const [suspendDialog, setSuspendDialog] = useState<Airline | null>(null);
   const navigate = useNavigate();
   const { toast } = useToast();
+
+  // Draft filter states
+  const [search, setSearch] = useState("");
+  const [statusFilter, setStatusFilter] = useState("all");
+
+  // Applied filter states
+  const [appliedFilters, setAppliedFilters] = useState({
+    search: "",
+    status: "all",
+  });
+
+  const [suspendDialog, setSuspendDialog] = useState<Airline | null>(null);
 
   useEffect(() => {
     const loadAirlines = async () => {
@@ -53,13 +62,43 @@ export default function Airlines() {
     loadAirlines();
   }, []);
 
-  const filteredAirlines = airlines.filter((airline) => {
-    const matchesSearch =
-      airline.name.toLowerCase().includes(search.toLowerCase()) ||
-      airline.iataCode.toLowerCase().includes(search.toLowerCase());
-    const matchesStatus = statusFilter === "all" || airline.status === statusFilter;
-    return matchesSearch && matchesStatus;
-  });
+  const hasFilterChanges = useMemo(() => {
+    return search !== appliedFilters.search || statusFilter !== appliedFilters.status;
+  }, [search, statusFilter, appliedFilters]);
+
+  const handleApplyFilters = () => {
+    setAppliedFilters({
+      search,
+      status: statusFilter,
+    });
+  };
+
+  const handleClearFilters = () => {
+    setSearch("");
+    setStatusFilter("all");
+    setAppliedFilters({
+      search: "",
+      status: "all",
+    });
+  };
+
+  const appliedFiltersCount = useMemo(() => {
+    let count = 0;
+    if (appliedFilters.search) count++;
+    if (appliedFilters.status !== "all") count++;
+    return count;
+  }, [appliedFilters]);
+
+  const filteredAirlines = useMemo(() => {
+    return airlines.filter((airline) => {
+      const matchesSearch =
+        !appliedFilters.search ||
+        airline.name.toLowerCase().includes(appliedFilters.search.toLowerCase()) ||
+        airline.iataCode.toLowerCase().includes(appliedFilters.search.toLowerCase());
+      const matchesStatus = appliedFilters.status === "all" || airline.status === appliedFilters.status;
+      return matchesSearch && matchesStatus;
+    });
+  }, [airlines, appliedFilters]);
 
   const handleToggleStatus = async (airline: Airline) => {
     const newStatus = airline.status === "active" ? "disabled" : "active";
@@ -155,6 +194,11 @@ export default function Airlines() {
             ],
           },
         ]}
+        showApplyButton
+        onApply={handleApplyFilters}
+        onClear={handleClearFilters}
+        hasChanges={hasFilterChanges}
+        appliedFiltersCount={appliedFiltersCount}
       />
 
       {filteredAirlines.length === 0 ? (
