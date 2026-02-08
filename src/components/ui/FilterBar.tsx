@@ -1,4 +1,4 @@
-import { Search, Filter, X } from "lucide-react";
+import { Search, X, AlertCircle } from "lucide-react";
 import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
 import {
@@ -22,6 +22,7 @@ interface FilterConfig {
   value: string;
   onChange: (value: string) => void;
   placeholder?: string;
+  icon?: React.ReactNode;
 }
 
 interface FilterBarProps {
@@ -52,6 +53,15 @@ export function FilterBar({
   appliedFiltersCount = 0,
   helperText,
 }: FilterBarProps) {
+  // Determine if we need Apply button (search + at least one filter, or multiple filters)
+  const needsApplyButton = showApplyButton || filters.length > 0;
+
+  const handleKeyDown = (e: React.KeyboardEvent) => {
+    if (e.key === "Enter" && hasChanges && onApply) {
+      onApply();
+    }
+  };
+
   return (
     <div className="space-y-3 mb-6">
       <div className="filter-bar">
@@ -62,6 +72,7 @@ export function FilterBar({
               placeholder={searchPlaceholder}
               value={searchValue}
               onChange={(e) => onSearchChange(e.target.value)}
+              onKeyDown={handleKeyDown}
               className="pl-9"
             />
           </div>
@@ -72,6 +83,7 @@ export function FilterBar({
               onValueChange={filter.onChange}
             >
               <SelectTrigger className="w-full sm:w-[180px]">
+                {filter.icon && <span className="mr-2">{filter.icon}</span>}
                 <SelectValue placeholder={filter.placeholder || filter.name} />
               </SelectTrigger>
               <SelectContent>
@@ -83,45 +95,48 @@ export function FilterBar({
               </SelectContent>
             </Select>
           ))}
-        </div>
-        
-        <div className="flex items-center gap-2">
-          {showApplyButton && (
-            <>
-              {onClear && (
-                <Button
-                  variant="ghost"
-                  size="sm"
-                  onClick={onClear}
-                  className="text-muted-foreground"
-                >
-                  <X className="w-4 h-4 mr-1" />
-                  Clear All
-                </Button>
-              )}
-              {onApply && (
-                <Button
-                  onClick={onApply}
-                  size="sm"
-                  disabled={!hasChanges}
-                  className={cn(
-                    "min-w-[100px]",
-                    hasChanges && "animate-pulse"
-                  )}
-                >
-                  <Filter className="w-4 h-4 mr-1" />
-                  Apply Filters
-                </Button>
-              )}
-            </>
-          )}
           {children}
         </div>
+        
+        {needsApplyButton && (
+          <div className="flex items-center gap-2">
+            {onClear && (
+              <Button
+                variant="ghost"
+                size="sm"
+                onClick={onClear}
+                className="text-muted-foreground"
+              >
+                <X className="w-4 h-4 mr-1" />
+                Clear All
+              </Button>
+            )}
+            {onApply && (
+              <Button
+                onClick={onApply}
+                size="sm"
+                disabled={!hasChanges}
+                className="min-w-[80px]"
+              >
+                Apply
+              </Button>
+            )}
+          </div>
+        )}
       </div>
       
-      {helperText && (
+      {/* Pending changes message */}
+      {hasChanges && (
+        <div className="flex items-center gap-2 text-sm text-warning">
+          <AlertCircle className="w-4 h-4" />
+          <span>Pending changes. Click Apply or press Enter.</span>
+        </div>
+      )}
+      
+      {/* Helper text and applied filters count */}
+      {!hasChanges && (helperText || appliedFiltersCount > 0) && (
         <div className="flex items-center gap-2 text-sm text-muted-foreground">
-          <span>{helperText}</span>
+          {helperText && <span>{helperText}</span>}
           {appliedFiltersCount > 0 && (
             <Badge variant="secondary" className="text-xs">
               {appliedFiltersCount} filter{appliedFiltersCount !== 1 ? 's' : ''} applied
