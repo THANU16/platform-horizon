@@ -123,7 +123,15 @@ export interface RevenueByCountry {
 
 export type DateRangeFilter = "this_month" | "last_month" | "last_7_days" | "last_30_days" | "last_90_days" | "custom";
 
-// Wallet Transaction Types (NO payouts)
+// STRICT Transaction Types - Only these are allowed
+export type TransactionType = 
+  | "AIRLINE_TOPUP" 
+  | "PLATFORM_CREDIT" 
+  | "HOTEL_BOOKING_CHARGE" 
+  | "PLATFORM_RESERVE_DEPOSIT" 
+  | "PLATFORM_RESERVE_WITHDRAWAL";
+
+// Legacy Wallet Transaction Type for backwards compatibility
 export type WalletTransactionType = "top_up" | "booking_charge" | "refund" | "adjustment" | "credit_change" | "platform_fee";
 
 export interface WalletTransaction {
@@ -134,10 +142,23 @@ export interface WalletTransaction {
   airport?: string;
   amount: number;
   type: WalletTransactionType;
+  transactionType?: TransactionType; // New strict type
   status: "completed" | "pending" | "failed";
   date: string;
   description: string;
   reference: string;
+}
+
+// Platform Reserve Transaction
+export interface PlatformReserveTransaction {
+  id: string;
+  type: "PLATFORM_RESERVE_DEPOSIT" | "PLATFORM_RESERVE_WITHDRAWAL";
+  amount: number;
+  adminUser: string;
+  timestamp: string;
+  reference: string;
+  reason: string;
+  status: "completed" | "pending";
 }
 
 // Platform Financial Snapshot
@@ -235,3 +256,13 @@ export interface AllowanceOverview {
   remainingAdminCredit: number;
   totalRemaining: number;
 }
+
+// Platform Treasury Summary
+export interface PlatformTreasurySummary {
+  currentBalance: number;
+  totalDeposited: number;
+  totalWithdrawn: number;
+}
+
+// Tab types for Payments page
+export type PaymentsTabType = "overview" | "detailed" | "treasury";

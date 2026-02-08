@@ -14,7 +14,9 @@ import {
   WalletTransaction,
   PaymentFilters,
   Airport,
-  AirlineFinancialStatus
+  AirlineFinancialStatus,
+  PlatformReserveTransaction,
+  PlatformTreasurySummary
 } from "@/types";
 
 // Simulated delay
@@ -447,7 +449,60 @@ const walletTransactionsData: WalletTransaction[] = [
   },
 ];
 
-// Mock Audit Logs Data
+// Mock Platform Reserve Transactions
+const platformReserveTransactionsData: PlatformReserveTransaction[] = [
+  {
+    id: "1",
+    type: "PLATFORM_RESERVE_DEPOSIT",
+    amount: 100000,
+    adminUser: "John Smith",
+    timestamp: "2025-02-01T10:30:00Z",
+    reference: "RES-2025-001001",
+    reason: "Initial platform reserve funding",
+    status: "completed",
+  },
+  {
+    id: "2",
+    type: "PLATFORM_RESERVE_DEPOSIT",
+    amount: 150000,
+    adminUser: "Sarah Johnson",
+    timestamp: "2025-01-15T14:20:00Z",
+    reference: "RES-2025-000890",
+    reason: "Q1 reserve top-up",
+    status: "completed",
+  },
+  {
+    id: "3",
+    type: "PLATFORM_RESERVE_WITHDRAWAL",
+    amount: 25000,
+    adminUser: "Mike Chen",
+    timestamp: "2025-01-10T09:15:00Z",
+    reference: "RES-2025-000850",
+    reason: "Emergency operational expense",
+    status: "completed",
+  },
+  {
+    id: "4",
+    type: "PLATFORM_RESERVE_DEPOSIT",
+    amount: 75000,
+    adminUser: "John Smith",
+    timestamp: "2024-12-20T11:00:00Z",
+    reference: "RES-2024-000780",
+    reason: "Year-end reserve adjustment",
+    status: "completed",
+  },
+  {
+    id: "5",
+    type: "PLATFORM_RESERVE_WITHDRAWAL",
+    amount: 50000,
+    adminUser: "Sarah Johnson",
+    timestamp: "2024-12-01T16:45:00Z",
+    reference: "RES-2024-000720",
+    reason: "Partner settlement payment",
+    status: "completed",
+  },
+];
+
 const auditLogsData: AuditLog[] = [
   {
     id: "1",
@@ -908,4 +963,54 @@ export const getFilteredPaymentData = async (filters: PaymentFilters) => {
 export const getAirlineTransactionDetail = async (airlineId: string): Promise<WalletTransaction[]> => {
   await delay(200);
   return walletTransactionsData.filter(t => t.airlineId === airlineId);
+};
+
+// Platform Treasury Summary
+export const getPlatformTreasurySummary = async (): Promise<PlatformTreasurySummary> => {
+  await delay(200);
+  
+  const totalDeposited = platformReserveTransactionsData
+    .filter(t => t.type === "PLATFORM_RESERVE_DEPOSIT")
+    .reduce((sum, t) => sum + t.amount, 0);
+  
+  const totalWithdrawn = platformReserveTransactionsData
+    .filter(t => t.type === "PLATFORM_RESERVE_WITHDRAWAL")
+    .reduce((sum, t) => sum + t.amount, 0);
+  
+  return {
+    currentBalance: totalDeposited - totalWithdrawn,
+    totalDeposited,
+    totalWithdrawn,
+  };
+};
+
+// Platform Reserve Transactions
+export const getPlatformReserveTransactions = async (dateRange?: string): Promise<PlatformReserveTransaction[]> => {
+  await delay(300);
+  return platformReserveTransactionsData.sort(
+    (a, b) => new Date(b.timestamp).getTime() - new Date(a.timestamp).getTime()
+  );
+};
+
+// Add Platform Reserve Transaction
+export const addPlatformReserveTransaction = async (
+  type: "PLATFORM_RESERVE_DEPOSIT" | "PLATFORM_RESERVE_WITHDRAWAL",
+  amount: number,
+  reason: string
+): Promise<PlatformReserveTransaction> => {
+  await delay(300);
+  
+  const newTransaction: PlatformReserveTransaction = {
+    id: String(platformReserveTransactionsData.length + 1),
+    type,
+    amount,
+    adminUser: "John Smith", // Would come from auth context
+    timestamp: new Date().toISOString(),
+    reference: `RES-${new Date().getFullYear()}-${String(platformReserveTransactionsData.length + 1).padStart(6, "0")}`,
+    reason,
+    status: "completed",
+  };
+  
+  platformReserveTransactionsData.unshift(newTransaction);
+  return newTransaction;
 };

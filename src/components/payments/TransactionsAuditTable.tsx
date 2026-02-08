@@ -1,3 +1,4 @@
+import { useState } from "react";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import {
   Table,
@@ -14,7 +15,7 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@/components/ui/select";
-import { Badge } from "@/components/ui/badge";
+import { TransactionTypeBadge } from "@/components/ui/TransactionTypeBadge";
 import { StatusBadge, StatusType } from "@/components/ui/StatusBadge";
 import { EmptyState } from "@/components/ui/EmptyState";
 import { Receipt } from "lucide-react";
@@ -26,24 +27,6 @@ interface TransactionsAuditTableProps {
   typeFilter: string;
   onTypeFilterChange: (value: string) => void;
 }
-
-const transactionTypeLabels: Record<WalletTransactionType, string> = {
-  top_up: "Top-up",
-  booking_charge: "Booking Charge",
-  refund: "Refund",
-  adjustment: "Adjustment",
-  credit_change: "Credit Change",
-  platform_fee: "Platform Fee",
-};
-
-const transactionTypeVariants: Record<WalletTransactionType, "default" | "secondary" | "destructive" | "outline"> = {
-  top_up: "default",
-  booking_charge: "secondary",
-  refund: "outline",
-  adjustment: "outline",
-  credit_change: "secondary",
-  platform_fee: "destructive",
-};
 
 export function TransactionsAuditTable({
   transactions,
@@ -68,19 +51,19 @@ export function TransactionsAuditTable({
     <Card>
       <CardHeader className="pb-4">
         <div className="flex items-center justify-between">
-          <CardTitle className="text-base font-medium">Transactions & Audit Trail</CardTitle>
+          <div className="flex items-center gap-2">
+            <Receipt className="w-4 h-4 text-primary" />
+            <CardTitle className="text-base font-medium">Transactions & Audit Trail</CardTitle>
+          </div>
           <Select value={typeFilter} onValueChange={onTypeFilterChange}>
-            <SelectTrigger className="w-[140px]">
+            <SelectTrigger className="w-[160px]">
               <SelectValue placeholder="All Types" />
             </SelectTrigger>
             <SelectContent>
               <SelectItem value="all">All Types</SelectItem>
-              <SelectItem value="top_up">Top-up</SelectItem>
-              <SelectItem value="booking_charge">Booking Charge</SelectItem>
-              <SelectItem value="refund">Refund</SelectItem>
-              <SelectItem value="adjustment">Adjustment</SelectItem>
-              <SelectItem value="credit_change">Credit Change</SelectItem>
-              <SelectItem value="platform_fee">Platform Fee</SelectItem>
+              <SelectItem value="top_up">Airline Top-up</SelectItem>
+              <SelectItem value="credit_change">Platform Credit</SelectItem>
+              <SelectItem value="booking_charge">Hotel Booking</SelectItem>
             </SelectContent>
           </Select>
         </div>
@@ -121,9 +104,9 @@ export function TransactionsAuditTable({
                       </TableCell>
                       <TableCell>
                         {transaction.airport ? (
-                          <Badge variant="secondary" className="text-xs font-mono">
+                          <span className="text-xs font-mono bg-muted px-2 py-0.5 rounded">
                             {transaction.airport}
-                          </Badge>
+                          </span>
                         ) : (
                           <span className="text-muted-foreground">—</span>
                         )}
@@ -132,14 +115,9 @@ export function TransactionsAuditTable({
                         {transaction.country}
                       </TableCell>
                       <TableCell>
-                        <Badge 
-                          variant={transactionTypeVariants[transaction.type]}
-                          className="text-xs"
-                        >
-                          {transactionTypeLabels[transaction.type]}
-                        </Badge>
+                        <TransactionTypeBadge type={transaction.type} />
                       </TableCell>
-                      <TableCell className="text-right font-medium">
+                      <TableCell className="text-right font-semibold">
                         <span className={cn(
                           transaction.amount < 0 ? "text-destructive" : "text-success"
                         )}>
@@ -183,16 +161,11 @@ export function TransactionsAuditTable({
                     </span>
                   </div>
                   <div className="flex items-center gap-2 flex-wrap">
-                    <Badge 
-                      variant={transactionTypeVariants[transaction.type]}
-                      className="text-xs"
-                    >
-                      {transactionTypeLabels[transaction.type]}
-                    </Badge>
+                    <TransactionTypeBadge type={transaction.type} />
                     {transaction.airport && (
-                      <Badge variant="secondary" className="text-xs font-mono">
+                      <span className="text-xs font-mono bg-muted px-2 py-0.5 rounded">
                         {transaction.airport}
-                      </Badge>
+                      </span>
                     )}
                     <StatusBadge status={transaction.status as StatusType} />
                   </div>
