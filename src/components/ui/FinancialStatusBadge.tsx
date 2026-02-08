@@ -31,7 +31,7 @@ export function FinancialStatusBadge({ status, className }: FinancialStatusBadge
   return (
     <span
       className={cn(
-        "inline-flex items-center px-2.5 py-1 rounded-md text-xs font-medium border whitespace-nowrap",
+        "inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium border whitespace-nowrap",
         config.className,
         className
       )}
