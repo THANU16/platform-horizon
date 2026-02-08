@@ -6,19 +6,23 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@/components/ui/select";
-import { Calendar, Plane, MapPin } from "lucide-react";
+import { Calendar, Plane, MapPin, Globe, X } from "lucide-react";
 import { Airline, Airport, DateRangeFilter } from "@/types";
 
 interface DetailedAnalysisFilterBarProps {
   dateRange: DateRangeFilter;
   airlineFilter: string;
   airportFilter: string;
+  countryFilter: string;
   airlines: Airline[];
   airports: Airport[];
+  countries: string[];
   onDateRangeChange: (value: DateRangeFilter) => void;
   onAirlineFilterChange: (value: string) => void;
   onAirportFilterChange: (value: string) => void;
+  onCountryFilterChange: (value: string) => void;
   onApply: () => void;
+  onReset: () => void;
   hasChanges: boolean;
 }
 
@@ -34,14 +38,24 @@ export function DetailedAnalysisFilterBar({
   dateRange,
   airlineFilter,
   airportFilter,
+  countryFilter,
   airlines,
   airports,
+  countries,
   onDateRangeChange,
   onAirlineFilterChange,
   onAirportFilterChange,
+  onCountryFilterChange,
   onApply,
+  onReset,
   hasChanges,
 }: DetailedAnalysisFilterBarProps) {
+  const hasActiveFilters = 
+    airlineFilter !== "all" || 
+    airportFilter !== "all" || 
+    countryFilter !== "all" ||
+    dateRange !== "this_month";
+
   return (
     <div className="flex flex-wrap items-center gap-3">
       {/* Date Range Filter */}
@@ -91,8 +105,36 @@ export function DetailedAnalysisFilterBar({
         </SelectContent>
       </Select>
 
+      {/* Country Filter */}
+      <Select value={countryFilter} onValueChange={onCountryFilterChange}>
+        <SelectTrigger className="w-[150px]">
+          <Globe className="w-4 h-4 mr-2 text-muted-foreground" />
+          <SelectValue placeholder="All Countries" />
+        </SelectTrigger>
+        <SelectContent>
+          <SelectItem value="all">All Countries</SelectItem>
+          {countries.map((country) => (
+            <SelectItem key={country} value={country}>
+              {country}
+            </SelectItem>
+          ))}
+        </SelectContent>
+      </Select>
+
       {/* Spacer */}
       <div className="flex-1" />
+
+      {/* Reset Button */}
+      {hasActiveFilters && (
+        <Button 
+          variant="ghost"
+          onClick={onReset}
+          size="sm"
+        >
+          <X className="w-4 h-4 mr-1" />
+          Reset
+        </Button>
+      )}
 
       {/* Apply Button */}
       <Button 
@@ -100,7 +142,7 @@ export function DetailedAnalysisFilterBar({
         disabled={!hasChanges}
         size="sm"
       >
-        Apply
+        Apply Filters
       </Button>
     </div>
   );

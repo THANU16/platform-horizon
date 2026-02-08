@@ -24,6 +24,10 @@ export function PlatformOverviewSection({
     }).format(value);
   };
 
+  // Net Exposure = Platform Reserve – Total Credit Used
+  const netExposure = platformReserve - snapshot.totalCreditUsed;
+  const isExposureCovered = netExposure >= 0;
+
   const kpiCards = [
     {
       title: "Total Top-up Balance",
@@ -52,11 +56,11 @@ export function PlatformOverviewSection({
     },
     {
       title: "Net Exposure",
-      value: formatCurrency(Math.abs(snapshot.netPlatformExposure)),
-      subtext: snapshot.netPlatformExposure <= 0 ? "Fully covered" : "At risk",
-      icon: snapshot.netPlatformExposure <= 0 ? TrendingUp : TrendingDown,
-      trend: snapshot.netPlatformExposure <= 0 ? "+0%" : undefined,
-      trendClass: snapshot.netPlatformExposure <= 0 ? "text-success" : "text-destructive",
+      value: formatCurrency(Math.abs(netExposure)),
+      subtext: isExposureCovered ? "Fully covered" : "Financial risk indicator",
+      icon: isExposureCovered ? TrendingUp : TrendingDown,
+      trend: isExposureCovered ? "Covered" : "At Risk",
+      trendClass: isExposureCovered ? "text-success" : "text-destructive",
     },
     {
       title: "Platform Revenue",
