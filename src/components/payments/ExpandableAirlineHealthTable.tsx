@@ -11,17 +11,16 @@ import {
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { EmptyState } from "@/components/ui/EmptyState";
+import { FinancialStatusBadge } from "@/components/ui/FinancialStatusBadge";
+import { TransactionTypeBadge } from "@/components/ui/TransactionTypeBadge";
+import { StatusBadge, StatusType } from "@/components/ui/StatusBadge";
 import { 
   Building2, 
   ChevronDown, 
   ChevronUp, 
-  AlertCircle, 
-  CheckCircle, 
-  TrendingDown, 
-  Wallet,
   ArrowUpDown
 } from "lucide-react";
-import { AirlineFinancialHealth, AirlineFinancialStatus, WalletTransaction, WalletTransactionType } from "@/types";
+import { AirlineFinancialHealth, WalletTransaction } from "@/types";
 import { cn } from "@/lib/utils";
 
 interface ExpandableAirlineHealthTableProps {
@@ -29,22 +28,6 @@ interface ExpandableAirlineHealthTableProps {
   transactions: WalletTransaction[];
   onAirlineClick?: (airlineId: string) => void;
 }
-
-const statusConfig: Record<AirlineFinancialStatus, { label: string; variant: "default" | "secondary" | "destructive" | "outline"; icon: typeof CheckCircle }> = {
-  healthy: { label: "Healthy", variant: "default", icon: CheckCircle },
-  using_credit: { label: "Using Credit", variant: "secondary", icon: TrendingDown },
-  critical: { label: "Critical", variant: "destructive", icon: AlertCircle },
-  topup_required: { label: "Top-up Required", variant: "outline", icon: Wallet },
-};
-
-const transactionTypeLabels: Record<WalletTransactionType, string> = {
-  top_up: "Top-up",
-  booking_charge: "Booking Charge",
-  refund: "Refund",
-  adjustment: "Adjustment",
-  credit_change: "Credit Change",
-  platform_fee: "Platform Fee",
-};
 
 type SortField = "airlineName" | "country" | "totalTopUps" | "totalBookingSpend" | "platformRevenue" | "walletBalance" | "creditLimit" | "creditUsed";
 type SortDirection = "asc" | "desc";
@@ -168,8 +151,6 @@ export function ExpandableAirlineHealthTable({ data, transactions, onAirlineClic
                 </TableHeader>
                 <TableBody>
                   {sortedData.map((airline) => {
-                    const status = statusConfig[airline.status];
-                    const StatusIcon = status.icon;
                     const isExpanded = expandedAirlines.has(airline.airlineId);
                     const airlineTransactions = getAirlineTransactions(airline.airlineId);
                     const stats = getAirlineStats(airline.airlineId);
@@ -209,9 +190,7 @@ export function ExpandableAirlineHealthTable({ data, transactions, onAirlineClic
                           </TableCell>
                           <TableCell>{formatCurrency(airline.remainingCredit)}</TableCell>
                           <TableCell>
-                            <Badge variant={status.variant} className="text-xs">
-                              {status.label}
-                            </Badge>
+                            <FinancialStatusBadge status={airline.status} />
                           </TableCell>
                           <TableCell>
                             <Button variant="ghost" size="icon">
@@ -264,22 +243,23 @@ export function ExpandableAirlineHealthTable({ data, transactions, onAirlineClic
                                             <span className="text-muted-foreground">
                                               {new Date(tx.date).toLocaleDateString()}
                                             </span>
-                                            <Badge variant="outline" className="text-xs">
-                                              {transactionTypeLabels[tx.type]}
-                                            </Badge>
+                                            <TransactionTypeBadge type={tx.type} />
                                             {tx.airport && (
                                               <Badge variant="secondary" className="text-xs font-mono">
                                                 {tx.airport}
                                               </Badge>
                                             )}
-                                            <span className="text-muted-foreground">{tx.description}</span>
+                                            <span className="text-muted-foreground truncate max-w-[200px]">{tx.description}</span>
                                           </div>
-                                          <span className={cn(
-                                            "font-medium",
-                                            tx.amount < 0 ? "text-destructive" : "text-success"
-                                          )}>
-                                            {tx.amount < 0 ? `-${formatCurrency(Math.abs(tx.amount))}` : `+${formatCurrency(tx.amount)}`}
-                                          </span>
+                                          <div className="flex items-center gap-2">
+                                            <span className={cn(
+                                              "font-medium",
+                                              tx.amount < 0 ? "text-destructive" : "text-success"
+                                            )}>
+                                              {tx.amount < 0 ? `-${formatCurrency(Math.abs(tx.amount))}` : `+${formatCurrency(tx.amount)}`}
+                                            </span>
+                                            <StatusBadge status={tx.status as StatusType} />
+                                          </div>
                                         </div>
                                       ))}
                                     </div>
@@ -299,8 +279,6 @@ export function ExpandableAirlineHealthTable({ data, transactions, onAirlineClic
             {/* Mobile Cards */}
             <div className="lg:hidden space-y-4">
               {sortedData.map((airline) => {
-                const status = statusConfig[airline.status];
-                const StatusIcon = status.icon;
                 const isExpanded = expandedAirlines.has(airline.airlineId);
                 const airlineTransactions = getAirlineTransactions(airline.airlineId);
                 const stats = getAirlineStats(airline.airlineId);
@@ -318,9 +296,7 @@ export function ExpandableAirlineHealthTable({ data, transactions, onAirlineClic
                           <p className="text-sm text-muted-foreground">{airline.country}</p>
                         </div>
                         <div className="flex items-center gap-2">
-                          <Badge variant={status.variant} className="text-xs">
-                            {status.label}
-                          </Badge>
+                          <FinancialStatusBadge status={airline.status} />
                           {isExpanded ? (
                             <ChevronUp className="w-4 h-4 text-muted-foreground" />
                           ) : (
@@ -382,19 +358,17 @@ export function ExpandableAirlineHealthTable({ data, transactions, onAirlineClic
                                     className="flex items-center justify-between text-xs bg-muted/50 rounded p-2"
                                   >
                                     <div className="flex items-center gap-2">
-                                      <Badge variant="outline" className="text-xs">
-                                        {transactionTypeLabels[tx.type]}
-                                      </Badge>
-                                      {tx.airport && (
-                                        <span className="font-mono">{tx.airport}</span>
-                                      )}
+                                      <TransactionTypeBadge type={tx.type} />
                                     </div>
-                                    <span className={cn(
-                                      "font-medium",
-                                      tx.amount < 0 ? "text-destructive" : "text-success"
-                                    )}>
-                                      {tx.amount < 0 ? `-${formatCurrency(Math.abs(tx.amount))}` : `+${formatCurrency(tx.amount)}`}
-                                    </span>
+                                    <div className="flex items-center gap-2">
+                                      <span className={cn(
+                                        "font-medium",
+                                        tx.amount < 0 ? "text-destructive" : "text-success"
+                                      )}>
+                                        {tx.amount < 0 ? `-${formatCurrency(Math.abs(tx.amount))}` : `+${formatCurrency(tx.amount)}`}
+                                      </span>
+                                      <StatusBadge status={tx.status as StatusType} />
+                                    </div>
                                   </div>
                                 ))}
                               </div>
