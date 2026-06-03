@@ -86,26 +86,15 @@ export default function Payments() {
   const [platformReserve, setPlatformReserve] = useState(250000);
   const [reserveModalOpen, setReserveModalOpen] = useState(false);
 
-  // Global filter states (draft) - now in header only
+  // Global filter (header)
   const [globalDateRange, setGlobalDateRange] = useState<DateRangeFilter>("this_month");
-
-  // Applied global filters
   const [appliedGlobalDateRange, setAppliedGlobalDateRange] = useState<DateRangeFilter>("this_month");
 
-  // Detailed Analysis filter states (draft)
+  // Detailed Analysis filters (auto-apply)
   const [detailDateRange, setDetailDateRange] = useState<DateRangeFilter>("this_month");
   const [detailAirlineFilter, setDetailAirlineFilter] = useState("all");
   const [detailAirportFilter, setDetailAirportFilter] = useState("all");
   const [detailCountryFilter, setDetailCountryFilter] = useState("all");
-
-  // Applied Detailed Analysis filters
-  const [appliedDetailFilters, setAppliedDetailFilters] = useState<PaymentFilters>({
-    search: "",
-    country: "all",
-    airline: "all",
-    airport: "all",
-    dateRange: "this_month",
-  });
 
   // Treasury date range filter
   const [treasuryDateRange, setTreasuryDateRange] = useState<DateRangeFilter>("this_month");
