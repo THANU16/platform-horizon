@@ -157,52 +157,64 @@ export default function Payments() {
     loadData();
   }, [fetchPaymentData, fetchTreasuryData]);
 
-  // Check if detail filters have changes
-  const hasDetailFilterChanges = useMemo(() => {
-    return (
-      detailDateRange !== appliedDetailFilters.dateRange ||
-      detailAirlineFilter !== appliedDetailFilters.airline ||
-      detailAirportFilter !== appliedDetailFilters.airport ||
-      detailCountryFilter !== appliedDetailFilters.country
-    );
-  }, [detailDateRange, detailAirlineFilter, detailAirportFilter, detailCountryFilter, appliedDetailFilters]);
+  // Auto-apply detail filters whenever one of them changes
+  const applyDetailFilters = useCallback(
+    (overrides?: Partial<{ dateRange: DateRangeFilter; airline: string; airport: string; country: string }>) => {
+      const newFilters: PaymentFilters = {
+        search: "",
+        country: overrides?.country ?? detailCountryFilter,
+        airline: overrides?.airline ?? detailAirlineFilter,
+        airport: overrides?.airport ?? detailAirportFilter,
+        dateRange: overrides?.dateRange ?? detailDateRange,
+      };
+      void fetchPaymentData(newFilters);
+    },
+    [detailDateRange, detailAirlineFilter, detailAirportFilter, detailCountryFilter, fetchPaymentData]
+  );
 
-  // Apply detail filters
-  const handleApplyDetailFilters = async () => {
-    const newFilters: PaymentFilters = {
-      search: "",
-      country: detailCountryFilter,
-      airline: detailAirlineFilter,
-      airport: detailAirportFilter,
-      dateRange: detailDateRange,
-    };
-    setAppliedDetailFilters(newFilters);
-    await fetchPaymentData(newFilters);
+  const handleDetailDateRangeChange = (value: DateRangeFilter) => {
+    setDetailDateRange(value);
+    applyDetailFilters({ dateRange: value });
+  };
+  const handleDetailAirlineChange = (value: string) => {
+    setDetailAirlineFilter(value);
+    applyDetailFilters({ airline: value });
+  };
+  const handleDetailAirportChange = (value: string) => {
+    setDetailAirportFilter(value);
+    applyDetailFilters({ airport: value });
+  };
+  const handleDetailCountryChange = (value: string) => {
+    setDetailCountryFilter(value);
+    applyDetailFilters({ country: value });
   };
 
-  // Reset detail filters
   const handleResetDetailFilters = () => {
     setDetailDateRange("this_month");
     setDetailAirlineFilter("all");
     setDetailAirportFilter("all");
     setDetailCountryFilter("all");
+    void fetchPaymentData({
+      search: "",
+      country: "all",
+      airline: "all",
+      airport: "all",
+      dateRange: "this_month",
+    });
   };
 
-  // Handle global date range change (auto-apply for simplicity)
+  // Handle global date range change (auto-apply)
   const handleGlobalDateRangeChange = async (value: DateRangeFilter) => {
     setGlobalDateRange(value);
     setAppliedGlobalDateRange(value);
-    // Sync detail filters if needed
     setDetailDateRange(value);
-    const newFilters: PaymentFilters = {
+    await fetchPaymentData({
       search: "",
       country: detailCountryFilter,
       airline: detailAirlineFilter,
       airport: detailAirportFilter,
       dateRange: value,
-    };
-    setAppliedDetailFilters(newFilters);
-    await fetchPaymentData(newFilters);
+    });
   };
 
   // Handle platform reserve transaction
