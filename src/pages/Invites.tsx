@@ -349,11 +349,7 @@ export default function Invites() {
             ],
           },
         ]}
-        showApplyButton
-        onApply={handleApplyFilters}
         onClear={handleClearFilters}
-        hasChanges={hasFilterChanges}
-        appliedFiltersCount={appliedFiltersCount}
         helperText="Showing pending and expired invitations that require action."
       >
         {/* Status multi-select as buttons */}
