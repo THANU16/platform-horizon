@@ -15,6 +15,7 @@ import SystemSettings from "./pages/SystemSettings";
 import AuditLogs from "./pages/AuditLogs";
 import AdminProfile from "./pages/AdminProfile";
 import Auth from "./pages/Auth";
+import ForgotPassword from "./pages/ForgotPassword";
 import NotFound from "./pages/NotFound";
 
 const queryClient = new QueryClient();
@@ -28,6 +29,7 @@ const App = () => (
         <BrowserRouter>
           <Routes>
             <Route path="/auth" element={<Auth />} />
+            <Route path="/forgot-password" element={<ForgotPassword />} />
             <Route path="/" element={<ProtectedRoute><Dashboard /></ProtectedRoute>} />
             <Route path="/airlines" element={<ProtectedRoute><Airlines /></ProtectedRoute>} />
             <Route path="/airlines/:id" element={<ProtectedRoute><AirlineDetail /></ProtectedRoute>} />
