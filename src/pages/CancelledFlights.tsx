@@ -98,11 +98,7 @@ export default function CancelledFlights() {
             ],
           },
         ]}
-        showApplyButton
-        onApply={handleApplyFilters}
         onClear={handleClearFilters}
-        hasChanges={hasFilterChanges}
-        appliedFiltersCount={appliedFiltersCount}
       />
 
       {filteredFlights.length === 0 ? (
