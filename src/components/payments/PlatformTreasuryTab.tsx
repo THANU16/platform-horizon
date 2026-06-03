@@ -37,22 +37,6 @@ export function PlatformTreasuryTab({
   onDateRangeChange,
   onManageReserve,
 }: PlatformTreasuryTabProps) {
-  // Draft filter state
-  const [draftDateRange, setDraftDateRange] = useState<DateRangeFilter>(dateRange);
-
-  // Track if there are pending changes
-  const hasChanges = draftDateRange !== dateRange;
-
-  const handleApply = () => {
-    onDateRangeChange(draftDateRange);
-  };
-
-  const handleKeyDown = (e: React.KeyboardEvent) => {
-    if (e.key === "Enter" && hasChanges) {
-      handleApply();
-    }
-  };
-
   const formatCurrency = (value: number) => {
     return new Intl.NumberFormat("en-US", {
       style: "currency",
@@ -129,43 +113,23 @@ export function PlatformTreasuryTab({
       {/* Audit Table */}
       <Card>
         <CardHeader className="pb-4">
-          <div className="flex flex-col gap-3">
-            <div className="flex items-center justify-between">
-              <div className="flex items-center gap-2">
-                <Receipt className="w-4 h-4 text-primary" />
-                <CardTitle className="text-base font-medium">Platform Reserve Audit Trail</CardTitle>
-              </div>
-              <div className="flex items-center gap-2" onKeyDown={handleKeyDown}>
-                <Select value={draftDateRange} onValueChange={(v) => setDraftDateRange(v as DateRangeFilter)}>
-                  <SelectTrigger className="w-[160px]">
-                    <SelectValue />
-                  </SelectTrigger>
-                  <SelectContent>
-                    <SelectItem value="this_month">This Month</SelectItem>
-                    <SelectItem value="last_month">Last Month</SelectItem>
-                    <SelectItem value="last_7_days">Last 7 Days</SelectItem>
-                    <SelectItem value="last_30_days">Last 30 Days</SelectItem>
-                    <SelectItem value="last_90_days">Last 90 Days</SelectItem>
-                  </SelectContent>
-                </Select>
-                <Button
-                  onClick={handleApply}
-                  disabled={!hasChanges}
-                  size="sm"
-                  className="min-w-[80px]"
-                >
-                  Apply
-                </Button>
-              </div>
+          <div className="flex items-center justify-between">
+            <div className="flex items-center gap-2">
+              <Receipt className="w-4 h-4 text-primary" />
+              <CardTitle className="text-base font-medium">Platform Reserve Audit Trail</CardTitle>
             </div>
-            
-            {/* Pending changes message */}
-            {hasChanges && (
-              <div className="flex items-center gap-2 text-sm text-warning">
-                <AlertCircle className="w-4 h-4" />
-                <span>Pending changes. Click Apply or press Enter.</span>
-              </div>
-            )}
+            <Select value={dateRange} onValueChange={(v) => onDateRangeChange(v as DateRangeFilter)}>
+              <SelectTrigger className="w-[160px]">
+                <SelectValue />
+              </SelectTrigger>
+              <SelectContent>
+                <SelectItem value="this_month">This Month</SelectItem>
+                <SelectItem value="last_month">Last Month</SelectItem>
+                <SelectItem value="last_7_days">Last 7 Days</SelectItem>
+                <SelectItem value="last_30_days">Last 30 Days</SelectItem>
+                <SelectItem value="last_90_days">Last 90 Days</SelectItem>
+              </SelectContent>
+            </Select>
           </div>
         </CardHeader>
         <CardContent>
