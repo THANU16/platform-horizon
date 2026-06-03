@@ -166,11 +166,7 @@ export default function Airlines() {
             ],
           },
         ]}
-        showApplyButton
-        onApply={handleApplyFilters}
         onClear={handleClearFilters}
-        hasChanges={hasFilterChanges}
-        appliedFiltersCount={appliedFiltersCount}
       />
 
       {filteredAirlines.length === 0 ? (
