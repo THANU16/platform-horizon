@@ -11,6 +11,7 @@ import { Label } from "@/components/ui/label";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Switch } from "@/components/ui/switch";
 import { useToast } from "@/hooks/use-toast";
+import { TwoFactorCard } from "@/components/security/TwoFactorCard";
 
 export default function AdminProfile() {
   const [profile, setProfile] = useState<AdminProfileType | null>(null);
@@ -146,6 +147,11 @@ export default function AdminProfile() {
             </Button>
           </CardContent>
         </Card>
+
+        {/* Two-Factor Authentication - spans full width on large screens */}
+        <div className="lg:col-span-2">
+          <TwoFactorCard accountEmail={profile.email} />
+        </div>
 
         {/* Account Info */}
         <Card>
