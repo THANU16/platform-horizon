@@ -38,15 +38,8 @@ export default function Airlines() {
   const navigate = useNavigate();
   const { toast } = useToast();
 
-  // Draft filter states
   const [search, setSearch] = useState("");
   const [statusFilter, setStatusFilter] = useState("all");
-
-  // Applied filter states
-  const [appliedFilters, setAppliedFilters] = useState({
-    search: "",
-    status: "all",
-  });
 
   const [suspendDialog, setSuspendDialog] = useState<Airline | null>(null);
 
@@ -62,43 +55,22 @@ export default function Airlines() {
     loadAirlines();
   }, []);
 
-  const hasFilterChanges = useMemo(() => {
-    return search !== appliedFilters.search || statusFilter !== appliedFilters.status;
-  }, [search, statusFilter, appliedFilters]);
-
-  const handleApplyFilters = () => {
-    setAppliedFilters({
-      search,
-      status: statusFilter,
-    });
-  };
-
   const handleClearFilters = () => {
     setSearch("");
     setStatusFilter("all");
-    setAppliedFilters({
-      search: "",
-      status: "all",
-    });
   };
 
-  const appliedFiltersCount = useMemo(() => {
-    let count = 0;
-    if (appliedFilters.search) count++;
-    if (appliedFilters.status !== "all") count++;
-    return count;
-  }, [appliedFilters]);
-
   const filteredAirlines = useMemo(() => {
+    const q = search.toLowerCase();
     return airlines.filter((airline) => {
       const matchesSearch =
-        !appliedFilters.search ||
-        airline.name.toLowerCase().includes(appliedFilters.search.toLowerCase()) ||
-        airline.iataCode.toLowerCase().includes(appliedFilters.search.toLowerCase());
-      const matchesStatus = appliedFilters.status === "all" || airline.status === appliedFilters.status;
+        !q ||
+        airline.name.toLowerCase().includes(q) ||
+        airline.iataCode.toLowerCase().includes(q);
+      const matchesStatus = statusFilter === "all" || airline.status === statusFilter;
       return matchesSearch && matchesStatus;
     });
-  }, [airlines, appliedFilters]);
+  }, [airlines, search, statusFilter]);
 
   const handleToggleStatus = async (airline: Airline) => {
     const newStatus = airline.status === "active" ? "disabled" : "active";
@@ -194,11 +166,7 @@ export default function Airlines() {
             ],
           },
         ]}
-        showApplyButton
-        onApply={handleApplyFilters}
         onClear={handleClearFilters}
-        hasChanges={hasFilterChanges}
-        appliedFiltersCount={appliedFiltersCount}
       />
 
       {filteredAirlines.length === 0 ? (

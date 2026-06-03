@@ -1,6 +1,4 @@
-import { useState, useMemo } from "react";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
-import { Button } from "@/components/ui/button";
 import {
   Table,
   TableBody,
@@ -19,8 +17,8 @@ import {
 import { TransactionTypeBadge } from "@/components/ui/TransactionTypeBadge";
 import { StatusBadge, StatusType } from "@/components/ui/StatusBadge";
 import { EmptyState } from "@/components/ui/EmptyState";
-import { Receipt, AlertCircle } from "lucide-react";
-import { WalletTransaction, WalletTransactionType } from "@/types";
+import { Receipt } from "lucide-react";
+import { WalletTransaction } from "@/types";
 import { cn } from "@/lib/utils";
 
 interface TransactionsAuditTableProps {
@@ -34,22 +32,6 @@ export function TransactionsAuditTable({
   typeFilter,
   onTypeFilterChange,
 }: TransactionsAuditTableProps) {
-  // Draft filter state
-  const [draftTypeFilter, setDraftTypeFilter] = useState(typeFilter);
-
-  // Track if there are pending changes
-  const hasChanges = draftTypeFilter !== typeFilter;
-
-  const handleApply = () => {
-    onTypeFilterChange(draftTypeFilter);
-  };
-
-  const handleKeyDown = (e: React.KeyboardEvent) => {
-    if (e.key === "Enter" && hasChanges) {
-      handleApply();
-    }
-  };
-
   const formatCurrency = (value: number) => {
     const absValue = Math.abs(value);
     const formatted = new Intl.NumberFormat("en-US", {
@@ -67,42 +49,22 @@ export function TransactionsAuditTable({
   return (
     <Card>
       <CardHeader className="pb-4">
-        <div className="flex flex-col gap-3">
-          <div className="flex items-center justify-between">
-            <div className="flex items-center gap-2">
-              <Receipt className="w-4 h-4 text-primary" />
-              <CardTitle className="text-base font-medium">Transactions & Audit Trail</CardTitle>
-            </div>
-            <div className="flex items-center gap-2" onKeyDown={handleKeyDown}>
-              <Select value={draftTypeFilter} onValueChange={setDraftTypeFilter}>
-                <SelectTrigger className="w-[160px]">
-                  <SelectValue placeholder="All Types" />
-                </SelectTrigger>
-                <SelectContent>
-                  <SelectItem value="all">All Types</SelectItem>
-                  <SelectItem value="AIRLINE_TOPUP">Airline Top-up</SelectItem>
-                  <SelectItem value="PLATFORM_CREDIT">Platform Credit</SelectItem>
-                  <SelectItem value="HOTEL_BOOKING_CHARGE">Hotel Booking</SelectItem>
-                </SelectContent>
-              </Select>
-              <Button
-                onClick={handleApply}
-                disabled={!hasChanges}
-                size="sm"
-                className="min-w-[80px]"
-              >
-                Apply
-              </Button>
-            </div>
+        <div className="flex items-center justify-between">
+          <div className="flex items-center gap-2">
+            <Receipt className="w-4 h-4 text-primary" />
+            <CardTitle className="text-base font-medium">Transactions & Audit Trail</CardTitle>
           </div>
-          
-          {/* Pending changes message */}
-          {hasChanges && (
-            <div className="flex items-center gap-2 text-sm text-warning">
-              <AlertCircle className="w-4 h-4" />
-              <span>Pending changes. Click Apply or press Enter.</span>
-            </div>
-          )}
+          <Select value={typeFilter} onValueChange={onTypeFilterChange}>
+            <SelectTrigger className="w-[160px]">
+              <SelectValue placeholder="All Types" />
+            </SelectTrigger>
+            <SelectContent>
+              <SelectItem value="all">All Types</SelectItem>
+              <SelectItem value="AIRLINE_TOPUP">Airline Top-up</SelectItem>
+              <SelectItem value="PLATFORM_CREDIT">Platform Credit</SelectItem>
+              <SelectItem value="HOTEL_BOOKING_CHARGE">Hotel Booking</SelectItem>
+            </SelectContent>
+          </Select>
         </div>
       </CardHeader>
       <CardContent>
@@ -179,8 +141,8 @@ export function TransactionsAuditTable({
             {/* Mobile Cards */}
             <div className="lg:hidden space-y-3">
               {filteredTransactions.map((transaction) => (
-                <div 
-                  key={transaction.id} 
+                <div
+                  key={transaction.id}
                   className="bg-muted/30 rounded-lg p-3 space-y-2"
                 >
                   <div className="flex items-start justify-between">

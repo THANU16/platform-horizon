@@ -22,15 +22,8 @@ export default function CancelledFlights() {
   const [flights, setFlights] = useState<CancelledFlight[]>([]);
   const [loading, setLoading] = useState(true);
 
-  // Draft filter states
   const [search, setSearch] = useState("");
   const [statusFilter, setStatusFilter] = useState("all");
-
-  // Applied filter states
-  const [appliedFilters, setAppliedFilters] = useState({
-    search: "",
-    status: "all",
-  });
 
   useEffect(() => {
     const loadFlights = async () => {
@@ -44,45 +37,24 @@ export default function CancelledFlights() {
     loadFlights();
   }, []);
 
-  const hasFilterChanges = useMemo(() => {
-    return search !== appliedFilters.search || statusFilter !== appliedFilters.status;
-  }, [search, statusFilter, appliedFilters]);
-
-  const handleApplyFilters = () => {
-    setAppliedFilters({
-      search,
-      status: statusFilter,
-    });
-  };
-
   const handleClearFilters = () => {
     setSearch("");
     setStatusFilter("all");
-    setAppliedFilters({
-      search: "",
-      status: "all",
-    });
   };
 
-  const appliedFiltersCount = useMemo(() => {
-    let count = 0;
-    if (appliedFilters.search) count++;
-    if (appliedFilters.status !== "all") count++;
-    return count;
-  }, [appliedFilters]);
-
   const filteredFlights = useMemo(() => {
+    const q = search.toLowerCase();
     return flights.filter((flight) => {
       const matchesSearch =
-        !appliedFilters.search ||
-        flight.flightNumber.toLowerCase().includes(appliedFilters.search.toLowerCase()) ||
-        flight.airlineName.toLowerCase().includes(appliedFilters.search.toLowerCase()) ||
-        flight.departureAirport.toLowerCase().includes(appliedFilters.search.toLowerCase()) ||
-        flight.arrivalAirport.toLowerCase().includes(appliedFilters.search.toLowerCase());
-      const matchesStatus = appliedFilters.status === "all" || flight.status === appliedFilters.status;
+        !q ||
+        flight.flightNumber.toLowerCase().includes(q) ||
+        flight.airlineName.toLowerCase().includes(q) ||
+        flight.departureAirport.toLowerCase().includes(q) ||
+        flight.arrivalAirport.toLowerCase().includes(q);
+      const matchesStatus = statusFilter === "all" || flight.status === statusFilter;
       return matchesSearch && matchesStatus;
     });
-  }, [flights, appliedFilters]);
+  }, [flights, search, statusFilter]);
 
   const formatCurrency = (value: number) => {
     return new Intl.NumberFormat("en-US", {
@@ -126,11 +98,7 @@ export default function CancelledFlights() {
             ],
           },
         ]}
-        showApplyButton
-        onApply={handleApplyFilters}
         onClear={handleClearFilters}
-        hasChanges={hasFilterChanges}
-        appliedFiltersCount={appliedFiltersCount}
       />
 
       {filteredFlights.length === 0 ? (

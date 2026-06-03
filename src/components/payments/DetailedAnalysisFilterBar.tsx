@@ -6,7 +6,7 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@/components/ui/select";
-import { Calendar, Plane, MapPin, Globe, X, AlertCircle } from "lucide-react";
+import { Calendar, Plane, MapPin, Globe, X } from "lucide-react";
 import { Airline, Airport, DateRangeFilter } from "@/types";
 
 interface DetailedAnalysisFilterBarProps {
@@ -21,9 +21,7 @@ interface DetailedAnalysisFilterBarProps {
   onAirlineFilterChange: (value: string) => void;
   onAirportFilterChange: (value: string) => void;
   onCountryFilterChange: (value: string) => void;
-  onApply: () => void;
   onReset: () => void;
-  hasChanges: boolean;
 }
 
 const dateRangeOptions: { value: DateRangeFilter; label: string }[] = [
@@ -46,120 +44,82 @@ export function DetailedAnalysisFilterBar({
   onAirlineFilterChange,
   onAirportFilterChange,
   onCountryFilterChange,
-  onApply,
   onReset,
-  hasChanges,
 }: DetailedAnalysisFilterBarProps) {
-  const hasActiveFilters = 
-    airlineFilter !== "all" || 
-    airportFilter !== "all" || 
+  const hasActiveFilters =
+    airlineFilter !== "all" ||
+    airportFilter !== "all" ||
     countryFilter !== "all" ||
     dateRange !== "this_month";
 
-  const handleKeyDown = (e: React.KeyboardEvent) => {
-    if (e.key === "Enter" && hasChanges) {
-      onApply();
-    }
-  };
-
   return (
-    <div className="space-y-3">
-      <div className="flex flex-wrap items-center gap-3" onKeyDown={handleKeyDown}>
-        {/* Date Range Filter */}
-        <Select value={dateRange} onValueChange={onDateRangeChange}>
-          <SelectTrigger className="w-[140px]">
-            <Calendar className="w-4 h-4 mr-2 text-muted-foreground" />
-            <SelectValue />
-          </SelectTrigger>
-          <SelectContent>
-            {dateRangeOptions.map((option) => (
-              <SelectItem key={option.value} value={option.value}>
-                {option.label}
-              </SelectItem>
-            ))}
-          </SelectContent>
-        </Select>
+    <div className="flex flex-wrap items-center gap-3">
+      <Select value={dateRange} onValueChange={onDateRangeChange}>
+        <SelectTrigger className="w-[140px]">
+          <Calendar className="w-4 h-4 mr-2 text-muted-foreground" />
+          <SelectValue />
+        </SelectTrigger>
+        <SelectContent>
+          {dateRangeOptions.map((option) => (
+            <SelectItem key={option.value} value={option.value}>
+              {option.label}
+            </SelectItem>
+          ))}
+        </SelectContent>
+      </Select>
 
-        {/* Airline Filter */}
-        <Select value={airlineFilter} onValueChange={onAirlineFilterChange}>
-          <SelectTrigger className="w-[160px]">
-            <Plane className="w-4 h-4 mr-2 text-muted-foreground" />
-            <SelectValue placeholder="All Airlines" />
-          </SelectTrigger>
-          <SelectContent>
-            <SelectItem value="all">All Airlines</SelectItem>
-            {airlines.map((airline) => (
-              <SelectItem key={airline.id} value={airline.id}>
-                {airline.name} ({airline.iataCode})
-              </SelectItem>
-            ))}
-          </SelectContent>
-        </Select>
+      <Select value={airlineFilter} onValueChange={onAirlineFilterChange}>
+        <SelectTrigger className="w-[160px]">
+          <Plane className="w-4 h-4 mr-2 text-muted-foreground" />
+          <SelectValue placeholder="All Airlines" />
+        </SelectTrigger>
+        <SelectContent>
+          <SelectItem value="all">All Airlines</SelectItem>
+          {airlines.map((airline) => (
+            <SelectItem key={airline.id} value={airline.id}>
+              {airline.name} ({airline.iataCode})
+            </SelectItem>
+          ))}
+        </SelectContent>
+      </Select>
 
-        {/* Airport Filter */}
-        <Select value={airportFilter} onValueChange={onAirportFilterChange}>
-          <SelectTrigger className="w-[150px]">
-            <MapPin className="w-4 h-4 mr-2 text-muted-foreground" />
-            <SelectValue placeholder="All Airports" />
-          </SelectTrigger>
-          <SelectContent>
-            <SelectItem value="all">All Airports</SelectItem>
-            {airports.map((airport) => (
-              <SelectItem key={airport.code} value={airport.code}>
-                {airport.code} - {airport.name}
-              </SelectItem>
-            ))}
-          </SelectContent>
-        </Select>
+      <Select value={airportFilter} onValueChange={onAirportFilterChange}>
+        <SelectTrigger className="w-[150px]">
+          <MapPin className="w-4 h-4 mr-2 text-muted-foreground" />
+          <SelectValue placeholder="All Airports" />
+        </SelectTrigger>
+        <SelectContent>
+          <SelectItem value="all">All Airports</SelectItem>
+          {airports.map((airport) => (
+            <SelectItem key={airport.code} value={airport.code}>
+              {airport.code} - {airport.name}
+            </SelectItem>
+          ))}
+        </SelectContent>
+      </Select>
 
-        {/* Country Filter */}
-        <Select value={countryFilter} onValueChange={onCountryFilterChange}>
-          <SelectTrigger className="w-[150px]">
-            <Globe className="w-4 h-4 mr-2 text-muted-foreground" />
-            <SelectValue placeholder="All Countries" />
-          </SelectTrigger>
-          <SelectContent>
-            <SelectItem value="all">All Countries</SelectItem>
-            {countries.map((country) => (
-              <SelectItem key={country} value={country}>
-                {country}
-              </SelectItem>
-            ))}
-          </SelectContent>
-        </Select>
+      <Select value={countryFilter} onValueChange={onCountryFilterChange}>
+        <SelectTrigger className="w-[150px]">
+          <Globe className="w-4 h-4 mr-2 text-muted-foreground" />
+          <SelectValue placeholder="All Countries" />
+        </SelectTrigger>
+        <SelectContent>
+          <SelectItem value="all">All Countries</SelectItem>
+          {countries.map((country) => (
+            <SelectItem key={country} value={country}>
+              {country}
+            </SelectItem>
+          ))}
+        </SelectContent>
+      </Select>
 
-        {/* Spacer */}
-        <div className="flex-1" />
+      <div className="flex-1" />
 
-        {/* Reset Button */}
-        {hasActiveFilters && (
-          <Button 
-            variant="ghost"
-            onClick={onReset}
-            size="sm"
-          >
-            <X className="w-4 h-4 mr-1" />
-            Reset
-          </Button>
-        )}
-
-        {/* Apply Button */}
-        <Button 
-          onClick={onApply}
-          disabled={!hasChanges}
-          size="sm"
-          className="min-w-[80px]"
-        >
-          Apply
+      {hasActiveFilters && (
+        <Button variant="ghost" onClick={onReset} size="sm">
+          <X className="w-4 h-4 mr-1" />
+          Reset
         </Button>
-      </div>
-
-      {/* Pending changes message */}
-      {hasChanges && (
-        <div className="flex items-center gap-2 text-sm text-warning">
-          <AlertCircle className="w-4 h-4" />
-          <span>Pending changes. Click Apply or press Enter.</span>
-        </div>
       )}
     </div>
   );

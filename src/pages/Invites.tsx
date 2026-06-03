@@ -60,17 +60,10 @@ export default function Invites() {
   const [loading, setLoading] = useState(true);
   const { toast } = useToast();
 
-  // Filter states (draft)
+  // Filter states
   const [search, setSearch] = useState("");
   const [statusFilter, setStatusFilter] = useState<string[]>(["pending", "expired"]);
   const [countryFilter, setCountryFilter] = useState("all");
-
-  // Applied filters
-  const [appliedFilters, setAppliedFilters] = useState({
-    search: "",
-    statuses: ["pending", "expired"] as string[],
-    country: "all",
-  });
 
   // Dialog states
   const [dialogOpen, setDialogOpen] = useState(false);
@@ -103,59 +96,26 @@ export default function Invites() {
     loadData();
   }, []);
 
-  const hasFilterChanges = useMemo(() => {
-    const statusString = statusFilter.sort().join(",");
-    const appliedStatusString = appliedFilters.statuses.sort().join(",");
-    return (
-      search !== appliedFilters.search ||
-      statusString !== appliedStatusString ||
-      countryFilter !== appliedFilters.country
-    );
-  }, [search, statusFilter, countryFilter, appliedFilters]);
-
-  const handleApplyFilters = () => {
-    setAppliedFilters({
-      search,
-      statuses: [...statusFilter],
-      country: countryFilter,
-    });
-  };
-
   const handleClearFilters = () => {
     setSearch("");
     setStatusFilter(["pending", "expired"]);
     setCountryFilter("all");
-    setAppliedFilters({
-      search: "",
-      statuses: ["pending", "expired"],
-      country: "all",
-    });
   };
 
-  const appliedFiltersCount = useMemo(() => {
-    let count = 0;
-    if (appliedFilters.search) count++;
-    if (appliedFilters.statuses.length !== 2 || 
-        !appliedFilters.statuses.includes("pending") || 
-        !appliedFilters.statuses.includes("expired")) count++;
-    if (appliedFilters.country !== "all") count++;
-    return count;
-  }, [appliedFilters]);
-
   const filteredInvites = useMemo(() => {
+    const q = search.toLowerCase();
     return invites.filter((invite) => {
       const matchesSearch =
-        !appliedFilters.search ||
-        invite.airlineName.toLowerCase().includes(appliedFilters.search.toLowerCase()) ||
-        invite.contactEmail.toLowerCase().includes(appliedFilters.search.toLowerCase());
+        !q ||
+        invite.airlineName.toLowerCase().includes(q) ||
+        invite.contactEmail.toLowerCase().includes(q);
       const matchesStatus =
-        appliedFilters.statuses.length === 0 ||
-        appliedFilters.statuses.includes(invite.status);
+        statusFilter.length === 0 || statusFilter.includes(invite.status);
       const matchesCountry =
-        appliedFilters.country === "all" || invite.country === appliedFilters.country;
+        countryFilter === "all" || invite.country === countryFilter;
       return matchesSearch && matchesStatus && matchesCountry;
     });
-  }, [invites, appliedFilters]);
+  }, [invites, search, statusFilter, countryFilter]);
 
   const handleStatusToggle = (status: string) => {
     setStatusFilter((prev) =>
@@ -389,11 +349,7 @@ export default function Invites() {
             ],
           },
         ]}
-        showApplyButton
-        onApply={handleApplyFilters}
         onClear={handleClearFilters}
-        hasChanges={hasFilterChanges}
-        appliedFiltersCount={appliedFiltersCount}
         helperText="Showing pending and expired invitations that require action."
       >
         {/* Status multi-select as buttons */}
