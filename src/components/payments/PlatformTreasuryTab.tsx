@@ -19,7 +19,7 @@ import {
 import { EmptyState } from "@/components/ui/EmptyState";
 import { TransactionTypeBadge } from "@/components/ui/TransactionTypeBadge";
 import { StatusBadge } from "@/components/ui/StatusBadge";
-import { Landmark, Settings, Wallet, ArrowUpRight, ArrowDownRight, Receipt, AlertCircle } from "lucide-react";
+import { Landmark, Settings, Wallet, ArrowUpRight, ArrowDownRight, Receipt } from "lucide-react";
 import { PlatformReserveTransaction, DateRangeFilter, PlatformTreasurySummary } from "@/types";
 
 interface PlatformTreasuryTabProps {
