@@ -313,9 +313,9 @@ export default function Payments() {
               <div className="flex items-center gap-2">
                 <BarChart3 className="w-4 h-4 text-primary" />
                 <CardTitle className="text-base font-medium">Detailed Analysis</CardTitle>
-                {(appliedDetailFilters.airline !== "all" || 
-                  appliedDetailFilters.airport !== "all" || 
-                  appliedDetailFilters.country !== "all") && (
+                {(detailAirlineFilter !== "all" ||
+                  detailAirportFilter !== "all" ||
+                  detailCountryFilter !== "all") && (
                   <Badge variant="secondary" className="text-xs">Filtered</Badge>
                 )}
               </div>
@@ -330,13 +330,11 @@ export default function Payments() {
                 airlines={airlines}
                 airports={airports}
                 countries={countries}
-                onDateRangeChange={setDetailDateRange}
-                onAirlineFilterChange={setDetailAirlineFilter}
-                onAirportFilterChange={setDetailAirportFilter}
-                onCountryFilterChange={setDetailCountryFilter}
-                onApply={handleApplyDetailFilters}
+                onDateRangeChange={handleDetailDateRangeChange}
+                onAirlineFilterChange={handleDetailAirlineChange}
+                onAirportFilterChange={handleDetailAirportChange}
+                onCountryFilterChange={handleDetailCountryChange}
                 onReset={handleResetDetailFilters}
-                hasChanges={hasDetailFilterChanges}
               />
 
               {/* Summary Cards */}
