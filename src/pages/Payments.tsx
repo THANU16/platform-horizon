@@ -91,7 +91,8 @@ export default function Payments() {
   const [appliedGlobalDateRange, setAppliedGlobalDateRange] = useState<DateRangeFilter>("this_month");
 
   // Detailed Analysis filters (auto-apply)
-  const [detailDateRange, setDetailDateRange] = useState<DateRangeFilter>("this_month");
+  const [detailStartDate, setDetailStartDate] = useState("");
+  const [detailEndDate, setDetailEndDate] = useState("");
   const [detailAirlineFilter, setDetailAirlineFilter] = useState("all");
   const [detailAirportFilter, setDetailAirportFilter] = useState("all");
   const [detailCountryFilter, setDetailCountryFilter] = useState("all");
@@ -138,7 +139,7 @@ export default function Payments() {
         setCountries(countriesData);
         setAirlines(airlinesData);
         setAirports(airportsData);
-        
+
         // Load initial data with default filters
         await Promise.all([
           fetchPaymentData({
@@ -157,25 +158,21 @@ export default function Payments() {
     loadData();
   }, [fetchPaymentData, fetchTreasuryData]);
 
-  // Auto-apply detail filters whenever one of them changes
+  // Auto-apply detail filters (date range here only affects client filtering of transactions)
   const applyDetailFilters = useCallback(
-    (overrides?: Partial<{ dateRange: DateRangeFilter; airline: string; airport: string; country: string }>) => {
+    (overrides?: Partial<{ airline: string; airport: string; country: string }>) => {
       const newFilters: PaymentFilters = {
         search: "",
         country: overrides?.country ?? detailCountryFilter,
         airline: overrides?.airline ?? detailAirlineFilter,
         airport: overrides?.airport ?? detailAirportFilter,
-        dateRange: overrides?.dateRange ?? detailDateRange,
+        dateRange: "this_month",
       };
       void fetchPaymentData(newFilters);
     },
-    [detailDateRange, detailAirlineFilter, detailAirportFilter, detailCountryFilter, fetchPaymentData]
+    [detailAirlineFilter, detailAirportFilter, detailCountryFilter, fetchPaymentData]
   );
 
-  const handleDetailDateRangeChange = (value: DateRangeFilter) => {
-    setDetailDateRange(value);
-    applyDetailFilters({ dateRange: value });
-  };
   const handleDetailAirlineChange = (value: string) => {
     setDetailAirlineFilter(value);
     applyDetailFilters({ airline: value });
@@ -190,7 +187,8 @@ export default function Payments() {
   };
 
   const handleResetDetailFilters = () => {
-    setDetailDateRange("this_month");
+    setDetailStartDate("");
+    setDetailEndDate("");
     setDetailAirlineFilter("all");
     setDetailAirportFilter("all");
     setDetailCountryFilter("all");
@@ -202,6 +200,7 @@ export default function Payments() {
       dateRange: "this_month",
     });
   };
+
 
   // Handle global date range change (auto-apply)
   const handleGlobalDateRangeChange = async (value: DateRangeFilter) => {
