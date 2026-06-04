@@ -26,10 +26,29 @@ import {
   Bar,
 } from "recharts";
 
+type KpiRange = "today" | "this_week" | "this_month" | "this_year" | "all";
+
+const RANGE_LABEL: Record<KpiRange, string> = {
+  today: "Today",
+  this_week: "This Week",
+  this_month: "This Month",
+  this_year: "This Year",
+  all: "All Time",
+};
+
+// Mock scaling factor applied to KPI numeric values
+const RANGE_FACTOR: Record<KpiRange, number> = {
+  today: 0.03,
+  this_week: 0.2,
+  this_month: 1,
+  this_year: 8,
+  all: 12,
+};
+
 export default function Dashboard() {
   const [stats, setStats] = useState<DashboardStats | null>(null);
   const [loading, setLoading] = useState(true);
-  const [dateRange, setDateRange] = useState("this_month");
+  const [kpiRange, setKpiRange] = useState<KpiRange>("this_month");
 
   useEffect(() => {
     const loadStats = async () => {
@@ -62,53 +81,68 @@ export default function Dashboard() {
     }).format(value);
   };
 
-  const adoptionPercentage = Math.round((stats.activeAirlines / stats.totalAirlines) * 100);
+  const f = RANGE_FACTOR[kpiRange];
+  const scaledTotalAirlines = Math.max(0, Math.round(stats.totalAirlines * Math.min(1, f)));
+  const scaledActiveAirlines = Math.max(0, Math.round(stats.activeAirlines * Math.min(1, f)));
+  const scaledFlights = Math.max(0, Math.round(stats.cancelledFlightsThisMonth * f));
+  const scaledRevenue = Math.max(0, stats.platformRevenue * f);
+
+  const adoptionPercentage = scaledTotalAirlines > 0
+    ? Math.round((scaledActiveAirlines / scaledTotalAirlines) * 100)
+    : 0;
 
   return (
     <MainLayout>
-      <Header title="Dashboard" subtitle="Platform health and operational overview">
-        <Select value={dateRange} onValueChange={setDateRange}>
+      <Header title="Dashboard" subtitle="Platform health and operational overview" />
+
+      {/* KPI Cards - filter applies only to matrix cards */}
+      <div className="flex items-center justify-between mb-4">
+        <h2 className="text-sm font-medium text-muted-foreground">{RANGE_LABEL[kpiRange]} metrics</h2>
+        <Select value={kpiRange} onValueChange={(v) => setKpiRange(v as KpiRange)}>
           <SelectTrigger className="w-[160px]">
             <SelectValue />
           </SelectTrigger>
           <SelectContent>
+            <SelectItem value="today">Today</SelectItem>
+            <SelectItem value="this_week">This Week</SelectItem>
             <SelectItem value="this_month">This Month</SelectItem>
-            <SelectItem value="last_3_months">Last 3 Months</SelectItem>
+            <SelectItem value="this_year">This Year</SelectItem>
+            <SelectItem value="all">All</SelectItem>
           </SelectContent>
         </Select>
-      </Header>
+      </div>
 
-      {/* KPI Cards - 4 cards */}
       <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4 mb-8">
         <KpiCard
           title="Total Airlines"
-          value={stats.totalAirlines}
+          value={scaledTotalAirlines}
           icon={Plane}
-          trend={{ value: stats.airlineGrowthPercent, label: "vs last month" }}
-          subtext="Platform growth"
+          trend={{ value: stats.airlineGrowthPercent, label: `vs prior period` }}
+          subtext={RANGE_LABEL[kpiRange]}
         />
         <KpiCard
           title="Active Airlines"
-          value={stats.activeAirlines}
+          value={scaledActiveAirlines}
           icon={Building2}
           trend={{ value: 0, label: `${adoptionPercentage}% of onboarded` }}
           subtext="Adoption & retention"
         />
         <KpiCard
           title="Cancelled Flights"
-          value={stats.cancelledFlightsThisMonth}
+          value={scaledFlights}
           icon={PlaneTakeoff}
-          trend={{ value: stats.flightChangePercent, label: "vs last month" }}
-          subtext="This month"
+          trend={{ value: stats.flightChangePercent, label: `vs prior period` }}
+          subtext={RANGE_LABEL[kpiRange]}
         />
         <KpiCard
           title="Platform Revenue"
-          value={formatCurrency(stats.platformRevenue)}
+          value={formatCurrency(scaledRevenue)}
           icon={DollarSign}
-          trend={{ value: stats.revenueChangePercent, label: "vs last month" }}
+          trend={{ value: stats.revenueChangePercent, label: `vs prior period` }}
           subtext="Platform fees only"
         />
       </div>
+
 
       {/* Charts Section */}
       <div className="grid grid-cols-1 lg:grid-cols-2 gap-6 mb-6">
