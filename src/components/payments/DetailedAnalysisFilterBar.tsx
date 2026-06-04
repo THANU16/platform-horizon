@@ -6,41 +6,39 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@/components/ui/select";
-import { Calendar, Plane, MapPin, Globe, X } from "lucide-react";
-import { Airline, Airport, DateRangeFilter } from "@/types";
+import { Input } from "@/components/ui/input";
+import { Label } from "@/components/ui/label";
+import { Plane, MapPin, Globe, X } from "lucide-react";
+import { Airline, Airport } from "@/types";
 
 interface DetailedAnalysisFilterBarProps {
-  dateRange: DateRangeFilter;
+  startDate: string;
+  endDate: string;
   airlineFilter: string;
   airportFilter: string;
   countryFilter: string;
   airlines: Airline[];
   airports: Airport[];
   countries: string[];
-  onDateRangeChange: (value: DateRangeFilter) => void;
+  onStartDateChange: (value: string) => void;
+  onEndDateChange: (value: string) => void;
   onAirlineFilterChange: (value: string) => void;
   onAirportFilterChange: (value: string) => void;
   onCountryFilterChange: (value: string) => void;
   onReset: () => void;
 }
 
-const dateRangeOptions: { value: DateRangeFilter; label: string }[] = [
-  { value: "this_month", label: "This Month" },
-  { value: "last_month", label: "Last Month" },
-  { value: "last_7_days", label: "Last 7 Days" },
-  { value: "last_30_days", label: "Last 30 Days" },
-  { value: "last_90_days", label: "Last 90 Days" },
-];
-
 export function DetailedAnalysisFilterBar({
-  dateRange,
+  startDate,
+  endDate,
   airlineFilter,
   airportFilter,
   countryFilter,
   airlines,
   airports,
   countries,
-  onDateRangeChange,
+  onStartDateChange,
+  onEndDateChange,
   onAirlineFilterChange,
   onAirportFilterChange,
   onCountryFilterChange,
@@ -50,23 +48,29 @@ export function DetailedAnalysisFilterBar({
     airlineFilter !== "all" ||
     airportFilter !== "all" ||
     countryFilter !== "all" ||
-    dateRange !== "this_month";
+    !!startDate ||
+    !!endDate;
 
   return (
-    <div className="flex flex-wrap items-center gap-3">
-      <Select value={dateRange} onValueChange={onDateRangeChange}>
-        <SelectTrigger className="w-[140px]">
-          <Calendar className="w-4 h-4 mr-2 text-muted-foreground" />
-          <SelectValue />
-        </SelectTrigger>
-        <SelectContent>
-          {dateRangeOptions.map((option) => (
-            <SelectItem key={option.value} value={option.value}>
-              {option.label}
-            </SelectItem>
-          ))}
-        </SelectContent>
-      </Select>
+    <div className="flex flex-wrap items-end gap-3">
+      <div className="space-y-1">
+        <Label className="text-xs text-muted-foreground">Start date</Label>
+        <Input
+          type="date"
+          value={startDate}
+          onChange={(e) => onStartDateChange(e.target.value)}
+          className="h-10 w-[150px]"
+        />
+      </div>
+      <div className="space-y-1">
+        <Label className="text-xs text-muted-foreground">End date</Label>
+        <Input
+          type="date"
+          value={endDate}
+          onChange={(e) => onEndDateChange(e.target.value)}
+          className="h-10 w-[150px]"
+        />
+      </div>
 
       <Select value={airlineFilter} onValueChange={onAirlineFilterChange}>
         <SelectTrigger className="w-[160px]">
