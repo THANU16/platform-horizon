@@ -7,7 +7,8 @@ import { StatusBadge, StatusType } from "@/components/ui/StatusBadge";
 import { ToggleSwitch } from "@/components/ui/ToggleSwitch";
 import { LoadingState } from "@/components/ui/Spinner";
 import { EmptyState } from "@/components/ui/EmptyState";
-import { getAirlines, updateAirlineStatus } from "@/services/api";
+import { SimplePagination } from "@/components/ui/SimplePagination";
+import { getAirlines, getCountries, updateAirlineStatus } from "@/services/api";
 import { Airline } from "@/types";
 import { Eye, AlertTriangle, Plane } from "lucide-react";
 import { Button } from "@/components/ui/button";
@@ -34,30 +35,38 @@ import { Card, CardContent } from "@/components/ui/card";
 
 export default function Airlines() {
   const [airlines, setAirlines] = useState<Airline[]>([]);
+  const [countries, setCountries] = useState<string[]>([]);
   const [loading, setLoading] = useState(true);
   const navigate = useNavigate();
   const { toast } = useToast();
 
   const [search, setSearch] = useState("");
   const [statusFilter, setStatusFilter] = useState("all");
+  const [countryFilter, setCountryFilter] = useState("all");
+
+  const [page, setPage] = useState(1);
+  const [pageSize, setPageSize] = useState(10);
 
   const [suspendDialog, setSuspendDialog] = useState<Airline | null>(null);
 
   useEffect(() => {
-    const loadAirlines = async () => {
+    const load = async () => {
       try {
-        const data = await getAirlines();
-        setAirlines(data);
+        const [a, c] = await Promise.all([getAirlines(), getCountries()]);
+        setAirlines(a);
+        setCountries(c);
       } finally {
         setLoading(false);
       }
     };
-    loadAirlines();
+    load();
   }, []);
 
   const handleClearFilters = () => {
     setSearch("");
     setStatusFilter("all");
+    setCountryFilter("all");
+    setPage(1);
   };
 
   const filteredAirlines = useMemo(() => {
@@ -68,9 +77,18 @@ export default function Airlines() {
         airline.name.toLowerCase().includes(q) ||
         airline.iataCode.toLowerCase().includes(q);
       const matchesStatus = statusFilter === "all" || airline.status === statusFilter;
-      return matchesSearch && matchesStatus;
+      const matchesCountry = countryFilter === "all" || airline.country === countryFilter;
+      return matchesSearch && matchesStatus && matchesCountry;
     });
-  }, [airlines, search, statusFilter]);
+  }, [airlines, search, statusFilter, countryFilter]);
+
+  const paginated = useMemo(() => {
+    const start = (page - 1) * pageSize;
+    return filteredAirlines.slice(start, start + pageSize);
+  }, [filteredAirlines, page, pageSize]);
+
+  useEffect(() => { setPage(1); }, [search, statusFilter, countryFilter, pageSize]);
+
 
   const handleToggleStatus = async (airline: Airline) => {
     const newStatus = airline.status === "active" ? "disabled" : "active";
