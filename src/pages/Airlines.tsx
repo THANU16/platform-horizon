@@ -223,7 +223,7 @@ export default function Airlines() {
                 </TableRow>
               </TableHeader>
               <TableBody>
-                {filteredAirlines.map((airline) => (
+                {paginated.map((airline) => (
                   <TableRow key={airline.id} className="table-row-hover">
                     <TableCell className="font-medium">{airline.name}</TableCell>
                     <TableCell className="font-mono text-sm">{airline.iataCode}</TableCell>
