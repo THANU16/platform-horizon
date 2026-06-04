@@ -16,11 +16,24 @@ export interface Airline {
   failedPayments: number;
   allocationFailures: number;
   totalBookings: number;
-  // Wallet & Credit fields
+  // Wallet & Credit
   totalTopUps: number;
   walletBalance: number;
   creditLimit: number;
   creditUsed: number;
+  // Extended profile (airline details)
+  companyRegistrationNumber?: string;
+  website?: string;
+  contactPhone?: string;
+  timezone?: string;
+  logo?: string;
+  address?: string;
+  currency?: string;
+  // Admin contact
+  adminFirstName?: string;
+  adminLastName?: string;
+  adminEmail?: string;
+  jobTitle?: string;
 }
 
 export interface CancelledFlight {
@@ -47,6 +60,21 @@ export interface Invite {
   invitedBy: string;
   invitedDate: string;
   expiryDate: string;
+  // Extended profile (airline details)
+  companyRegistrationNumber?: string;
+  website?: string;
+  contactPhone?: string;
+  timezone?: string;
+  logo?: string;
+  address?: string;
+  currency?: string;
+  // Admin contact
+  adminFirstName?: string;
+  adminLastName?: string;
+  adminEmail?: string;
+  jobTitle?: string;
+  // Credit
+  creditLimit?: number;
 }
 
 export interface AuditLog {
