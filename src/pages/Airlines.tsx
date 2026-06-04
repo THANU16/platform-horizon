@@ -183,9 +183,20 @@ export default function Airlines() {
               { value: "suspended", label: "Suspended" },
             ],
           },
+          {
+            name: "Country",
+            value: countryFilter,
+            onChange: setCountryFilter,
+            placeholder: "All Countries",
+            options: [
+              { value: "all", label: "All Countries" },
+              ...countries.map((c) => ({ value: c, label: c })),
+            ],
+          },
         ]}
         onClear={handleClearFilters}
       />
+
 
       {filteredAirlines.length === 0 ? (
         <EmptyState
