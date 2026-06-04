@@ -91,7 +91,8 @@ export default function Payments() {
   const [appliedGlobalDateRange, setAppliedGlobalDateRange] = useState<DateRangeFilter>("this_month");
 
   // Detailed Analysis filters (auto-apply)
-  const [detailDateRange, setDetailDateRange] = useState<DateRangeFilter>("this_month");
+  const [detailStartDate, setDetailStartDate] = useState("");
+  const [detailEndDate, setDetailEndDate] = useState("");
   const [detailAirlineFilter, setDetailAirlineFilter] = useState("all");
   const [detailAirportFilter, setDetailAirportFilter] = useState("all");
   const [detailCountryFilter, setDetailCountryFilter] = useState("all");
@@ -138,7 +139,7 @@ export default function Payments() {
         setCountries(countriesData);
         setAirlines(airlinesData);
         setAirports(airportsData);
-        
+
         // Load initial data with default filters
         await Promise.all([
           fetchPaymentData({
@@ -157,25 +158,21 @@ export default function Payments() {
     loadData();
   }, [fetchPaymentData, fetchTreasuryData]);
 
-  // Auto-apply detail filters whenever one of them changes
+  // Auto-apply detail filters (date range here only affects client filtering of transactions)
   const applyDetailFilters = useCallback(
-    (overrides?: Partial<{ dateRange: DateRangeFilter; airline: string; airport: string; country: string }>) => {
+    (overrides?: Partial<{ airline: string; airport: string; country: string }>) => {
       const newFilters: PaymentFilters = {
         search: "",
         country: overrides?.country ?? detailCountryFilter,
         airline: overrides?.airline ?? detailAirlineFilter,
         airport: overrides?.airport ?? detailAirportFilter,
-        dateRange: overrides?.dateRange ?? detailDateRange,
+        dateRange: "this_month",
       };
       void fetchPaymentData(newFilters);
     },
-    [detailDateRange, detailAirlineFilter, detailAirportFilter, detailCountryFilter, fetchPaymentData]
+    [detailAirlineFilter, detailAirportFilter, detailCountryFilter, fetchPaymentData]
   );
 
-  const handleDetailDateRangeChange = (value: DateRangeFilter) => {
-    setDetailDateRange(value);
-    applyDetailFilters({ dateRange: value });
-  };
   const handleDetailAirlineChange = (value: string) => {
     setDetailAirlineFilter(value);
     applyDetailFilters({ airline: value });
@@ -190,7 +187,8 @@ export default function Payments() {
   };
 
   const handleResetDetailFilters = () => {
-    setDetailDateRange("this_month");
+    setDetailStartDate("");
+    setDetailEndDate("");
     setDetailAirlineFilter("all");
     setDetailAirportFilter("all");
     setDetailCountryFilter("all");
@@ -203,11 +201,14 @@ export default function Payments() {
     });
   };
 
+
   // Handle global date range change (auto-apply)
   const handleGlobalDateRangeChange = async (value: DateRangeFilter) => {
     setGlobalDateRange(value);
     setAppliedGlobalDateRange(value);
-    setDetailDateRange(value);
+    // detail date filters are independent client-side; clear them when changing global preset
+    setDetailStartDate("");
+    setDetailEndDate("");
     await fetchPaymentData({
       search: "",
       country: detailCountryFilter,
@@ -224,14 +225,26 @@ export default function Payments() {
     await fetchTreasuryData();
   };
 
+  // Date-filter transactions for detailed analysis (client-side)
+  const detailedTransactions = useMemo(() => {
+    const s = detailStartDate ? new Date(detailStartDate).getTime() : null;
+    const e = detailEndDate ? new Date(detailEndDate).getTime() + 24 * 60 * 60 * 1000 - 1 : null;
+    return transactions.filter((t) => {
+      const ts = new Date(t.date).getTime();
+      if (s !== null && ts < s) return false;
+      if (e !== null && ts > e) return false;
+      return true;
+    });
+  }, [transactions, detailStartDate, detailEndDate]);
+
   // Calculate summary stats for detailed analysis
   const summaryStats = useMemo(() => {
-    const bookingTransactions = transactions.filter(t => t.type === "booking_charge");
-    const topUpTransactions = transactions.filter(t => t.type === "top_up");
+    const bookingTransactions = detailedTransactions.filter(t => t.type === "booking_charge");
+    const topUpTransactions = detailedTransactions.filter(t => t.type === "top_up");
     const totalBookingAmount = Math.abs(bookingTransactions.reduce((sum, t) => sum + t.amount, 0));
     const totalTopUpAmount = topUpTransactions.reduce((sum, t) => sum + t.amount, 0);
     const totalRevenue = airlineHealth.reduce((sum, a) => sum + a.platformRevenue, 0);
-    
+
     return {
       totalBookingAmount,
       totalBookingCount: bookingTransactions.length,
@@ -239,7 +252,7 @@ export default function Payments() {
       totalTopUpCount: topUpTransactions.length,
       totalRevenue,
     };
-  }, [airlineHealth, transactions]);
+  }, [airlineHealth, detailedTransactions]);
 
   if (loading) {
     return (
@@ -323,14 +336,16 @@ export default function Payments() {
             <CardContent className="space-y-6">
               {/* Detail Filter Bar */}
               <DetailedAnalysisFilterBar
-                dateRange={detailDateRange}
+                startDate={detailStartDate}
+                endDate={detailEndDate}
                 airlineFilter={detailAirlineFilter}
                 airportFilter={detailAirportFilter}
                 countryFilter={detailCountryFilter}
                 airlines={airlines}
                 airports={airports}
                 countries={countries}
-                onDateRangeChange={handleDetailDateRangeChange}
+                onStartDateChange={setDetailStartDate}
+                onEndDateChange={setDetailEndDate}
                 onAirlineFilterChange={handleDetailAirlineChange}
                 onAirportFilterChange={handleDetailAirportChange}
                 onCountryFilterChange={handleDetailCountryChange}
@@ -351,12 +366,12 @@ export default function Payments() {
           {/* Airline Financial Health Table - Expandable */}
           <ExpandableAirlineHealthTable
             data={airlineHealth}
-            transactions={transactions}
+            transactions={detailedTransactions}
           />
 
           {/* Transactions & Audit Trail */}
           <TransactionsAuditTable
-            transactions={transactions}
+            transactions={detailedTransactions}
             typeFilter={transactionTypeFilter}
             onTypeFilterChange={setTransactionTypeFilter}
           />

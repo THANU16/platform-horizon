@@ -644,18 +644,36 @@ export const getInvites = async (): Promise<Invite[]> => {
   return invitesData;
 };
 
-export const createInvite = async (invite: Omit<Invite, "id" | "status" | "invitedDate" | "expiryDate" | "invitedBy">): Promise<Invite> => {
+export const createInvite = async (invite: Partial<Invite> & Pick<Invite, "airlineName" | "iataCode" | "contactEmail" | "country">): Promise<Invite> => {
   await delay(300);
   const newInvite: Invite = {
+    initialAllowance: 100000,
+    creditLimit: invite.creditLimit ?? 100000,
     ...invite,
     id: String(invitesData.length + 1),
     status: "pending",
     invitedBy: "John Smith",
     invitedDate: new Date().toISOString().split("T")[0],
     expiryDate: new Date(Date.now() + 30 * 24 * 60 * 60 * 1000).toISOString().split("T")[0],
-  };
+  } as Invite;
   invitesData.push(newInvite);
   return newInvite;
+};
+
+export const updateInvite = async (id: string, patch: Partial<Invite>): Promise<Invite> => {
+  await delay(250);
+  const invite = invitesData.find((i) => i.id === id);
+  if (!invite) throw new Error("Invite not found");
+  Object.assign(invite, patch);
+  return invite;
+};
+
+export const updateAirline = async (id: string, patch: Partial<Airline>): Promise<Airline> => {
+  await delay(250);
+  const airline = airlinesData.find((a) => a.id === id);
+  if (!airline) throw new Error("Airline not found");
+  Object.assign(airline, patch);
+  return airline;
 };
 
 export const resendInvite = async (id: string): Promise<Invite> => {
@@ -1014,3 +1032,34 @@ export const addPlatformReserveTransaction = async (
   platformReserveTransactionsData.unshift(newTransaction);
   return newTransaction;
 };
+
+// Seed extended airline/invite profile defaults
+(() => {
+  airlinesData.forEach((a) => {
+    a.companyRegistrationNumber = a.companyRegistrationNumber ?? `REG-${a.iataCode}-${1000 + Number(a.id)}`;
+    a.website = a.website ?? `https://www.${a.iataCode.toLowerCase()}.example.com`;
+    a.contactPhone = a.contactPhone ?? "+1 555 010 0000";
+    a.timezone = a.timezone ?? "UTC";
+    a.logo = a.logo ?? "";
+    a.address = a.address ?? "1 Aviation Way, Terminal 1";
+    a.currency = a.currency ?? "USD";
+    a.adminFirstName = a.adminFirstName ?? "Operations";
+    a.adminLastName = a.adminLastName ?? "Admin";
+    a.adminEmail = a.adminEmail ?? a.contactEmail;
+    a.jobTitle = a.jobTitle ?? "Operations Manager";
+  });
+  invitesData.forEach((i) => {
+    i.companyRegistrationNumber = i.companyRegistrationNumber ?? `REG-${i.iataCode}-${2000 + Number(i.id)}`;
+    i.website = i.website ?? "";
+    i.contactPhone = i.contactPhone ?? "+1 555 020 0000";
+    i.timezone = i.timezone ?? "UTC";
+    i.logo = i.logo ?? "";
+    i.address = i.address ?? "Headquarters address";
+    i.currency = i.currency ?? "USD";
+    i.adminFirstName = i.adminFirstName ?? "New";
+    i.adminLastName = i.adminLastName ?? "Admin";
+    i.adminEmail = i.adminEmail ?? i.contactEmail;
+    i.jobTitle = i.jobTitle ?? "Operations Manager";
+    i.creditLimit = i.creditLimit ?? i.initialAllowance;
+  });
+})();
