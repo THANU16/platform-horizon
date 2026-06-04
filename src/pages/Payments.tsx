@@ -225,14 +225,26 @@ export default function Payments() {
     await fetchTreasuryData();
   };
 
+  // Date-filter transactions for detailed analysis (client-side)
+  const detailedTransactions = useMemo(() => {
+    const s = detailStartDate ? new Date(detailStartDate).getTime() : null;
+    const e = detailEndDate ? new Date(detailEndDate).getTime() + 24 * 60 * 60 * 1000 - 1 : null;
+    return transactions.filter((t) => {
+      const ts = new Date(t.date).getTime();
+      if (s !== null && ts < s) return false;
+      if (e !== null && ts > e) return false;
+      return true;
+    });
+  }, [transactions, detailStartDate, detailEndDate]);
+
   // Calculate summary stats for detailed analysis
   const summaryStats = useMemo(() => {
-    const bookingTransactions = transactions.filter(t => t.type === "booking_charge");
-    const topUpTransactions = transactions.filter(t => t.type === "top_up");
+    const bookingTransactions = detailedTransactions.filter(t => t.type === "booking_charge");
+    const topUpTransactions = detailedTransactions.filter(t => t.type === "top_up");
     const totalBookingAmount = Math.abs(bookingTransactions.reduce((sum, t) => sum + t.amount, 0));
     const totalTopUpAmount = topUpTransactions.reduce((sum, t) => sum + t.amount, 0);
     const totalRevenue = airlineHealth.reduce((sum, a) => sum + a.platformRevenue, 0);
-    
+
     return {
       totalBookingAmount,
       totalBookingCount: bookingTransactions.length,
@@ -240,7 +252,7 @@ export default function Payments() {
       totalTopUpCount: topUpTransactions.length,
       totalRevenue,
     };
-  }, [airlineHealth, transactions]);
+  }, [airlineHealth, detailedTransactions]);
 
   if (loading) {
     return (
