@@ -366,12 +366,12 @@ export default function Payments() {
           {/* Airline Financial Health Table - Expandable */}
           <ExpandableAirlineHealthTable
             data={airlineHealth}
-            transactions={transactions}
+            transactions={detailedTransactions}
           />
 
           {/* Transactions & Audit Trail */}
           <TransactionsAuditTable
-            transactions={transactions}
+            transactions={detailedTransactions}
             typeFilter={transactionTypeFilter}
             onTypeFilterChange={setTransactionTypeFilter}
           />
