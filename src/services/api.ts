@@ -1032,3 +1032,34 @@ export const addPlatformReserveTransaction = async (
   platformReserveTransactionsData.unshift(newTransaction);
   return newTransaction;
 };
+
+// Seed extended airline/invite profile defaults
+(() => {
+  airlinesData.forEach((a) => {
+    a.companyRegistrationNumber = a.companyRegistrationNumber ?? `REG-${a.iataCode}-${1000 + Number(a.id)}`;
+    a.website = a.website ?? `https://www.${a.iataCode.toLowerCase()}.example.com`;
+    a.contactPhone = a.contactPhone ?? "+1 555 010 0000";
+    a.timezone = a.timezone ?? "UTC";
+    a.logo = a.logo ?? "";
+    a.address = a.address ?? "1 Aviation Way, Terminal 1";
+    a.currency = a.currency ?? "USD";
+    a.adminFirstName = a.adminFirstName ?? "Operations";
+    a.adminLastName = a.adminLastName ?? "Admin";
+    a.adminEmail = a.adminEmail ?? a.contactEmail;
+    a.jobTitle = a.jobTitle ?? "Operations Manager";
+  });
+  invitesData.forEach((i) => {
+    i.companyRegistrationNumber = i.companyRegistrationNumber ?? `REG-${i.iataCode}-${2000 + Number(i.id)}`;
+    i.website = i.website ?? "";
+    i.contactPhone = i.contactPhone ?? "+1 555 020 0000";
+    i.timezone = i.timezone ?? "UTC";
+    i.logo = i.logo ?? "";
+    i.address = i.address ?? "Headquarters address";
+    i.currency = i.currency ?? "USD";
+    i.adminFirstName = i.adminFirstName ?? "New";
+    i.adminLastName = i.adminLastName ?? "Admin";
+    i.adminEmail = i.adminEmail ?? i.contactEmail;
+    i.jobTitle = i.jobTitle ?? "Operations Manager";
+    i.creditLimit = i.creditLimit ?? i.initialAllowance;
+  });
+})();
