@@ -644,18 +644,36 @@ export const getInvites = async (): Promise<Invite[]> => {
   return invitesData;
 };
 
-export const createInvite = async (invite: Omit<Invite, "id" | "status" | "invitedDate" | "expiryDate" | "invitedBy">): Promise<Invite> => {
+export const createInvite = async (invite: Partial<Invite> & Pick<Invite, "airlineName" | "iataCode" | "contactEmail" | "country">): Promise<Invite> => {
   await delay(300);
   const newInvite: Invite = {
+    initialAllowance: 100000,
+    creditLimit: invite.creditLimit ?? 100000,
     ...invite,
     id: String(invitesData.length + 1),
     status: "pending",
     invitedBy: "John Smith",
     invitedDate: new Date().toISOString().split("T")[0],
     expiryDate: new Date(Date.now() + 30 * 24 * 60 * 60 * 1000).toISOString().split("T")[0],
-  };
+  } as Invite;
   invitesData.push(newInvite);
   return newInvite;
+};
+
+export const updateInvite = async (id: string, patch: Partial<Invite>): Promise<Invite> => {
+  await delay(250);
+  const invite = invitesData.find((i) => i.id === id);
+  if (!invite) throw new Error("Invite not found");
+  Object.assign(invite, patch);
+  return invite;
+};
+
+export const updateAirline = async (id: string, patch: Partial<Airline>): Promise<Airline> => {
+  await delay(250);
+  const airline = airlinesData.find((a) => a.id === id);
+  if (!airline) throw new Error("Airline not found");
+  Object.assign(airline, patch);
+  return airline;
 };
 
 export const resendInvite = async (id: string): Promise<Invite> => {
