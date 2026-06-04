@@ -270,7 +270,7 @@ export default function Airlines() {
 
           {/* Mobile Cards */}
           <div className="lg:hidden space-y-4">
-            {filteredAirlines.map((airline) => (
+            {paginated.map((airline) => (
               <Card key={airline.id} className="animate-fade-in">
                 <CardContent className="p-4">
                   <div className="flex items-start justify-between mb-3">
@@ -322,6 +322,13 @@ export default function Airlines() {
               </Card>
             ))}
           </div>
+          <SimplePagination
+            page={page}
+            pageSize={pageSize}
+            total={filteredAirlines.length}
+            onPageChange={setPage}
+            onPageSizeChange={setPageSize}
+          />
         </>
       )}
 
