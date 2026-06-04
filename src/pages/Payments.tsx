@@ -206,7 +206,9 @@ export default function Payments() {
   const handleGlobalDateRangeChange = async (value: DateRangeFilter) => {
     setGlobalDateRange(value);
     setAppliedGlobalDateRange(value);
-    setDetailDateRange(value);
+    // detail date filters are independent client-side; clear them when changing global preset
+    setDetailStartDate("");
+    setDetailEndDate("");
     await fetchPaymentData({
       search: "",
       country: detailCountryFilter,
@@ -322,14 +324,16 @@ export default function Payments() {
             <CardContent className="space-y-6">
               {/* Detail Filter Bar */}
               <DetailedAnalysisFilterBar
-                dateRange={detailDateRange}
+                startDate={detailStartDate}
+                endDate={detailEndDate}
                 airlineFilter={detailAirlineFilter}
                 airportFilter={detailAirportFilter}
                 countryFilter={detailCountryFilter}
                 airlines={airlines}
                 airports={airports}
                 countries={countries}
-                onDateRangeChange={handleDetailDateRangeChange}
+                onStartDateChange={setDetailStartDate}
+                onEndDateChange={setDetailEndDate}
                 onAirlineFilterChange={handleDetailAirlineChange}
                 onAirportFilterChange={handleDetailAirportChange}
                 onCountryFilterChange={handleDetailCountryChange}
