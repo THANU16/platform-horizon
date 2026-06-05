@@ -7,6 +7,7 @@ export interface TwoFactorSettings {
   method: TwoFactorMethod;
   secret: string; // base32 secret for authenticator app
   recoveryCodes: string[]; // unused recovery codes
+  enabledAt: string | null; // ISO timestamp when 2FA was activated
 }
 
 interface AuthContextType {
