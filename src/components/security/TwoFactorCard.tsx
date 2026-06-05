@@ -2,14 +2,10 @@ import { useState } from "react";
 import { useAuth, TwoFactorMethod } from "@/contexts/AuthContext";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
-import { Switch } from "@/components/ui/switch";
 import { Label } from "@/components/ui/label";
 import { RadioGroup, RadioGroupItem } from "@/components/ui/radio-group";
-import {
-  InputOTP,
-  InputOTPGroup,
-  InputOTPSlot,
-} from "@/components/ui/input-otp";
+import { Checkbox } from "@/components/ui/checkbox";
+import { InputOTP, InputOTPGroup, InputOTPSlot } from "@/components/ui/input-otp";
 import { Badge } from "@/components/ui/badge";
 import {
   ShieldCheck,
@@ -18,19 +14,22 @@ import {
   Copy,
   QrCode,
   Download,
-  KeyRound,
-  RefreshCw,
   AlertTriangle,
 } from "lucide-react";
 import { useToast } from "@/hooks/use-toast";
 
+type SetupStage = "choose" | "initiated" | "recovery";
+
 export function TwoFactorCard({ accountEmail }: { accountEmail: string }) {
   const { twoFactor, updateTwoFactor, generateRecoveryCodes, DEMO_OTP } = useAuth();
   const { toast } = useToast();
+
+  const [stage, setStage] = useState<SetupStage>("choose");
   const [draftMethod, setDraftMethod] = useState<TwoFactorMethod>(twoFactor.method);
   const [verifyOtp, setVerifyOtp] = useState("");
   const [isVerifying, setIsVerifying] = useState(false);
-  const [justGeneratedCodes, setJustGeneratedCodes] = useState<string[] | null>(null);
+  const [pendingCodes, setPendingCodes] = useState<string[]>([]);
+  const [acknowledgedSaved, setAcknowledgedSaved] = useState(false);
 
   // otpauth:// URI for authenticator app
   const issuer = "FlyVoid%20Admin";
@@ -38,6 +37,14 @@ export function TwoFactorCard({ accountEmail }: { accountEmail: string }) {
   const otpauthUri = `otpauth://totp/${issuer}:${accountLabel}?secret=${twoFactor.secret}&issuer=${issuer}&algorithm=SHA1&digits=6&period=30`;
   const qrSrc = `https://api.qrserver.com/v1/create-qr-code/?size=200x200&data=${encodeURIComponent(otpauthUri)}`;
   const qrDownloadSrc = `https://api.qrserver.com/v1/create-qr-code/?size=600x600&format=png&data=${encodeURIComponent(otpauthUri)}`;
+
+  const resetSetup = () => {
+    setStage("choose");
+    setVerifyOtp("");
+    setPendingCodes([]);
+    setAcknowledgedSaved(false);
+    setIsVerifying(false);
+  };
 
   const downloadFile = (filename: string, content: string, mime = "text/plain") => {
     const blob = new Blob([content], { type: mime });
@@ -69,22 +76,24 @@ export function TwoFactorCard({ accountEmail }: { accountEmail: string }) {
     }
   };
 
-  const handleToggle = (enabled: boolean) => {
-    if (!enabled) {
-      updateTwoFactor({ enabled: false, recoveryCodes: [] });
-      setJustGeneratedCodes(null);
-      toast({ title: "Two-factor disabled", description: "Your account is no longer protected by 2FA." });
-      return;
-    }
-    setDraftMethod(twoFactor.method);
-    updateTwoFactor({ enabled: false });
-    toast({
-      title: "Verify to enable 2FA",
-      description: "Choose a method and enter the 6-digit code to activate.",
-    });
+  const handleDisable = () => {
+    updateTwoFactor({ enabled: false, recoveryCodes: [], enabledAt: null });
+    resetSetup();
+    toast({ title: "Two-factor disabled", description: "Your account is no longer protected by 2FA." });
   };
 
-  const handleVerifyAndEnable = () => {
+  const handleInitiate = () => {
+    setStage("initiated");
+    setVerifyOtp("");
+    if (draftMethod === "email") {
+      toast({
+        title: "Verification code sent",
+        description: `A 6-digit code was sent to ${accountEmail || "your email"}.`,
+      });
+    }
+  };
+
+  const handleVerify = () => {
     if (verifyOtp.length !== 6) {
       toast({ title: "Invalid code", description: "Enter the 6-digit code to continue", variant: "destructive" });
       return;
@@ -97,15 +106,27 @@ export function TwoFactorCard({ accountEmail }: { accountEmail: string }) {
         setVerifyOtp("");
         return;
       }
-      updateTwoFactor({ enabled: true, method: draftMethod });
       const codes = generateRecoveryCodes();
-      setJustGeneratedCodes(codes);
-      setVerifyOtp("");
-      toast({
-        title: "Two-factor enabled",
-        description: `2FA is now active via ${draftMethod === "email" ? "email OTP" : "authenticator app"}.`,
-      });
-    }, 600);
+      setPendingCodes(codes);
+      setStage("recovery");
+    }, 500);
+  };
+
+  const handleCompleteSetup = () => {
+    if (!acknowledgedSaved) return;
+    updateTwoFactor({
+      enabled: true,
+      method: draftMethod,
+      enabledAt: new Date().toISOString(),
+    });
+    toast({
+      title: "Two-factor enabled",
+      description: `2FA is now active via ${draftMethod === "email" ? "email OTP" : "authenticator app"}.`,
+    });
+    setPendingCodes([]);
+    setAcknowledgedSaved(false);
+    setVerifyOtp("");
+    setStage("choose");
   };
 
   const copySecret = () => {
@@ -133,50 +154,6 @@ export function TwoFactorCard({ accountEmail }: { accountEmail: string }) {
     toast({ title: "Downloaded", description: "Recovery codes saved to your device" });
   };
 
-  const handleRegenerate = () => {
-    const codes = generateRecoveryCodes();
-    setJustGeneratedCodes(codes);
-    toast({
-      title: "Recovery codes regenerated",
-      description: "Old codes are now invalid. Save the new ones.",
-    });
-  };
-
-  const RecoveryPanel = ({ codes, title }: { codes: string[]; title: string }) => (
-    <div className="border border-warning/30 rounded-md p-4 space-y-3 bg-warning/5">
-      <div className="flex items-start gap-2">
-        <AlertTriangle className="w-4 h-4 text-warning mt-0.5" />
-        <div className="flex-1">
-          <p className="text-sm font-medium text-foreground">{title}</p>
-          <p className="text-xs text-muted-foreground mt-0.5">
-            Save these codes somewhere safe. Each one works once if you lose access to your{" "}
-            {twoFactor.method === "email" ? "email" : "authenticator app"}.
-          </p>
-        </div>
-      </div>
-      <div className="grid grid-cols-2 gap-2 font-mono text-xs">
-        {codes.map((c) => (
-          <code
-            key={c}
-            className="bg-card border border-border rounded px-2 py-1.5 text-center tracking-wider"
-          >
-            {c}
-          </code>
-        ))}
-      </div>
-      <div className="flex gap-2">
-        <Button type="button" variant="outline" size="sm" onClick={() => copyCodes(codes)}>
-          <Copy className="w-3.5 h-3.5 mr-1.5" />
-          Copy
-        </Button>
-        <Button type="button" variant="outline" size="sm" onClick={() => downloadCodes(codes)}>
-          <Download className="w-3.5 h-3.5 mr-1.5" />
-          Download
-        </Button>
-      </div>
-    </div>
-  );
-
   return (
     <Card>
       <CardHeader>
@@ -192,88 +169,106 @@ export function TwoFactorCard({ accountEmail }: { accountEmail: string }) {
               Add an extra layer of security to your account
             </CardDescription>
           </div>
-          <div className="flex items-center gap-3">
-            {twoFactor.enabled && (
-              <Badge variant="secondary" className="rounded-full bg-success/10 text-success">
-                Enabled
-              </Badge>
-            )}
-            <Switch checked={twoFactor.enabled} onCheckedChange={handleToggle} />
-          </div>
+          {twoFactor.enabled && (
+            <Badge variant="secondary" className="rounded-full bg-success/10 text-success">
+              Enabled
+            </Badge>
+          )}
         </div>
       </CardHeader>
 
       <CardContent className="space-y-5">
         {twoFactor.enabled ? (
-          <>
-            <div className="flex items-start gap-3 p-3 rounded-md bg-success/5 border border-success/20">
-              <ShieldCheck className="w-5 h-5 text-success mt-0.5" />
-              <div className="text-sm">
-                <p className="font-medium text-foreground">
-                  2FA is active via {twoFactor.method === "email" ? "Email OTP" : "Authenticator App"}
+          // ===== Returning user view =====
+          <div className="space-y-4">
+            <div className="grid grid-cols-1 sm:grid-cols-3 gap-3">
+              <div className="p-3 rounded-md border border-border bg-muted/30">
+                <p className="text-xs text-muted-foreground">Status</p>
+                <p className="text-sm font-medium mt-0.5">Enabled</p>
+              </div>
+              <div className="p-3 rounded-md border border-border bg-muted/30">
+                <p className="text-xs text-muted-foreground">Method</p>
+                <p className="text-sm font-medium mt-0.5">
+                  {twoFactor.method === "email" ? "Email OTP" : "Authenticator App"}
                 </p>
-                <p className="text-muted-foreground text-xs mt-0.5">
-                  You'll be asked for a 6-digit code on every sign-in.
+              </div>
+              <div className="p-3 rounded-md border border-border bg-muted/30">
+                <p className="text-xs text-muted-foreground">Enabled on</p>
+                <p className="text-sm font-medium mt-0.5">
+                  {twoFactor.enabledAt
+                    ? new Date(twoFactor.enabledAt).toLocaleDateString()
+                    : "—"}
+                </p>
+              </div>
+            </div>
+            <Button type="button" variant="destructive" onClick={handleDisable}>
+              Disable 2FA
+            </Button>
+          </div>
+        ) : stage === "recovery" ? (
+          // ===== Recovery codes (shown once) =====
+          <div className="space-y-4">
+            <div className="flex items-start gap-2 p-3 rounded-md bg-warning/5 border border-warning/30">
+              <AlertTriangle className="w-4 h-4 text-warning mt-0.5" />
+              <div>
+                <p className="text-sm font-medium">Save your recovery codes</p>
+                <p className="text-xs text-muted-foreground mt-0.5">
+                  Store these in a secure location. They will only be shown once and cannot be
+                  retrieved or regenerated later.
                 </p>
               </div>
             </div>
 
-            {justGeneratedCodes && (
-              <RecoveryPanel
-                codes={justGeneratedCodes}
-                title="Your new recovery codes"
+            <div className="grid grid-cols-2 gap-2 font-mono text-xs">
+              {pendingCodes.map((c) => (
+                <code
+                  key={c}
+                  className="bg-card border border-border rounded px-2 py-1.5 text-center tracking-wider"
+                >
+                  {c}
+                </code>
+              ))}
+            </div>
+
+            <div className="flex gap-2">
+              <Button type="button" variant="outline" size="sm" onClick={() => copyCodes(pendingCodes)}>
+                <Copy className="w-3.5 h-3.5 mr-1.5" />
+                Copy
+              </Button>
+              <Button type="button" variant="outline" size="sm" onClick={() => downloadCodes(pendingCodes)}>
+                <Download className="w-3.5 h-3.5 mr-1.5" />
+                Download
+              </Button>
+            </div>
+
+            <label
+              htmlFor="ack-saved"
+              className="flex items-center gap-2 cursor-pointer text-sm"
+            >
+              <Checkbox
+                id="ack-saved"
+                checked={acknowledgedSaved}
+                onCheckedChange={(v) => setAcknowledgedSaved(!!v)}
               />
-            )}
+              I have saved these recovery codes
+            </label>
 
-            <div className="border border-border rounded-md p-4 space-y-3">
-              <div className="flex items-start justify-between gap-3">
-                <div className="flex items-start gap-2">
-                  <KeyRound className="w-4 h-4 text-primary mt-0.5" />
-                  <div>
-                    <p className="text-sm font-medium">Recovery codes</p>
-                    <p className="text-xs text-muted-foreground mt-0.5">
-                      {twoFactor.recoveryCodes.length} unused{" "}
-                      {twoFactor.recoveryCodes.length === 1 ? "code" : "codes"} remaining. Use one if you
-                      lose access to your {twoFactor.method === "email" ? "email" : "authenticator app"}.
-                    </p>
-                  </div>
-                </div>
-                <Button type="button" variant="outline" size="sm" onClick={handleRegenerate}>
-                  <RefreshCw className="w-3.5 h-3.5 mr-1.5" />
-                  Regenerate
-                </Button>
-              </div>
-              {!justGeneratedCodes && twoFactor.recoveryCodes.length > 0 && (
-                <div className="flex gap-2">
-                  <Button
-                    type="button"
-                    variant="outline"
-                    size="sm"
-                    onClick={() => copyCodes(twoFactor.recoveryCodes)}
-                  >
-                    <Copy className="w-3.5 h-3.5 mr-1.5" />
-                    Copy codes
-                  </Button>
-                  <Button
-                    type="button"
-                    variant="outline"
-                    size="sm"
-                    onClick={() => downloadCodes(twoFactor.recoveryCodes)}
-                  >
-                    <Download className="w-3.5 h-3.5 mr-1.5" />
-                    Download
-                  </Button>
-                </div>
-              )}
-            </div>
-          </>
+            <Button onClick={handleCompleteSetup} disabled={!acknowledgedSaved}>
+              Complete Setup
+            </Button>
+          </div>
         ) : (
+          // ===== Setup flow: choose method, then initiate =====
           <>
             <div className="space-y-3">
               <Label className="text-sm font-medium">Choose verification method</Label>
               <RadioGroup
                 value={draftMethod}
-                onValueChange={(v) => setDraftMethod(v as TwoFactorMethod)}
+                onValueChange={(v) => {
+                  setDraftMethod(v as TwoFactorMethod);
+                  setStage("choose");
+                  setVerifyOtp("");
+                }}
                 className="space-y-2"
               >
                 <label
@@ -299,14 +294,22 @@ export function TwoFactorCard({ accountEmail }: { accountEmail: string }) {
                   <div className="flex-1">
                     <p className="text-sm font-medium">Authenticator App</p>
                     <p className="text-xs text-muted-foreground">
-                      Use Google Authenticator, Authy, or 1Password
+                      Use Google Authenticator, Authy, Microsoft Authenticator, or 1Password
                     </p>
                   </div>
                 </label>
               </RadioGroup>
             </div>
 
-            {draftMethod === "totp" && (
+            {stage === "choose" && (
+              <div className="pt-2 border-t border-border">
+                <Button type="button" onClick={handleInitiate}>
+                  {draftMethod === "email" ? "Send OTP" : "Generate Setup"}
+                </Button>
+              </div>
+            )}
+
+            {stage === "initiated" && draftMethod === "totp" && (
               <div className="border border-border rounded-md p-4 space-y-3 bg-muted/30">
                 <div className="flex items-center gap-2 text-sm font-medium">
                   <QrCode className="w-4 h-4 text-primary" />
@@ -343,7 +346,9 @@ export function TwoFactorCard({ accountEmail }: { accountEmail: string }) {
                     </div>
                     <div>
                       <Label className="text-xs text-muted-foreground">Account</Label>
-                      <p className="text-sm font-medium break-all">{accountEmail || "admin@flyvoid.com"}</p>
+                      <p className="text-sm font-medium break-all">
+                        {accountEmail || "admin@flyvoid.com"}
+                      </p>
                     </div>
                     <div>
                       <Label className="text-xs text-muted-foreground">Secret Key</Label>
@@ -370,35 +375,37 @@ export function TwoFactorCard({ accountEmail }: { accountEmail: string }) {
               </div>
             )}
 
-            <div className="space-y-3 pt-2 border-t border-border">
-              <Label className="text-sm font-medium">
-                Enter 6-digit code to activate
-              </Label>
-              <p className="text-xs text-muted-foreground">
-                {draftMethod === "email"
-                  ? `We would email a code to ${accountEmail || "your email"}.`
-                  : "Open your authenticator app and enter the current 6-digit code."}
-                {" "}Demo code: <span className="font-mono font-semibold">{DEMO_OTP}</span>
-              </p>
-              <div className="flex flex-col sm:flex-row gap-3 items-start sm:items-center">
-                <InputOTP maxLength={6} value={verifyOtp} onChange={setVerifyOtp}>
-                  <InputOTPGroup>
-                    <InputOTPSlot index={0} />
-                    <InputOTPSlot index={1} />
-                    <InputOTPSlot index={2} />
-                    <InputOTPSlot index={3} />
-                    <InputOTPSlot index={4} />
-                    <InputOTPSlot index={5} />
-                  </InputOTPGroup>
-                </InputOTP>
-                <Button
-                  onClick={handleVerifyAndEnable}
-                  disabled={isVerifying || verifyOtp.length !== 6}
-                >
-                  {isVerifying ? "Verifying..." : "Verify & Enable"}
-                </Button>
+            {stage === "initiated" && (
+              <div className="space-y-3 pt-2 border-t border-border">
+                <Label className="text-sm font-medium">Enter verification code</Label>
+                <p className="text-xs text-muted-foreground">
+                  {draftMethod === "email"
+                    ? `Enter the 6-digit code sent to ${accountEmail || "your email"}.`
+                    : "Open your authenticator app and enter the current 6-digit code."}{" "}
+                  Demo code: <span className="font-mono font-semibold">{DEMO_OTP}</span>
+                </p>
+                <div className="flex flex-col sm:flex-row gap-3 items-start sm:items-center">
+                  <InputOTP maxLength={6} value={verifyOtp} onChange={setVerifyOtp}>
+                    <InputOTPGroup>
+                      <InputOTPSlot index={0} />
+                      <InputOTPSlot index={1} />
+                      <InputOTPSlot index={2} />
+                      <InputOTPSlot index={3} />
+                      <InputOTPSlot index={4} />
+                      <InputOTPSlot index={5} />
+                    </InputOTPGroup>
+                  </InputOTP>
+                  <div className="flex gap-2">
+                    <Button onClick={handleVerify} disabled={isVerifying || verifyOtp.length !== 6}>
+                      {isVerifying ? "Verifying..." : "Verify & Enable"}
+                    </Button>
+                    <Button type="button" variant="ghost" onClick={resetSetup}>
+                      Cancel
+                    </Button>
+                  </div>
+                </div>
               </div>
-            </div>
+            )}
           </>
         )}
       </CardContent>
