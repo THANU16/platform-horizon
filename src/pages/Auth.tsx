@@ -85,6 +85,34 @@ export default function Auth() {
     }, 600);
   };
 
+  const handleRecoverySubmit = (e: React.FormEvent) => {
+    e.preventDefault();
+    const code = recoveryCode.trim();
+    if (code.length < 8) {
+      toast({ title: "Invalid code", description: "Enter a valid recovery code", variant: "destructive" });
+      return;
+    }
+    setIsLoading(true);
+    setTimeout(() => {
+      setIsLoading(false);
+      const ok = consumeRecoveryCode(code);
+      if (!ok) {
+        toast({
+          title: "Recovery failed",
+          description: "That recovery code is invalid or already used",
+          variant: "destructive",
+        });
+        return;
+      }
+      login();
+      toast({
+        title: "Signed in with recovery code",
+        description: "Generate new recovery codes from your profile to stay safe.",
+      });
+      navigate("/");
+    }, 600);
+  };
+
   return (
     <div className="min-h-screen bg-background flex flex-col items-center justify-center p-4">
       <div className="text-center mb-8">
