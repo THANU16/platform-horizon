@@ -33,6 +33,7 @@ const defaultTwoFactor: TwoFactorSettings = {
   method: "email",
   secret: DEFAULT_TOTP_SECRET,
   recoveryCodes: [],
+  enabledAt: null,
 };
 
 const ALPHABET = "ABCDEFGHJKLMNPQRSTUVWXYZ23456789";
