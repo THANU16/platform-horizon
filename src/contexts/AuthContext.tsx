@@ -6,6 +6,7 @@ export interface TwoFactorSettings {
   enabled: boolean;
   method: TwoFactorMethod;
   secret: string; // base32 secret for authenticator app
+  recoveryCodes: string[]; // unused recovery codes
 }
 
 interface AuthContextType {
@@ -14,6 +15,8 @@ interface AuthContextType {
   logout: () => void;
   twoFactor: TwoFactorSettings;
   updateTwoFactor: (settings: Partial<TwoFactorSettings>) => void;
+  generateRecoveryCodes: () => string[];
+  consumeRecoveryCode: (code: string) => boolean;
   // Demo OTP code accepted for all simulated 2FA / password reset flows
   DEMO_OTP: string;
 }
@@ -28,7 +31,22 @@ const defaultTwoFactor: TwoFactorSettings = {
   enabled: false,
   method: "email",
   secret: DEFAULT_TOTP_SECRET,
+  recoveryCodes: [],
 };
+
+const ALPHABET = "ABCDEFGHJKLMNPQRSTUVWXYZ23456789";
+function makeRecoveryCodes(count = 10): string[] {
+  const codes: string[] = [];
+  for (let i = 0; i < count; i++) {
+    let s = "";
+    for (let j = 0; j < 10; j++) {
+      s += ALPHABET[Math.floor(Math.random() * ALPHABET.length)];
+      if (j === 4) s += "-";
+    }
+    codes.push(s);
+  }
+  return codes;
+}
 
 const AuthContext = createContext<AuthContextType | undefined>(undefined);
 
@@ -57,12 +75,43 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     setIsAuthenticated(false);
   };
 
+  const persist = (next: TwoFactorSettings) => {
+    localStorage.setItem(STORAGE_2FA, JSON.stringify(next));
+    setTwoFactor(next);
+  };
+
   const updateTwoFactor = (settings: Partial<TwoFactorSettings>) => {
     setTwoFactor((prev) => {
       const next = { ...prev, ...settings };
       localStorage.setItem(STORAGE_2FA, JSON.stringify(next));
       return next;
     });
+  };
+
+  const generateRecoveryCodes = () => {
+    const codes = makeRecoveryCodes(10);
+    setTwoFactor((prev) => {
+      const next = { ...prev, recoveryCodes: codes };
+      localStorage.setItem(STORAGE_2FA, JSON.stringify(next));
+      return next;
+    });
+    return codes;
+  };
+
+  const consumeRecoveryCode = (code: string) => {
+    const normalized = code.trim().toUpperCase();
+    let matched = false;
+    setTwoFactor((prev) => {
+      if (!prev.recoveryCodes.includes(normalized)) return prev;
+      matched = true;
+      const next = {
+        ...prev,
+        recoveryCodes: prev.recoveryCodes.filter((c) => c !== normalized),
+      };
+      localStorage.setItem(STORAGE_2FA, JSON.stringify(next));
+      return next;
+    });
+    return matched;
   };
 
   return (
@@ -73,6 +122,8 @@ export function AuthProvider({ children }: { children: ReactNode }) {
         logout,
         twoFactor,
         updateTwoFactor,
+        generateRecoveryCodes,
+        consumeRecoveryCode,
         DEMO_OTP: "123456",
       }}
     >

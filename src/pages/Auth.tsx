@@ -12,18 +12,19 @@ import {
 } from "@/components/ui/input-otp";
 import { useToast } from "@/hooks/use-toast";
 
-type Step = "credentials" | "otp";
+type Step = "credentials" | "otp" | "recovery";
 
 export default function Auth() {
   const [step, setStep] = useState<Step>("credentials");
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
   const [otp, setOtp] = useState("");
+  const [recoveryCode, setRecoveryCode] = useState("");
   const [showPassword, setShowPassword] = useState(false);
   const [isLoading, setIsLoading] = useState(false);
   const navigate = useNavigate();
   const { toast } = useToast();
-  const { isAuthenticated, login, twoFactor, DEMO_OTP } = useAuth();
+  const { isAuthenticated, login, twoFactor, DEMO_OTP, consumeRecoveryCode } = useAuth();
 
   useEffect(() => {
     if (isAuthenticated) navigate("/", { replace: true });
@@ -80,6 +81,34 @@ export default function Auth() {
       }
       login();
       toast({ title: "Login Successful", description: "Two-factor verification passed" });
+      navigate("/");
+    }, 600);
+  };
+
+  const handleRecoverySubmit = (e: React.FormEvent) => {
+    e.preventDefault();
+    const code = recoveryCode.trim();
+    if (code.length < 8) {
+      toast({ title: "Invalid code", description: "Enter a valid recovery code", variant: "destructive" });
+      return;
+    }
+    setIsLoading(true);
+    setTimeout(() => {
+      setIsLoading(false);
+      const ok = consumeRecoveryCode(code);
+      if (!ok) {
+        toast({
+          title: "Recovery failed",
+          description: "That recovery code is invalid or already used",
+          variant: "destructive",
+        });
+        return;
+      }
+      login();
+      toast({
+        title: "Signed in with recovery code",
+        description: "Generate new recovery codes from your profile to stay safe.",
+      });
       navigate("/");
     }, 600);
   };
@@ -189,16 +218,76 @@ export default function Auth() {
                   {isLoading ? "Verifying..." : "Verify & Sign In"}
                 </Button>
 
+                <div className="flex flex-col items-center gap-2">
+                  <button
+                    type="button"
+                    onClick={() => {
+                      setStep("recovery");
+                      setOtp("");
+                    }}
+                    className="text-sm text-primary hover:underline font-medium"
+                  >
+                    Use a recovery code instead
+                  </button>
+                  <button
+                    type="button"
+                    onClick={() => {
+                      setStep("credentials");
+                      setOtp("");
+                    }}
+                    className="flex items-center justify-center gap-1 text-sm text-muted-foreground hover:text-foreground"
+                  >
+                    <ArrowLeft className="w-3 h-3" />
+                    Back to login
+                  </button>
+                </div>
+              </form>
+            </>
+          )}
+
+          {step === "recovery" && (
+            <>
+              <div className="mb-6">
+                <div className="inline-flex items-center justify-center w-12 h-12 rounded-lg bg-primary/10 mb-3">
+                  <KeyRound className="w-6 h-6 text-primary" />
+                </div>
+                <h2 className="text-xl font-semibold text-card-foreground">Recovery code</h2>
+                <p className="text-muted-foreground text-sm mt-1">
+                  Lost access to your {twoFactor.method === "email" ? "email" : "authenticator app"}?
+                  Enter one of the recovery codes you saved when enabling 2FA.
+                </p>
+              </div>
+
+              <form onSubmit={handleRecoverySubmit} className="space-y-5">
+                <div className="space-y-2">
+                  <Label htmlFor="recovery" className="text-sm font-medium">Recovery code</Label>
+                  <Input
+                    id="recovery"
+                    placeholder="XXXXX-XXXXX"
+                    value={recoveryCode}
+                    onChange={(e) => setRecoveryCode(e.target.value.toUpperCase())}
+                    className="font-mono tracking-wider"
+                    autoComplete="one-time-code"
+                  />
+                  <p className="text-xs text-muted-foreground">
+                    Each recovery code can only be used once.
+                  </p>
+                </div>
+
+                <Button type="submit" className="w-full" size="lg" disabled={isLoading}>
+                  {isLoading ? "Verifying..." : "Sign In with Recovery Code"}
+                </Button>
+
                 <button
                   type="button"
                   onClick={() => {
-                    setStep("credentials");
-                    setOtp("");
+                    setStep("otp");
+                    setRecoveryCode("");
                   }}
                   className="flex items-center justify-center gap-1 text-sm text-muted-foreground hover:text-foreground w-full"
                 >
                   <ArrowLeft className="w-3 h-3" />
-                  Back to login
+                  Back to verification
                 </button>
               </form>
             </>

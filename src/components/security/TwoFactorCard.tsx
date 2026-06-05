@@ -11,29 +11,71 @@ import {
   InputOTPSlot,
 } from "@/components/ui/input-otp";
 import { Badge } from "@/components/ui/badge";
-import { ShieldCheck, Smartphone, Mail, Copy, QrCode } from "lucide-react";
+import {
+  ShieldCheck,
+  Smartphone,
+  Mail,
+  Copy,
+  QrCode,
+  Download,
+  KeyRound,
+  RefreshCw,
+  AlertTriangle,
+} from "lucide-react";
 import { useToast } from "@/hooks/use-toast";
 
 export function TwoFactorCard({ accountEmail }: { accountEmail: string }) {
-  const { twoFactor, updateTwoFactor, DEMO_OTP } = useAuth();
+  const { twoFactor, updateTwoFactor, generateRecoveryCodes, DEMO_OTP } = useAuth();
   const { toast } = useToast();
   const [draftMethod, setDraftMethod] = useState<TwoFactorMethod>(twoFactor.method);
   const [verifyOtp, setVerifyOtp] = useState("");
   const [isVerifying, setIsVerifying] = useState(false);
+  const [justGeneratedCodes, setJustGeneratedCodes] = useState<string[] | null>(null);
 
   // otpauth:// URI for authenticator app
   const issuer = "FlyVoid%20Admin";
   const accountLabel = encodeURIComponent(accountEmail || "admin@flyvoid.com");
   const otpauthUri = `otpauth://totp/${issuer}:${accountLabel}?secret=${twoFactor.secret}&issuer=${issuer}&algorithm=SHA1&digits=6&period=30`;
   const qrSrc = `https://api.qrserver.com/v1/create-qr-code/?size=200x200&data=${encodeURIComponent(otpauthUri)}`;
+  const qrDownloadSrc = `https://api.qrserver.com/v1/create-qr-code/?size=600x600&format=png&data=${encodeURIComponent(otpauthUri)}`;
+
+  const downloadFile = (filename: string, content: string, mime = "text/plain") => {
+    const blob = new Blob([content], { type: mime });
+    const url = URL.createObjectURL(blob);
+    const a = document.createElement("a");
+    a.href = url;
+    a.download = filename;
+    document.body.appendChild(a);
+    a.click();
+    document.body.removeChild(a);
+    URL.revokeObjectURL(url);
+  };
+
+  const downloadQr = async () => {
+    try {
+      const res = await fetch(qrDownloadSrc);
+      const blob = await res.blob();
+      const url = URL.createObjectURL(blob);
+      const a = document.createElement("a");
+      a.href = url;
+      a.download = "flyvoid-2fa-qr.png";
+      document.body.appendChild(a);
+      a.click();
+      document.body.removeChild(a);
+      URL.revokeObjectURL(url);
+      toast({ title: "QR code downloaded", description: "Saved as flyvoid-2fa-qr.png" });
+    } catch {
+      toast({ title: "Download failed", description: "Could not download QR code", variant: "destructive" });
+    }
+  };
 
   const handleToggle = (enabled: boolean) => {
     if (!enabled) {
-      updateTwoFactor({ enabled: false });
+      updateTwoFactor({ enabled: false, recoveryCodes: [] });
+      setJustGeneratedCodes(null);
       toast({ title: "Two-factor disabled", description: "Your account is no longer protected by 2FA." });
       return;
     }
-    // Enabling — keep disabled until they verify a code
     setDraftMethod(twoFactor.method);
     updateTwoFactor({ enabled: false });
     toast({
@@ -56,6 +98,8 @@ export function TwoFactorCard({ accountEmail }: { accountEmail: string }) {
         return;
       }
       updateTwoFactor({ enabled: true, method: draftMethod });
+      const codes = generateRecoveryCodes();
+      setJustGeneratedCodes(codes);
       setVerifyOtp("");
       toast({
         title: "Two-factor enabled",
@@ -68,6 +112,70 @@ export function TwoFactorCard({ accountEmail }: { accountEmail: string }) {
     navigator.clipboard.writeText(twoFactor.secret);
     toast({ title: "Copied", description: "Secret key copied to clipboard" });
   };
+
+  const copyCodes = (codes: string[]) => {
+    navigator.clipboard.writeText(codes.join("\n"));
+    toast({ title: "Copied", description: "Recovery codes copied to clipboard" });
+  };
+
+  const downloadCodes = (codes: string[]) => {
+    const content = [
+      "FlyVoid Admin — Two-Factor Recovery Codes",
+      `Account: ${accountEmail || "admin@flyvoid.com"}`,
+      `Generated: ${new Date().toLocaleString()}`,
+      "",
+      "Keep these codes in a safe place. Each code can be used once to sign in",
+      "if you lose access to your authenticator app or email.",
+      "",
+      ...codes,
+    ].join("\n");
+    downloadFile("flyvoid-recovery-codes.txt", content);
+    toast({ title: "Downloaded", description: "Recovery codes saved to your device" });
+  };
+
+  const handleRegenerate = () => {
+    const codes = generateRecoveryCodes();
+    setJustGeneratedCodes(codes);
+    toast({
+      title: "Recovery codes regenerated",
+      description: "Old codes are now invalid. Save the new ones.",
+    });
+  };
+
+  const RecoveryPanel = ({ codes, title }: { codes: string[]; title: string }) => (
+    <div className="border border-warning/30 rounded-md p-4 space-y-3 bg-warning/5">
+      <div className="flex items-start gap-2">
+        <AlertTriangle className="w-4 h-4 text-warning mt-0.5" />
+        <div className="flex-1">
+          <p className="text-sm font-medium text-foreground">{title}</p>
+          <p className="text-xs text-muted-foreground mt-0.5">
+            Save these codes somewhere safe. Each one works once if you lose access to your{" "}
+            {twoFactor.method === "email" ? "email" : "authenticator app"}.
+          </p>
+        </div>
+      </div>
+      <div className="grid grid-cols-2 gap-2 font-mono text-xs">
+        {codes.map((c) => (
+          <code
+            key={c}
+            className="bg-card border border-border rounded px-2 py-1.5 text-center tracking-wider"
+          >
+            {c}
+          </code>
+        ))}
+      </div>
+      <div className="flex gap-2">
+        <Button type="button" variant="outline" size="sm" onClick={() => copyCodes(codes)}>
+          <Copy className="w-3.5 h-3.5 mr-1.5" />
+          Copy
+        </Button>
+        <Button type="button" variant="outline" size="sm" onClick={() => downloadCodes(codes)}>
+          <Download className="w-3.5 h-3.5 mr-1.5" />
+          Download
+        </Button>
+      </div>
+    </div>
+  );
 
   return (
     <Card>
@@ -97,17 +205,68 @@ export function TwoFactorCard({ accountEmail }: { accountEmail: string }) {
 
       <CardContent className="space-y-5">
         {twoFactor.enabled ? (
-          <div className="flex items-start gap-3 p-3 rounded-md bg-success/5 border border-success/20">
-            <ShieldCheck className="w-5 h-5 text-success mt-0.5" />
-            <div className="text-sm">
-              <p className="font-medium text-foreground">
-                2FA is active via {twoFactor.method === "email" ? "Email OTP" : "Authenticator App"}
-              </p>
-              <p className="text-muted-foreground text-xs mt-0.5">
-                You'll be asked for a 6-digit code on every sign-in.
-              </p>
+          <>
+            <div className="flex items-start gap-3 p-3 rounded-md bg-success/5 border border-success/20">
+              <ShieldCheck className="w-5 h-5 text-success mt-0.5" />
+              <div className="text-sm">
+                <p className="font-medium text-foreground">
+                  2FA is active via {twoFactor.method === "email" ? "Email OTP" : "Authenticator App"}
+                </p>
+                <p className="text-muted-foreground text-xs mt-0.5">
+                  You'll be asked for a 6-digit code on every sign-in.
+                </p>
+              </div>
             </div>
-          </div>
+
+            {justGeneratedCodes && (
+              <RecoveryPanel
+                codes={justGeneratedCodes}
+                title="Your new recovery codes"
+              />
+            )}
+
+            <div className="border border-border rounded-md p-4 space-y-3">
+              <div className="flex items-start justify-between gap-3">
+                <div className="flex items-start gap-2">
+                  <KeyRound className="w-4 h-4 text-primary mt-0.5" />
+                  <div>
+                    <p className="text-sm font-medium">Recovery codes</p>
+                    <p className="text-xs text-muted-foreground mt-0.5">
+                      {twoFactor.recoveryCodes.length} unused{" "}
+                      {twoFactor.recoveryCodes.length === 1 ? "code" : "codes"} remaining. Use one if you
+                      lose access to your {twoFactor.method === "email" ? "email" : "authenticator app"}.
+                    </p>
+                  </div>
+                </div>
+                <Button type="button" variant="outline" size="sm" onClick={handleRegenerate}>
+                  <RefreshCw className="w-3.5 h-3.5 mr-1.5" />
+                  Regenerate
+                </Button>
+              </div>
+              {!justGeneratedCodes && twoFactor.recoveryCodes.length > 0 && (
+                <div className="flex gap-2">
+                  <Button
+                    type="button"
+                    variant="outline"
+                    size="sm"
+                    onClick={() => copyCodes(twoFactor.recoveryCodes)}
+                  >
+                    <Copy className="w-3.5 h-3.5 mr-1.5" />
+                    Copy codes
+                  </Button>
+                  <Button
+                    type="button"
+                    variant="outline"
+                    size="sm"
+                    onClick={() => downloadCodes(twoFactor.recoveryCodes)}
+                  >
+                    <Download className="w-3.5 h-3.5 mr-1.5" />
+                    Download
+                  </Button>
+                </div>
+              )}
+            </div>
+          </>
         ) : (
           <>
             <div className="space-y-3">
@@ -155,14 +314,26 @@ export function TwoFactorCard({ accountEmail }: { accountEmail: string }) {
                 </div>
 
                 <div className="flex flex-col sm:flex-row gap-4 items-start">
-                  <div className="bg-card p-2 rounded-md border border-border">
-                    <img
-                      src={qrSrc}
-                      alt="2FA QR code"
-                      width={180}
-                      height={180}
-                      className="rounded-sm"
-                    />
+                  <div className="flex flex-col items-center gap-2">
+                    <div className="bg-card p-2 rounded-md border border-border">
+                      <img
+                        src={qrSrc}
+                        alt="2FA QR code"
+                        width={180}
+                        height={180}
+                        className="rounded-sm"
+                      />
+                    </div>
+                    <Button
+                      type="button"
+                      variant="outline"
+                      size="sm"
+                      onClick={downloadQr}
+                      className="w-full"
+                    >
+                      <Download className="w-3.5 h-3.5 mr-1.5" />
+                      Download QR
+                    </Button>
                   </div>
 
                   <div className="flex-1 space-y-2 w-full">
