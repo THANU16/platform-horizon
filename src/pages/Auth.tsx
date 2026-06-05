@@ -12,18 +12,19 @@ import {
 } from "@/components/ui/input-otp";
 import { useToast } from "@/hooks/use-toast";
 
-type Step = "credentials" | "otp";
+type Step = "credentials" | "otp" | "recovery";
 
 export default function Auth() {
   const [step, setStep] = useState<Step>("credentials");
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
   const [otp, setOtp] = useState("");
+  const [recoveryCode, setRecoveryCode] = useState("");
   const [showPassword, setShowPassword] = useState(false);
   const [isLoading, setIsLoading] = useState(false);
   const navigate = useNavigate();
   const { toast } = useToast();
-  const { isAuthenticated, login, twoFactor, DEMO_OTP } = useAuth();
+  const { isAuthenticated, login, twoFactor, DEMO_OTP, consumeRecoveryCode } = useAuth();
 
   useEffect(() => {
     if (isAuthenticated) navigate("/", { replace: true });
