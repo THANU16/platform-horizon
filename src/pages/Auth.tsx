@@ -219,16 +219,18 @@ export default function Auth() {
                 </Button>
 
                 <div className="flex flex-col items-center gap-2">
-                  <button
-                    type="button"
-                    onClick={() => {
-                      setStep("recovery");
-                      setOtp("");
-                    }}
-                    className="text-sm text-primary hover:underline font-medium"
-                  >
-                    Use a recovery code instead
-                  </button>
+                  {twoFactor.recoveryCodes.length > 0 && (
+                    <button
+                      type="button"
+                      onClick={() => {
+                        setStep("recovery");
+                        setOtp("");
+                      }}
+                      className="text-sm text-primary hover:underline font-medium"
+                    >
+                      Use a recovery code instead
+                    </button>
+                  )}
                   <button
                     type="button"
                     onClick={() => {
