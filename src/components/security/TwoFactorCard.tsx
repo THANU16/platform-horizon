@@ -106,9 +106,23 @@ export function TwoFactorCard({ accountEmail }: { accountEmail: string }) {
         setVerifyOtp("");
         return;
       }
-      const codes = generateRecoveryCodes();
-      setPendingCodes(codes);
-      setStage("recovery");
+      if (draftMethod === "email") {
+        updateTwoFactor({
+          enabled: true,
+          method: draftMethod,
+          enabledAt: new Date().toISOString(),
+          recoveryCodes: [],
+        });
+        toast({
+          title: "Two-factor enabled",
+          description: "2FA is now active via email OTP.",
+        });
+        resetSetup();
+      } else {
+        const codes = generateRecoveryCodes();
+        setPendingCodes(codes);
+        setStage("recovery");
+      }
     }, 500);
   };
 
