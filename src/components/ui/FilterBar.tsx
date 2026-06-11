@@ -55,36 +55,38 @@ export function FilterBar({
     <div className="mb-6">
       <div className="border rounded-lg bg-card p-4 space-y-3">
         {/* Search row */}
-        <div className="relative max-w-full">
-          <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-muted-foreground" />
-          <Input
-            placeholder={searchPlaceholder}
-            value={searchValue}
-            onChange={(e) => onSearchChange(e.target.value)}
-            className="pl-9"
-          />
+        <div className="space-y-1 max-w-full">
+          <Label className="text-xs text-muted-foreground">Search</Label>
+          <div className="relative">
+            <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-muted-foreground" />
+            <Input
+              placeholder={searchPlaceholder}
+              value={searchValue}
+              onChange={(e) => onSearchChange(e.target.value)}
+              className="pl-9"
+            />
+          </div>
         </div>
 
         {/* Filters row */}
-        <div className="flex flex-wrap items-center gap-3">
+        <div className="flex flex-wrap items-end gap-3">
           {filters.map((filter) => (
-            <Select
-              key={filter.name}
-              value={filter.value}
-              onValueChange={filter.onChange}
-            >
-              <SelectTrigger className="w-full sm:w-[180px]">
-                {filter.icon && <span className="mr-2">{filter.icon}</span>}
-                <SelectValue placeholder={filter.placeholder || filter.name} />
-              </SelectTrigger>
-              <SelectContent>
-                {filter.options.map((option) => (
-                  <SelectItem key={option.value} value={option.value}>
-                    {option.label}
-                  </SelectItem>
-                ))}
-              </SelectContent>
-            </Select>
+            <div key={filter.name} className="space-y-1 w-full sm:w-[180px]">
+              <Label className="text-xs text-muted-foreground">{filter.name}</Label>
+              <Select value={filter.value} onValueChange={filter.onChange}>
+                <SelectTrigger className="w-full">
+                  {filter.icon && <span className="mr-2">{filter.icon}</span>}
+                  <SelectValue placeholder={filter.placeholder || filter.name} />
+                </SelectTrigger>
+                <SelectContent>
+                  {filter.options.map((option) => (
+                    <SelectItem key={option.value} value={option.value}>
+                      {option.label}
+                    </SelectItem>
+                  ))}
+                </SelectContent>
+              </Select>
+            </div>
           ))}
           {children}
 
