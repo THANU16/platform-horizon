@@ -9,6 +9,7 @@ import {
   Settings,
   FileText,
   User,
+  Users,
   ChevronLeft,
   ChevronRight,
   Menu,
@@ -26,6 +27,7 @@ const navItems = [
   { title: "Invites & Onboarding", icon: UserPlus, path: "/invites" },
   { title: "System Settings", icon: Settings, path: "/settings" },
   { title: "Audit Logs", icon: FileText, path: "/audit-logs" },
+  { title: "Manage Users", icon: Users, path: "/manage-users" },
   { title: "Admin Profile", icon: User, path: "/profile" },
 ];
 
