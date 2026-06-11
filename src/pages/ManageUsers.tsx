@@ -249,8 +249,20 @@ export default function ManageUsers() {
       </Header>
 
       <div className="bg-card border border-border rounded-lg p-4 mb-4">
-        <div className="flex flex-col md:flex-row md:items-end gap-3 md:justify-end">
-          <div className="w-full md:w-48">
+        <div className="flex flex-col md:flex-row md:items-end gap-3">
+          <div className="w-full md:w-80">
+            <Label className="text-xs text-muted-foreground">Search</Label>
+            <Input
+              placeholder="Search by User ID, Name, Email"
+              value={searchDraft}
+              onChange={(e) => {
+                setSearchDraft(e.target.value);
+                setSearch(e.target.value);
+                setPage(1);
+              }}
+            />
+          </div>
+          <div className="md:ml-auto w-full md:w-48">
             <Label className="text-xs text-muted-foreground">Status</Label>
             <Select value={statusFilter} onValueChange={(v) => { setStatusFilter(v); setPage(1); }}>
               <SelectTrigger><SelectValue /></SelectTrigger>
@@ -261,18 +273,6 @@ export default function ManageUsers() {
               </SelectContent>
             </Select>
           </div>
-          <div className="w-full md:w-80">
-            <Label className="text-xs text-muted-foreground">Search</Label>
-            <Input
-              placeholder="Search by User ID, Name, Email"
-              value={searchDraft}
-              onChange={(e) => setSearchDraft(e.target.value)}
-              onKeyDown={(e) => e.key === "Enter" && applySearch()}
-            />
-          </div>
-          <Button onClick={applySearch} variant="outline" className="gap-2">
-            <Search className="w-4 h-4" /> Search
-          </Button>
         </div>
       </div>
 
