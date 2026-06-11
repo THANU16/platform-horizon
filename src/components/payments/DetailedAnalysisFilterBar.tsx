@@ -72,50 +72,59 @@ export function DetailedAnalysisFilterBar({
         />
       </div>
 
-      <Select value={airlineFilter} onValueChange={onAirlineFilterChange}>
-        <SelectTrigger className="w-[160px]">
-          <Plane className="w-4 h-4 mr-2 text-muted-foreground" />
-          <SelectValue placeholder="All Airlines" />
-        </SelectTrigger>
-        <SelectContent>
-          <SelectItem value="all">All Airlines</SelectItem>
-          {airlines.map((airline) => (
-            <SelectItem key={airline.id} value={airline.id}>
-              {airline.name} ({airline.iataCode})
-            </SelectItem>
-          ))}
-        </SelectContent>
-      </Select>
+      <div className="space-y-1">
+        <Label className="text-xs text-muted-foreground">Airline</Label>
+        <Select value={airlineFilter} onValueChange={onAirlineFilterChange}>
+          <SelectTrigger className="w-[160px]">
+            <Plane className="w-4 h-4 mr-2 text-muted-foreground" />
+            <SelectValue placeholder="All Airlines" />
+          </SelectTrigger>
+          <SelectContent>
+            <SelectItem value="all">All Airlines</SelectItem>
+            {airlines.map((airline) => (
+              <SelectItem key={airline.id} value={airline.id}>
+                {airline.name} ({airline.iataCode})
+              </SelectItem>
+            ))}
+          </SelectContent>
+        </Select>
+      </div>
 
-      <Select value={airportFilter} onValueChange={onAirportFilterChange}>
-        <SelectTrigger className="w-[150px]">
-          <MapPin className="w-4 h-4 mr-2 text-muted-foreground" />
-          <SelectValue placeholder="All Airports" />
-        </SelectTrigger>
-        <SelectContent>
-          <SelectItem value="all">All Airports</SelectItem>
-          {airports.map((airport) => (
-            <SelectItem key={airport.code} value={airport.code}>
-              {airport.code} - {airport.name}
-            </SelectItem>
-          ))}
-        </SelectContent>
-      </Select>
+      <div className="space-y-1">
+        <Label className="text-xs text-muted-foreground">Airport</Label>
+        <Select value={airportFilter} onValueChange={onAirportFilterChange}>
+          <SelectTrigger className="w-[150px]">
+            <MapPin className="w-4 h-4 mr-2 text-muted-foreground" />
+            <SelectValue placeholder="All Airports" />
+          </SelectTrigger>
+          <SelectContent>
+            <SelectItem value="all">All Airports</SelectItem>
+            {airports.map((airport) => (
+              <SelectItem key={airport.code} value={airport.code}>
+                {airport.code} - {airport.name}
+              </SelectItem>
+            ))}
+          </SelectContent>
+        </Select>
+      </div>
 
-      <Select value={countryFilter} onValueChange={onCountryFilterChange}>
-        <SelectTrigger className="w-[150px]">
-          <Globe className="w-4 h-4 mr-2 text-muted-foreground" />
-          <SelectValue placeholder="All Countries" />
-        </SelectTrigger>
-        <SelectContent>
-          <SelectItem value="all">All Countries</SelectItem>
-          {countries.map((country) => (
-            <SelectItem key={country} value={country}>
-              {country}
-            </SelectItem>
-          ))}
-        </SelectContent>
-      </Select>
+      <div className="space-y-1">
+        <Label className="text-xs text-muted-foreground">Country</Label>
+        <Select value={countryFilter} onValueChange={onCountryFilterChange}>
+          <SelectTrigger className="w-[150px]">
+            <Globe className="w-4 h-4 mr-2 text-muted-foreground" />
+            <SelectValue placeholder="All Countries" />
+          </SelectTrigger>
+          <SelectContent>
+            <SelectItem value="all">All Countries</SelectItem>
+            {countries.map((country) => (
+              <SelectItem key={country} value={country}>
+                {country}
+              </SelectItem>
+            ))}
+          </SelectContent>
+        </Select>
+      </div>
 
       <div className="flex-1" />
 
