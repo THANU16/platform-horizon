@@ -14,6 +14,7 @@ import Invites from "./pages/Invites";
 import SystemSettings from "./pages/SystemSettings";
 import AuditLogs from "./pages/AuditLogs";
 import AdminProfile from "./pages/AdminProfile";
+import ManageUsers from "./pages/ManageUsers";
 import Auth from "./pages/Auth";
 import ForgotPassword from "./pages/ForgotPassword";
 import NotFound from "./pages/NotFound";
@@ -38,6 +39,7 @@ const App = () => (
             <Route path="/invites" element={<ProtectedRoute><Invites /></ProtectedRoute>} />
             <Route path="/settings" element={<ProtectedRoute><SystemSettings /></ProtectedRoute>} />
             <Route path="/audit-logs" element={<ProtectedRoute><AuditLogs /></ProtectedRoute>} />
+            <Route path="/manage-users" element={<ProtectedRoute><ManageUsers /></ProtectedRoute>} />
             <Route path="/profile" element={<ProtectedRoute><AdminProfile /></ProtectedRoute>} />
             {/* ADD ALL CUSTOM ROUTES ABOVE THE CATCH-ALL "*" ROUTE */}
             <Route path="*" element={<NotFound />} />
