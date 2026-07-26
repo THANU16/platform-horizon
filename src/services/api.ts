@@ -11,12 +11,10 @@ import {
   PlatformFinancialSnapshot,
   CreditRiskOverview,
   AirlineFinancialHealth,
-  WalletTransaction,
+  BillingTransaction,
   PaymentFilters,
   Airport,
   AirlineFinancialStatus,
-  PlatformReserveTransaction,
-  PlatformTreasurySummary
 } from "@/types";
 
 // Simulated delay
@@ -233,7 +231,6 @@ const invitesData: Invite[] = [
     iataCode: "EJA",
     contactEmail: "onboarding@eurojet.com",
     country: "France",
-    initialAllowance: 100000,
     status: "pending",
     invitedBy: "John Smith",
     invitedDate: "2025-01-28",
@@ -245,7 +242,6 @@ const invitesData: Invite[] = [
     iataCode: "CST",
     contactEmail: "admin@coastalairlines.com",
     country: "United States",
-    initialAllowance: 150000,
     status: "accepted",
     invitedBy: "Sarah Johnson",
     invitedDate: "2025-01-15",
@@ -257,7 +253,6 @@ const invitesData: Invite[] = [
     iataCode: "SUM",
     contactEmail: "ops@summitair.com",
     country: "India",
-    initialAllowance: 75000,
     status: "expired",
     invitedBy: "John Smith",
     invitedDate: "2024-12-01",
@@ -269,7 +264,6 @@ const invitesData: Invite[] = [
     iataCode: "AWG",
     contactEmail: "contact@alpinewings.ch",
     country: "Germany",
-    initialAllowance: 120000,
     status: "revoked",
     invitedBy: "Mike Chen",
     invitedDate: "2024-11-15",
@@ -281,7 +275,6 @@ const invitesData: Invite[] = [
     iataCode: "PHZ",
     contactEmail: "admin@pacifichorizon.com",
     country: "Australia",
-    initialAllowance: 200000,
     status: "pending",
     invitedBy: "Sarah Johnson",
     invitedDate: "2025-02-01",
@@ -643,7 +636,6 @@ export const getInvites = async (): Promise<Invite[]> => {
 export const createInvite = async (invite: Partial<Invite> & Pick<Invite, "airlineName" | "iataCode" | "contactEmail" | "country">): Promise<Invite> => {
   await delay(300);
   const newInvite: Invite = {
-    initialAllowance: 100000,
     creditLimit: invite.creditLimit ?? 100000,
     ...invite,
     id: String(invitesData.length + 1),
