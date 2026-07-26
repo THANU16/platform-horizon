@@ -189,13 +189,6 @@ export default function Payments() {
     });
   };
 
-  // Handle platform reserve transaction
-  const handleReserveTransaction = async (type: "deposit" | "withdraw", amount: number, note: string) => {
-    const txType = type === "deposit" ? "PLATFORM_RESERVE_DEPOSIT" : "PLATFORM_RESERVE_WITHDRAWAL";
-    await addPlatformReserveTransaction(txType, amount, note);
-    await fetchTreasuryData();
-  };
-
   // Date-filter transactions for detailed analysis (client-side)
   const detailedTransactions = useMemo(() => {
     const s = detailStartDate ? new Date(detailStartDate).getTime() : null;
@@ -210,18 +203,18 @@ export default function Payments() {
 
   // Calculate summary stats for detailed analysis
   const summaryStats = useMemo(() => {
-    const bookingTransactions = detailedTransactions.filter(t => t.type === "booking_charge");
-    const topUpTransactions = detailedTransactions.filter(t => t.type === "top_up");
-    const totalBookingAmount = Math.abs(bookingTransactions.reduce((sum, t) => sum + t.amount, 0));
-    const totalTopUpAmount = topUpTransactions.reduce((sum, t) => sum + t.amount, 0);
-    const totalRevenue = airlineHealth.reduce((sum, a) => sum + a.platformRevenue, 0);
+    const feeTransactions = detailedTransactions.filter((t) => t.type === "service_fee");
+    const paymentTransactions = detailedTransactions.filter((t) => t.type === "fee_payment");
+    const totalServiceFees = feeTransactions.reduce((sum, t) => sum + Math.abs(t.amount), 0);
+    const totalPaymentsReceived = paymentTransactions.reduce((sum, t) => sum + Math.abs(t.amount), 0);
+    const totalOutstanding = airlineHealth.reduce((sum, a) => sum + a.outstandingBalance, 0);
 
     return {
-      totalBookingAmount,
-      totalBookingCount: bookingTransactions.length,
-      totalTopUpAmount,
-      totalTopUpCount: topUpTransactions.length,
-      totalRevenue,
+      totalServiceFees,
+      totalFeeCount: feeTransactions.length,
+      totalPaymentsReceived,
+      totalPaymentCount: paymentTransactions.length,
+      totalOutstanding,
     };
   }, [airlineHealth, detailedTransactions]);
 
@@ -272,9 +265,7 @@ export default function Payments() {
           {snapshot && (
             <PlatformOverviewSection
               snapshot={snapshot}
-              platformReserve={platformReserve}
               dateRangeLabel={dateRangeLabels[appliedGlobalDateRange]}
-              onManageReserve={() => setReserveModalOpen(true)}
             />
           )}
 
@@ -325,11 +316,11 @@ export default function Payments() {
 
               {/* Summary Cards */}
               <DetailedAnalysisSummary
-                totalBookingAmount={summaryStats.totalBookingAmount}
-                totalBookingCount={summaryStats.totalBookingCount}
-                totalTopUpAmount={summaryStats.totalTopUpAmount}
-                totalTopUpCount={summaryStats.totalTopUpCount}
-                totalRevenue={summaryStats.totalRevenue}
+                totalServiceFees={summaryStats.totalServiceFees}
+                totalFeeCount={summaryStats.totalFeeCount}
+                totalPaymentsReceived={summaryStats.totalPaymentsReceived}
+                totalPaymentCount={summaryStats.totalPaymentCount}
+                totalOutstanding={summaryStats.totalOutstanding}
               />
             </CardContent>
           </Card>
@@ -349,23 +340,6 @@ export default function Payments() {
         </div>
       )}
 
-      {activeTab === "treasury" && treasurySummary && (
-        <PlatformTreasuryTab
-          treasurySummary={treasurySummary}
-          reserveTransactions={reserveTransactions}
-          dateRange={treasuryDateRange}
-          onDateRangeChange={setTreasuryDateRange}
-          onManageReserve={() => setReserveModalOpen(true)}
-        />
-      )}
-
-      {/* Platform Reserve Modal */}
-      <PlatformReserveModal
-        open={reserveModalOpen}
-        onOpenChange={setReserveModalOpen}
-        currentReserve={platformReserve}
-        onSubmit={handleReserveTransaction}
-      />
     </MainLayout>
   );
 }
