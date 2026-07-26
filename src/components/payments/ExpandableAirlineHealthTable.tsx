@@ -14,22 +14,29 @@ import { EmptyState } from "@/components/ui/EmptyState";
 import { FinancialStatusBadge } from "@/components/ui/FinancialStatusBadge";
 import { TransactionTypeBadge } from "@/components/ui/TransactionTypeBadge";
 import { StatusBadge, StatusType } from "@/components/ui/StatusBadge";
-import { 
-  Building2, 
-  ChevronDown, 
-  ChevronUp, 
+import {
+  Building2,
+  ChevronDown,
+  ChevronUp,
   ArrowUpDown
 } from "lucide-react";
-import { AirlineFinancialHealth, WalletTransaction } from "@/types";
+import { AirlineFinancialHealth, BillingTransaction } from "@/types";
 import { cn } from "@/lib/utils";
 
 interface ExpandableAirlineHealthTableProps {
   data: AirlineFinancialHealth[];
-  transactions: WalletTransaction[];
+  transactions: BillingTransaction[];
   onAirlineClick?: (airlineId: string) => void;
 }
 
-type SortField = "airlineName" | "country" | "totalTopUps" | "totalBookingSpend" | "platformRevenue" | "walletBalance" | "creditLimit" | "creditUsed";
+type SortField =
+  | "airlineName"
+  | "country"
+  | "totalBookingValue"
+  | "serviceFeesBilled"
+  | "paymentsReceived"
+  | "outstandingBalance"
+  | "creditLimit";
 type SortDirection = "asc" | "desc";
 
 export function ExpandableAirlineHealthTable({ data, transactions, onAirlineClick }: ExpandableAirlineHealthTableProps) {
@@ -70,7 +77,7 @@ export function ExpandableAirlineHealthTable({ data, transactions, onAirlineClic
     const aVal = a[sortField];
     const bVal = b[sortField];
     const multiplier = sortDirection === "asc" ? 1 : -1;
-    
+
     if (typeof aVal === "string" && typeof bVal === "string") {
       return aVal.localeCompare(bVal) * multiplier;
     }
@@ -81,25 +88,27 @@ export function ExpandableAirlineHealthTable({ data, transactions, onAirlineClic
     return transactions.filter(t => t.airlineId === airlineId).slice(0, 3);
   };
 
-  const getAirlineStats = (airlineId: string) => {
-    const airlineTransactions = transactions.filter(t => t.airlineId === airlineId);
-    const bookingCharges = airlineTransactions.filter(t => t.type === "booking_charge");
-    const totalPassengers = bookingCharges.length * 89; // Mock calculation
-    const cancelledFlights = bookingCharges.length;
-    const allocationFailures = Math.floor(bookingCharges.length * 0.05);
-    const avgCostPerPassenger = totalPassengers > 0 ? 
-      Math.abs(bookingCharges.reduce((sum, t) => sum + t.amount, 0)) / totalPassengers : 0;
-    
+  const getAirlineStats = (airline: AirlineFinancialHealth) => {
+    const airlineTransactions = transactions.filter(t => t.airlineId === airline.airlineId);
+    const serviceFees = airlineTransactions.filter(t => t.type === "service_fee");
+    const disruptions = serviceFees.length;
+    const collectionRate = airline.serviceFeesBilled > 0
+      ? (airline.paymentsReceived / airline.serviceFeesBilled) * 100
+      : 100;
+    const creditUtilization = airline.creditLimit > 0
+      ? (airline.outstandingBalance / airline.creditLimit) * 100
+      : 0;
+
     return {
-      avgCostPerPassenger,
-      totalPassengers,
-      cancelledFlights,
-      allocationFailures,
+      disruptions,
+      collectionRate,
+      creditUtilization,
+      feeTransactions: serviceFees.length,
     };
   };
 
   const SortHeader = ({ field, children }: { field: SortField; children: React.ReactNode }) => (
-    <TableHead 
+    <TableHead
       className="cursor-pointer hover:bg-muted/50 transition-colors"
       onClick={() => handleSort(field)}
     >
@@ -118,7 +127,7 @@ export function ExpandableAirlineHealthTable({ data, transactions, onAirlineClic
       <CardHeader>
         <CardTitle className="text-base font-medium flex items-center gap-2">
           <Building2 className="w-4 h-4 text-primary" />
-          Airline Financial Health
+          Airline Billing Health
           <span className="text-sm font-normal text-muted-foreground">({data.length} airlines)</span>
         </CardTitle>
       </CardHeader>
@@ -138,13 +147,12 @@ export function ExpandableAirlineHealthTable({ data, transactions, onAirlineClic
                   <TableRow className="table-header">
                     <SortHeader field="airlineName">Airline</SortHeader>
                     <SortHeader field="country">Country</SortHeader>
-                    <SortHeader field="totalTopUps">Top-ups</SortHeader>
-                    <SortHeader field="totalBookingSpend">Booking Spend</SortHeader>
-                    <SortHeader field="platformRevenue">Revenue</SortHeader>
-                    <SortHeader field="walletBalance">Wallet Balance</SortHeader>
+                    <SortHeader field="totalBookingValue">Booking Value</SortHeader>
+                    <SortHeader field="serviceFeesBilled">Service Fees</SortHeader>
+                    <SortHeader field="paymentsReceived">Payments Received</SortHeader>
+                    <SortHeader field="outstandingBalance">Outstanding</SortHeader>
                     <SortHeader field="creditLimit">Credit Limit</SortHeader>
-                    <SortHeader field="creditUsed">Credit Used</SortHeader>
-                    <TableHead>Remaining</TableHead>
+                    <TableHead>Remaining Credit</TableHead>
                     <TableHead>Status</TableHead>
                     <TableHead></TableHead>
                   </TableRow>
@@ -153,12 +161,12 @@ export function ExpandableAirlineHealthTable({ data, transactions, onAirlineClic
                   {sortedData.map((airline) => {
                     const isExpanded = expandedAirlines.has(airline.airlineId);
                     const airlineTransactions = getAirlineTransactions(airline.airlineId);
-                    const stats = getAirlineStats(airline.airlineId);
+                    const stats = getAirlineStats(airline);
 
                     return (
                       <>
-                        <TableRow 
-                          key={airline.airlineId} 
+                        <TableRow
+                          key={airline.airlineId}
                           className={cn(
                             "table-row-hover cursor-pointer",
                             isExpanded && "bg-muted/30"
@@ -171,24 +179,25 @@ export function ExpandableAirlineHealthTable({ data, transactions, onAirlineClic
                           <TableCell className="text-muted-foreground">
                             {airline.country}
                           </TableCell>
-                          <TableCell>{formatCurrency(airline.totalTopUps)}</TableCell>
-                          <TableCell>{formatCurrency(airline.totalBookingSpend)}</TableCell>
+                          <TableCell className="text-muted-foreground">
+                            {formatCurrency(airline.totalBookingValue)}
+                          </TableCell>
+                          <TableCell>{formatCurrency(airline.serviceFeesBilled)}</TableCell>
                           <TableCell className="text-success font-medium">
-                            {formatCurrency(airline.platformRevenue)}
+                            {formatCurrency(airline.paymentsReceived)}
                           </TableCell>
                           <TableCell className={cn(
                             "font-medium",
-                            airline.walletBalance < 0 ? "text-destructive" : ""
+                            airline.outstandingBalance > 0 ? "text-warning" : ""
                           )}>
-                            {formatCurrency(airline.walletBalance)}
+                            {formatCurrency(airline.outstandingBalance)}
                           </TableCell>
                           <TableCell>{formatCurrency(airline.creditLimit)}</TableCell>
                           <TableCell className={cn(
-                            airline.creditUsed > 0 ? "text-warning font-medium" : ""
+                            airline.remainingCredit === 0 ? "text-destructive font-medium" : ""
                           )}>
-                            {formatCurrency(airline.creditUsed)}
+                            {formatCurrency(airline.remainingCredit)}
                           </TableCell>
-                          <TableCell>{formatCurrency(airline.remainingCredit)}</TableCell>
                           <TableCell>
                             <FinancialStatusBadge status={airline.status} />
                           </TableCell>
@@ -206,36 +215,36 @@ export function ExpandableAirlineHealthTable({ data, transactions, onAirlineClic
                         {/* Expanded Row */}
                         {isExpanded && (
                           <TableRow key={`${airline.airlineId}-expanded`} className="bg-muted/20">
-                            <TableCell colSpan={11} className="p-0">
+                            <TableCell colSpan={10} className="p-0">
                               <div className="p-4 space-y-4">
                                 {/* Stats Row */}
                                 <div className="grid grid-cols-4 gap-4">
                                   <div>
-                                    <p className="text-xs text-muted-foreground">Avg Cost per Passenger</p>
-                                    <p className="font-semibold">{formatCurrency(stats.avgCostPerPassenger)}</p>
+                                    <p className="text-xs text-muted-foreground">Fee Collection Rate</p>
+                                    <p className="font-semibold">{stats.collectionRate.toFixed(1)}%</p>
                                   </div>
                                   <div>
-                                    <p className="text-xs text-muted-foreground">Total Passengers</p>
-                                    <p className="font-semibold">{stats.totalPassengers.toLocaleString()}</p>
+                                    <p className="text-xs text-muted-foreground">Credit Utilization</p>
+                                    <p className="font-semibold">{stats.creditUtilization.toFixed(1)}%</p>
                                   </div>
                                   <div>
-                                    <p className="text-xs text-muted-foreground">Cancelled Flights</p>
-                                    <p className="font-semibold">{stats.cancelledFlights}</p>
+                                    <p className="text-xs text-muted-foreground">Billed Disruptions</p>
+                                    <p className="font-semibold">{stats.disruptions}</p>
                                   </div>
                                   <div>
-                                    <p className="text-xs text-muted-foreground">Allocation Failures</p>
-                                    <p className="font-semibold">{stats.allocationFailures}</p>
+                                    <p className="text-xs text-muted-foreground">Fee Transactions</p>
+                                    <p className="font-semibold">{stats.feeTransactions}</p>
                                   </div>
                                 </div>
 
                                 {/* Recent Transactions */}
                                 {airlineTransactions.length > 0 && (
                                   <div>
-                                    <p className="text-sm font-medium mb-2">Recent Transactions (Filtered)</p>
+                                    <p className="text-sm font-medium mb-2">Recent Billing Activity (Filtered)</p>
                                     <div className="space-y-2">
                                       {airlineTransactions.map((tx) => (
-                                        <div 
-                                          key={tx.id} 
+                                        <div
+                                          key={tx.id}
                                           className="flex items-center justify-between text-sm bg-background rounded-lg p-2"
                                         >
                                           <div className="flex items-center gap-3">
@@ -254,7 +263,7 @@ export function ExpandableAirlineHealthTable({ data, transactions, onAirlineClic
                                           <div className="flex items-center gap-2">
                                             <span className={cn(
                                               "font-medium",
-                                              tx.amount < 0 ? "text-destructive" : "text-success"
+                                              tx.amount < 0 ? "text-success" : "text-foreground"
                                             )}>
                                               {tx.amount < 0 ? `-${formatCurrency(Math.abs(tx.amount))}` : `+${formatCurrency(tx.amount)}`}
                                             </span>
@@ -281,11 +290,11 @@ export function ExpandableAirlineHealthTable({ data, transactions, onAirlineClic
               {sortedData.map((airline) => {
                 const isExpanded = expandedAirlines.has(airline.airlineId);
                 const airlineTransactions = getAirlineTransactions(airline.airlineId);
-                const stats = getAirlineStats(airline.airlineId);
+                const stats = getAirlineStats(airline);
 
                 return (
-                  <Card 
-                    key={airline.airlineId} 
+                  <Card
+                    key={airline.airlineId}
                     className="animate-fade-in cursor-pointer"
                     onClick={() => toggleExpand(airline.airlineId)}
                   >
@@ -307,26 +316,21 @@ export function ExpandableAirlineHealthTable({ data, transactions, onAirlineClic
 
                       <div className="grid grid-cols-2 gap-3 text-sm">
                         <div>
-                          <span className="text-muted-foreground">Wallet Balance</span>
-                          <p className={cn(
-                            "font-semibold",
-                            airline.walletBalance < 0 ? "text-destructive" : ""
-                          )}>
-                            {formatCurrency(airline.walletBalance)}
-                          </p>
+                          <span className="text-muted-foreground">Service Fees</span>
+                          <p className="font-semibold">{formatCurrency(airline.serviceFeesBilled)}</p>
                         </div>
                         <div>
-                          <span className="text-muted-foreground">Credit Used</span>
-                          <p className={cn(
-                            "font-semibold",
-                            airline.creditUsed > 0 ? "text-warning" : ""
-                          )}>
-                            {formatCurrency(airline.creditUsed)}
-                          </p>
+                          <span className="text-muted-foreground">Payments Received</span>
+                          <p className="font-semibold text-success">{formatCurrency(airline.paymentsReceived)}</p>
                         </div>
                         <div>
-                          <span className="text-muted-foreground">Revenue</span>
-                          <p className="font-semibold text-success">{formatCurrency(airline.platformRevenue)}</p>
+                          <span className="text-muted-foreground">Outstanding</span>
+                          <p className={cn(
+                            "font-semibold",
+                            airline.outstandingBalance > 0 ? "text-warning" : ""
+                          )}>
+                            {formatCurrency(airline.outstandingBalance)}
+                          </p>
                         </div>
                         <div>
                           <span className="text-muted-foreground">Credit Limit</span>
@@ -339,22 +343,22 @@ export function ExpandableAirlineHealthTable({ data, transactions, onAirlineClic
                         <div className="mt-4 pt-4 border-t border-border space-y-4">
                           <div className="grid grid-cols-2 gap-3 text-sm">
                             <div>
-                              <span className="text-muted-foreground">Avg Cost/Passenger</span>
-                              <p className="font-semibold">{formatCurrency(stats.avgCostPerPassenger)}</p>
+                              <span className="text-muted-foreground">Fee Collection Rate</span>
+                              <p className="font-semibold">{stats.collectionRate.toFixed(1)}%</p>
                             </div>
                             <div>
-                              <span className="text-muted-foreground">Total Passengers</span>
-                              <p className="font-semibold">{stats.totalPassengers.toLocaleString()}</p>
+                              <span className="text-muted-foreground">Credit Utilization</span>
+                              <p className="font-semibold">{stats.creditUtilization.toFixed(1)}%</p>
                             </div>
                           </div>
 
                           {airlineTransactions.length > 0 && (
                             <div>
-                              <p className="text-xs font-medium mb-2">Recent Transactions</p>
+                              <p className="text-xs font-medium mb-2">Recent Billing Activity</p>
                               <div className="space-y-2">
                                 {airlineTransactions.map((tx) => (
-                                  <div 
-                                    key={tx.id} 
+                                  <div
+                                    key={tx.id}
                                     className="flex items-center justify-between text-xs bg-muted/50 rounded p-2"
                                   >
                                     <div className="flex items-center gap-2">
@@ -363,11 +367,10 @@ export function ExpandableAirlineHealthTable({ data, transactions, onAirlineClic
                                     <div className="flex items-center gap-2">
                                       <span className={cn(
                                         "font-medium",
-                                        tx.amount < 0 ? "text-destructive" : "text-success"
+                                        tx.amount < 0 ? "text-success" : "text-foreground"
                                       )}>
                                         {tx.amount < 0 ? `-${formatCurrency(Math.abs(tx.amount))}` : `+${formatCurrency(tx.amount)}`}
                                       </span>
-                                      <StatusBadge status={tx.status as StatusType} />
                                     </div>
                                   </div>
                                 ))}
