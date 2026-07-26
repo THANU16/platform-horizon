@@ -672,52 +672,62 @@ export const updateAdminProfile = async (profile: Partial<AdminProfile>): Promis
   return adminProfileData;
 };
 
-// Helper function to determine airline financial status
+// Helper: apply shared filters to airlines
+const filterAirlines = (filters?: PaymentFilters) => {
+  let result = [...airlinesData];
+
+  if (filters?.country && filters.country !== "all") {
+    result = result.filter(a => a.country === filters.country);
+  }
+  if (filters?.airline && filters.airline !== "all") {
+    result = result.filter(a => a.id === filters.airline);
+  }
+  if (filters?.airport && filters.airport !== "all") {
+    const airport = airportsData.find(ap => ap.code === filters.airport);
+    if (airport) {
+      result = result.filter(a => a.country === airport.country);
+    }
+  }
+  if (filters?.search) {
+    const searchLower = filters.search.toLowerCase();
+    result = result.filter(a =>
+      a.name.toLowerCase().includes(searchLower) ||
+      a.iataCode.toLowerCase().includes(searchLower)
+    );
+  }
+  return result;
+};
+
+// Helper: billing status based on outstanding service fees vs credit limit
 const getAirlineFinancialStatus = (airline: Airline): AirlineFinancialStatus => {
-  if (airline.walletBalance >= 0 && airline.creditUsed === 0) {
-    return "healthy";
-  }
-  if (airline.creditUsed > 0 && airline.creditUsed < airline.creditLimit * 0.8) {
-    return "using_credit";
-  }
-  if (airline.creditUsed >= airline.creditLimit * 0.8) {
-    return "critical";
-  }
-  if (airline.walletBalance <= 0 && airline.creditUsed === 0) {
-    return "topup_required";
-  }
-  return "using_credit";
+  const outstanding = airline.outstandingBalance;
+  if (outstanding <= 0) return "settled";
+  if (airline.creditLimit <= 0) return "credit_exceeded";
+
+  const utilization = outstanding / airline.creditLimit;
+  if (utilization >= 1) return "credit_exceeded";
+  if (utilization >= 0.8) return "credit_warning";
+  return "outstanding";
 };
 
 // Platform Financial Snapshot
 export const getPlatformFinancialSnapshot = async (filters?: PaymentFilters): Promise<PlatformFinancialSnapshot> => {
   await delay(200);
-  
-  let filteredAirlines = [...airlinesData];
-  
-  if (filters?.country && filters.country !== "all") {
-    filteredAirlines = filteredAirlines.filter(a => a.country === filters.country);
-  }
-  if (filters?.airline && filters.airline !== "all") {
-    filteredAirlines = filteredAirlines.filter(a => a.id === filters.airline);
-  }
-  if (filters?.airport && filters.airport !== "all") {
-    const airport = airportsData.find(ap => ap.code === filters.airport);
-    if (airport) {
-      filteredAirlines = filteredAirlines.filter(a => a.country === airport.country);
-    }
-  }
-  
-  const totalTopUpBalance = filteredAirlines.reduce((sum, a) => sum + Math.max(0, a.walletBalance), 0);
-  const totalAdminCreditIssued = filteredAirlines.reduce((sum, a) => sum + a.creditLimit, 0);
-  const totalCreditUsed = filteredAirlines.reduce((sum, a) => sum + a.creditUsed, 0);
+
+  const filteredAirlines = filterAirlines(filters);
+
+  const totalServiceFeesBilled = filteredAirlines.reduce((sum, a) => sum + a.serviceFeesBilled, 0);
+  const totalPaymentsReceived = filteredAirlines.reduce((sum, a) => sum + a.paymentsReceived, 0);
+  const totalOutstandingFees = filteredAirlines.reduce((sum, a) => sum + a.outstandingBalance, 0);
+  const totalCreditIssued = filteredAirlines.reduce((sum, a) => sum + a.creditLimit, 0);
   const totalPlatformRevenue = filteredAirlines.reduce((sum, a) => sum + a.platformRevenue, 0);
-  
+
   return {
-    totalTopUpBalance,
-    totalAdminCreditIssued,
-    totalCreditUsed,
-    netPlatformExposure: totalCreditUsed - totalTopUpBalance,
+    totalServiceFeesBilled,
+    totalPaymentsReceived,
+    totalOutstandingFees,
+    totalCreditIssued,
+    creditUtilizationPercent: totalCreditIssued > 0 ? (totalOutstandingFees / totalCreditIssued) * 100 : 0,
     totalPlatformRevenue,
     revenueChangePercent: 18,
   };
@@ -726,61 +736,38 @@ export const getPlatformFinancialSnapshot = async (filters?: PaymentFilters): Pr
 // Credit Risk Overview
 export const getCreditRiskOverview = async (filters?: PaymentFilters): Promise<CreditRiskOverview> => {
   await delay(200);
-  
-  let filteredAirlines = [...airlinesData];
-  
-  if (filters?.country && filters.country !== "all") {
-    filteredAirlines = filteredAirlines.filter(a => a.country === filters.country);
-  }
-  if (filters?.airline && filters.airline !== "all") {
-    filteredAirlines = filteredAirlines.filter(a => a.id === filters.airline);
-  }
-  
+
+  const filteredAirlines = filterAirlines(filters);
+
   const totalCreditAllowed = filteredAirlines.reduce((sum, a) => sum + a.creditLimit, 0);
-  const totalCreditUsed = filteredAirlines.reduce((sum, a) => sum + a.creditUsed, 0);
-  const airlinesUsingCredit = filteredAirlines.filter(a => a.creditUsed > 0).length;
-  
+  const totalOutstandingFees = filteredAirlines.reduce((sum, a) => sum + a.outstandingBalance, 0);
+  const airlinesWithOutstandingFees = filteredAirlines.filter(a => a.outstandingBalance > 0).length;
+
   return {
     totalCreditAllowed,
-    totalCreditUsed,
-    creditUtilizationPercent: totalCreditAllowed > 0 ? (totalCreditUsed / totalCreditAllowed) * 100 : 0,
-    airlinesUsingCredit,
+    totalOutstandingFees,
+    creditUtilizationPercent: totalCreditAllowed > 0 ? (totalOutstandingFees / totalCreditAllowed) * 100 : 0,
+    airlinesWithOutstandingFees,
     totalAirlines: filteredAirlines.length,
   };
 };
 
-// Airline Financial Health Table
+// Airline Billing Health Table
 export const getAirlineFinancialHealth = async (filters?: PaymentFilters): Promise<AirlineFinancialHealth[]> => {
   await delay(300);
-  
-  let filteredAirlines = [...airlinesData];
-  
-  if (filters?.country && filters.country !== "all") {
-    filteredAirlines = filteredAirlines.filter(a => a.country === filters.country);
-  }
-  if (filters?.airline && filters.airline !== "all") {
-    filteredAirlines = filteredAirlines.filter(a => a.id === filters.airline);
-  }
-  if (filters?.search) {
-    const searchLower = filters.search.toLowerCase();
-    filteredAirlines = filteredAirlines.filter(a => 
-      a.name.toLowerCase().includes(searchLower) ||
-      a.iataCode.toLowerCase().includes(searchLower)
-    );
-  }
-  
-  return filteredAirlines.map(airline => ({
+
+  return filterAirlines(filters).map(airline => ({
     airlineId: airline.id,
     airlineName: airline.name,
     iataCode: airline.iataCode,
     country: airline.country,
-    totalTopUps: airline.totalTopUps,
-    totalBookingSpend: airline.totalSpend,
+    totalBookingValue: airline.totalBookingValue,
+    serviceFeesBilled: airline.serviceFeesBilled,
+    paymentsReceived: airline.paymentsReceived,
+    outstandingBalance: airline.outstandingBalance,
     platformRevenue: airline.platformRevenue,
-    walletBalance: airline.walletBalance,
     creditLimit: airline.creditLimit,
-    creditUsed: airline.creditUsed,
-    remainingCredit: airline.creditLimit - airline.creditUsed,
+    remainingCredit: Math.max(0, airline.creditLimit - airline.outstandingBalance),
     status: getAirlineFinancialStatus(airline),
   }));
 };
@@ -788,18 +775,10 @@ export const getAirlineFinancialHealth = async (filters?: PaymentFilters): Promi
 // Revenue by Airline
 export const getRevenueByAirline = async (filters?: PaymentFilters): Promise<RevenueByAirline[]> => {
   await delay(200);
-  
-  let filteredAirlines = [...airlinesData];
-  
-  if (filters?.country && filters.country !== "all") {
-    filteredAirlines = filteredAirlines.filter(a => a.country === filters.country);
-  }
-  if (filters?.airline && filters.airline !== "all") {
-    filteredAirlines = filteredAirlines.filter(a => a.id === filters.airline);
-  }
-  
+
+  const filteredAirlines = filterAirlines(filters);
   const totalRevenue = filteredAirlines.reduce((sum, a) => sum + a.platformRevenue, 0);
-  
+
   return filteredAirlines
     .map(airline => ({
       airlineId: airline.id,
@@ -816,21 +795,10 @@ export const getRevenueByAirline = async (filters?: PaymentFilters): Promise<Rev
 // Revenue by Country
 export const getRevenueByCountry = async (filters?: PaymentFilters): Promise<RevenueByCountry[]> => {
   await delay(200);
-  
-  let filteredAirlines = [...airlinesData];
-  
-  if (filters?.country && filters.country !== "all") {
-    filteredAirlines = filteredAirlines.filter(a => a.country === filters.country);
-  }
-  if (filters?.airport && filters.airport !== "all") {
-    const airport = airportsData.find(ap => ap.code === filters.airport);
-    if (airport) {
-      filteredAirlines = filteredAirlines.filter(a => a.country === airport.country);
-    }
-  }
-  
+
+  const filteredAirlines = filterAirlines(filters);
   const countryMap = new Map<string, { airlines: Set<string>; revenue: number }>();
-  
+
   filteredAirlines.forEach(airline => {
     const existing = countryMap.get(airline.country);
     if (existing) {
@@ -845,7 +813,7 @@ export const getRevenueByCountry = async (filters?: PaymentFilters): Promise<Rev
   });
 
   const totalRevenue = filteredAirlines.reduce((sum, a) => sum + a.platformRevenue, 0);
-  
+
   return Array.from(countryMap.entries())
     .map(([country, data]) => ({
       country,
@@ -856,12 +824,12 @@ export const getRevenueByCountry = async (filters?: PaymentFilters): Promise<Rev
     .sort((a, b) => b.revenue - a.revenue);
 };
 
-// Wallet Transactions
-export const getWalletTransactions = async (filters?: PaymentFilters): Promise<WalletTransaction[]> => {
+// Billing Transactions (service fees, settlements & credit changes)
+export const getBillingTransactions = async (filters?: PaymentFilters): Promise<BillingTransaction[]> => {
   await delay(300);
-  
-  let filteredTransactions = [...walletTransactionsData];
-  
+
+  let filteredTransactions = [...billingTransactionsData];
+
   if (filters?.country && filters.country !== "all") {
     filteredTransactions = filteredTransactions.filter(t => t.country === filters.country);
   }
@@ -873,20 +841,20 @@ export const getWalletTransactions = async (filters?: PaymentFilters): Promise<W
   }
   if (filters?.search) {
     const searchLower = filters.search.toLowerCase();
-    filteredTransactions = filteredTransactions.filter(t => 
+    filteredTransactions = filteredTransactions.filter(t =>
       t.airlineName.toLowerCase().includes(searchLower) ||
       t.reference.toLowerCase().includes(searchLower) ||
       t.description.toLowerCase().includes(searchLower)
     );
   }
-  
+
   return filteredTransactions.sort((a, b) => new Date(b.date).getTime() - new Date(a.date).getTime());
 };
 
 // Combined filtered payment data for the Payments page
 export const getFilteredPaymentData = async (filters: PaymentFilters) => {
   await delay(400);
-  
+
   const [
     snapshot,
     creditRisk,
@@ -900,9 +868,9 @@ export const getFilteredPaymentData = async (filters: PaymentFilters) => {
     getRevenueByAirline(filters),
     getRevenueByCountry(filters),
     getAirlineFinancialHealth(filters),
-    getWalletTransactions(filters),
+    getBillingTransactions(filters),
   ]);
-  
+
   return {
     snapshot,
     creditRisk,
@@ -914,60 +882,21 @@ export const getFilteredPaymentData = async (filters: PaymentFilters) => {
 };
 
 // Get airline transaction detail
-export const getAirlineTransactionDetail = async (airlineId: string): Promise<WalletTransaction[]> => {
+export const getAirlineTransactionDetail = async (airlineId: string): Promise<BillingTransaction[]> => {
   await delay(200);
-  return walletTransactionsData.filter(t => t.airlineId === airlineId);
+  return billingTransactionsData.filter(t => t.airlineId === airlineId);
 };
 
-// Platform Treasury Summary
-export const getPlatformTreasurySummary = async (): Promise<PlatformTreasurySummary> => {
-  await delay(200);
-  
-  const totalDeposited = platformReserveTransactionsData
-    .filter(t => t.type === "PLATFORM_RESERVE_DEPOSIT")
-    .reduce((sum, t) => sum + t.amount, 0);
-  
-  const totalWithdrawn = platformReserveTransactionsData
-    .filter(t => t.type === "PLATFORM_RESERVE_WITHDRAWAL")
-    .reduce((sum, t) => sum + t.amount, 0);
-  
-  return {
-    currentBalance: totalDeposited - totalWithdrawn,
-    totalDeposited,
-    totalWithdrawn,
-  };
-};
-
-// Platform Reserve Transactions
-export const getPlatformReserveTransactions = async (dateRange?: string): Promise<PlatformReserveTransaction[]> => {
+// Record a service fee settlement from an airline
+export const recordFeePayment = async (airlineId: string, amount: number): Promise<Airline> => {
   await delay(300);
-  return platformReserveTransactionsData.sort(
-    (a, b) => new Date(b.timestamp).getTime() - new Date(a.timestamp).getTime()
-  );
+  const airline = airlinesData.find(a => a.id === airlineId);
+  if (!airline) throw new Error("Airline not found");
+  airline.paymentsReceived += amount;
+  airline.outstandingBalance = Math.max(0, airline.serviceFeesBilled - airline.paymentsReceived);
+  return airline;
 };
 
-// Add Platform Reserve Transaction
-export const addPlatformReserveTransaction = async (
-  type: "PLATFORM_RESERVE_DEPOSIT" | "PLATFORM_RESERVE_WITHDRAWAL",
-  amount: number,
-  reason: string
-): Promise<PlatformReserveTransaction> => {
-  await delay(300);
-  
-  const newTransaction: PlatformReserveTransaction = {
-    id: String(platformReserveTransactionsData.length + 1),
-    type,
-    amount,
-    adminUser: "John Smith", // Would come from auth context
-    timestamp: new Date().toISOString(),
-    reference: `RES-${new Date().getFullYear()}-${String(platformReserveTransactionsData.length + 1).padStart(6, "0")}`,
-    reason,
-    status: "completed",
-  };
-  
-  platformReserveTransactionsData.unshift(newTransaction);
-  return newTransaction;
-};
 
 // Seed extended airline/invite profile defaults
 (() => {
