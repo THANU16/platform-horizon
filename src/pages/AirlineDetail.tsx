@@ -220,9 +220,9 @@ export default function AirlineDetail() {
             <CardTitle className="text-base font-medium">Financial Summary</CardTitle>
           </CardHeader>
           <CardContent className="space-y-3">
-            <InfoRow label="Total Spend" value={formatCurrency(airline.totalSpend)} />
-            <InfoRow label="Platform Fees" value={formatCurrency(airline.platformRevenue)} />
-            <InfoRow label="Allowance Balance" value={formatCurrency(airline.allowanceBalance)} />
+            <InfoRow label="Total Booking Value" value={formatCurrency(airline.totalBookingValue)} />
+            <InfoRow label="Service Fees Billed" value={formatCurrency(airline.serviceFeesBilled)} />
+            <InfoRow label="Outstanding Balance" value={formatCurrency(airline.outstandingBalance)} />
             <InfoRow label="Stripe Connection">
               <StatusBadge
                 status={airline.stripeStatus === "connected" ? "connected" : airline.stripeStatus === "pending" ? "pending" : "failed"}

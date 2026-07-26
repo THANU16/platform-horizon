@@ -160,7 +160,7 @@ export default function Invites() {
       adminLastName: invite.adminLastName ?? "",
       adminEmail: invite.adminEmail ?? "",
       jobTitle: invite.jobTitle ?? "",
-      creditLimit: invite.creditLimit ?? invite.initialAllowance ?? 100000,
+      creditLimit: invite.creditLimit ?? 100000,
     });
     setDialogOpen(true);
   };
@@ -171,7 +171,7 @@ export default function Invites() {
     try {
       const payload: Partial<Invite> = {
         ...formValues,
-        initialAllowance: formValues.creditLimit,
+
       };
       if (editingInvite) {
         const updated = await updateInvite(editingInvite.id, payload);
@@ -363,7 +363,7 @@ export default function Invites() {
                     <TableCell>{new Date(invite.invitedDate).toLocaleDateString()}</TableCell>
                     <TableCell>{new Date(invite.expiryDate).toLocaleDateString()}</TableCell>
                     <TableCell className="text-right">
-                      {formatCurrency(invite.creditLimit ?? invite.initialAllowance)}
+                      {formatCurrency(invite.creditLimit ?? 0)}
                     </TableCell>
                     <TableCell>
                       <StatusBadge status={getStatusBadgeStatus(invite.status)} label={invite.status} />
@@ -442,7 +442,7 @@ export default function Invites() {
                     <Row label="Email">{invite.contactEmail}</Row>
                     <Row label="Country">{invite.country}</Row>
                     <Row label="Invited By">{invite.invitedBy}</Row>
-                    <Row label="Credit Limit">{formatCurrency(invite.creditLimit ?? invite.initialAllowance)}</Row>
+                    <Row label="Credit Limit">{formatCurrency(invite.creditLimit ?? 0)}</Row>
                     <Row label="Expires">{new Date(invite.expiryDate).toLocaleDateString()}</Row>
                   </div>
                   <div className="flex flex-wrap gap-2 mt-4 pt-4 border-t">
