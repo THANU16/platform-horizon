@@ -496,8 +496,10 @@ const dashboardStatsData: DashboardStats = {
   activeAirlines: 3,
   cancelledFlightsThisMonth: 47,
   platformRevenue: 476000,
-  totalHotelSpend: 9520000,
-  revenueToSpendRatio: 0.05,
+  outstandingServiceFees: 105000,
+  creditUtilizationPercent: 25.6,
+  feeCollectionRate: 0.78,
+
   avgRevenuePerAirline: 95200,
   topAirlineByRevenue: "Northern Star Airlines",
   airlineGrowthPercent: 12,
