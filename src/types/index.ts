@@ -8,19 +8,21 @@ export interface Airline {
   onboardingDate: string;
   cancelledFlights: number;
   passengers: number;
-  totalSpend: number;
+  // Hotel booking value handled directly between airline and hotels (informational only)
+  totalBookingValue: number;
+  // Service fee revenue billed by the platform
   platformRevenue: number;
   stripeStatus: "connected" | "pending" | "failed";
-  allowanceBalance: number;
   avgCostPerPassenger: number;
   failedPayments: number;
   allocationFailures: number;
   totalBookings: number;
-  // Wallet & Credit
-  totalTopUps: number;
-  walletBalance: number;
+  // Service fee billing
+  serviceFeesBilled: number;
+  paymentsReceived: number;
+  outstandingBalance: number;
+  // Max outstanding service fees allowed before settlement is required
   creditLimit: number;
-  creditUsed: number;
   // Extended profile (airline details)
   companyRegistrationNumber?: string;
   website?: string;
@@ -55,7 +57,6 @@ export interface Invite {
   iataCode: string;
   contactEmail: string;
   country: string;
-  initialAllowance: number;
   status: "pending" | "accepted" | "expired" | "revoked";
   invitedBy: string;
   invitedDate: string;
@@ -89,9 +90,9 @@ export interface AuditLog {
 }
 
 export interface SystemSettings {
-  platformFeePercent: number;
-  defaultAllowanceLimit: number;
-  maxAllowanceLimit: number;
+  serviceFeePercent: number;
+  defaultCreditLimit: number;
+  maxCreditLimit: number;
   defaultCurrency: string;
   defaultHotelRules: {
     maxStarRating: number;
@@ -120,8 +121,9 @@ export interface DashboardStats {
   activeAirlines: number;
   cancelledFlightsThisMonth: number;
   platformRevenue: number;
-  totalHotelSpend: number;
-  revenueToSpendRatio: number;
+  outstandingServiceFees: number;
+  creditUtilizationPercent: number;
+  feeCollectionRate: number;
   avgRevenuePerAirline: number;
   topAirlineByRevenue: string;
   monthlyCancellations: { month: string; count: number }[];
@@ -152,49 +154,33 @@ export interface RevenueByCountry {
 export type DateRangeFilter = "this_month" | "last_month" | "last_7_days" | "last_30_days" | "last_90_days" | "custom";
 
 // STRICT Transaction Types - Only these are allowed
-export type TransactionType = 
-  | "AIRLINE_TOPUP" 
-  | "PLATFORM_CREDIT" 
-  | "HOTEL_BOOKING_CHARGE" 
-  | "PLATFORM_RESERVE_DEPOSIT" 
-  | "PLATFORM_RESERVE_WITHDRAWAL";
+export type BillingTransactionType =
+  | "service_fee"
+  | "fee_payment"
+  | "fee_adjustment"
+  | "credit_change";
 
-// Legacy Wallet Transaction Type for backwards compatibility
-export type WalletTransactionType = "top_up" | "booking_charge" | "refund" | "adjustment" | "credit_change" | "platform_fee";
-
-export interface WalletTransaction {
+export interface BillingTransaction {
   id: string;
   airlineId: string;
   airlineName: string;
   country: string;
   airport?: string;
   amount: number;
-  type: WalletTransactionType;
-  transactionType?: TransactionType; // New strict type
+  type: BillingTransactionType;
   status: "completed" | "pending" | "failed";
   date: string;
   description: string;
   reference: string;
 }
 
-// Platform Reserve Transaction
-export interface PlatformReserveTransaction {
-  id: string;
-  type: "PLATFORM_RESERVE_DEPOSIT" | "PLATFORM_RESERVE_WITHDRAWAL";
-  amount: number;
-  adminUser: string;
-  timestamp: string;
-  reference: string;
-  reason: string;
-  status: "completed" | "pending";
-}
-
 // Platform Financial Snapshot
 export interface PlatformFinancialSnapshot {
-  totalTopUpBalance: number;
-  totalAdminCreditIssued: number;
-  totalCreditUsed: number;
-  netPlatformExposure: number;
+  totalServiceFeesBilled: number;
+  totalPaymentsReceived: number;
+  totalOutstandingFees: number;
+  totalCreditIssued: number;
+  creditUtilizationPercent: number;
   totalPlatformRevenue: number;
   revenueChangePercent: number;
 }
@@ -202,36 +188,28 @@ export interface PlatformFinancialSnapshot {
 // Credit Risk Overview
 export interface CreditRiskOverview {
   totalCreditAllowed: number;
-  totalCreditUsed: number;
+  totalOutstandingFees: number;
   creditUtilizationPercent: number;
-  airlinesUsingCredit: number;
+  airlinesWithOutstandingFees: number;
   totalAirlines: number;
 }
 
-// Airline Financial Health Status
-export type AirlineFinancialStatus = "healthy" | "using_credit" | "critical" | "topup_required";
+// Airline Billing Status
+export type AirlineFinancialStatus = "settled" | "outstanding" | "credit_warning" | "credit_exceeded";
 
 export interface AirlineFinancialHealth {
   airlineId: string;
   airlineName: string;
   iataCode: string;
   country: string;
-  totalTopUps: number;
-  totalBookingSpend: number;
+  totalBookingValue: number;
+  serviceFeesBilled: number;
+  paymentsReceived: number;
+  outstandingBalance: number;
   platformRevenue: number;
-  walletBalance: number;
   creditLimit: number;
-  creditUsed: number;
   remainingCredit: number;
   status: AirlineFinancialStatus;
-}
-
-// Airline Detail for drill-down
-export interface AirlineTransactionHistory {
-  topUps: WalletTransaction[];
-  bookingCharges: WalletTransaction[];
-  refunds: WalletTransaction[];
-  platformFees: WalletTransaction[];
 }
 
 // Filters for Payments page
@@ -250,47 +228,5 @@ export interface Airport {
   country: string;
 }
 
-// Legacy types kept for compatibility
-export interface Payment {
-  id: string;
-  airlineId: string;
-  airlineName: string;
-  country: string;
-  amount: number;
-  type: WalletTransactionType;
-  status: "completed" | "pending" | "failed";
-  date: string;
-  description: string;
-  reference: string;
-  failureReason?: string;
-}
-
-export interface PaymentStats {
-  totalRevenue: number;
-  pendingPayouts: number;
-  pendingAirlinesCount: number;
-  failedPayouts: number;
-  activeAirlines: number;
-  totalOnboarded: number;
-  revenueChange: number;
-}
-
-export interface AllowanceOverview {
-  totalTopUp: number;
-  usedTopUp: number;
-  remainingTopUp: number;
-  totalAdminCredit: number;
-  usedAdminCredit: number;
-  remainingAdminCredit: number;
-  totalRemaining: number;
-}
-
-// Platform Treasury Summary
-export interface PlatformTreasurySummary {
-  currentBalance: number;
-  totalDeposited: number;
-  totalWithdrawn: number;
-}
-
 // Tab types for Payments page
-export type PaymentsTabType = "overview" | "detailed" | "treasury";
+export type PaymentsTabType = "overview" | "detailed";

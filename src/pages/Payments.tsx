@@ -10,9 +10,6 @@ import {
   getAirlines,
   getAirports,
   getFilteredPaymentData,
-  getPlatformTreasurySummary,
-  getPlatformReserveTransactions,
-  addPlatformReserveTransaction,
 } from "@/services/api";
 import { 
   Airline, 
@@ -22,12 +19,10 @@ import {
   RevenueByAirline, 
   RevenueByCountry, 
   AirlineFinancialHealth,
-  WalletTransaction,
+  BillingTransaction,
   PaymentFilters,
   DateRangeFilter,
   PaymentsTabType,
-  PlatformTreasurySummary,
-  PlatformReserveTransaction,
 } from "@/types";
 import {
   Select,
@@ -38,7 +33,6 @@ import {
 } from "@/components/ui/select";
 import { PaymentsTabNav } from "@/components/payments/PaymentsTabNav";
 import { PlatformOverviewSection } from "@/components/payments/PlatformOverviewSection";
-import { PlatformReserveModal } from "@/components/payments/PlatformReserveModal";
 import { RevenueByAirlineSection } from "@/components/payments/RevenueByAirlineSection";
 import { RevenueByCountrySection } from "@/components/payments/RevenueByCountrySection";
 import { CreditRiskCards } from "@/components/payments/CreditRiskCards";
@@ -46,7 +40,6 @@ import { DetailedAnalysisSummary } from "@/components/payments/DetailedAnalysisS
 import { DetailedAnalysisFilterBar } from "@/components/payments/DetailedAnalysisFilterBar";
 import { ExpandableAirlineHealthTable } from "@/components/payments/ExpandableAirlineHealthTable";
 import { TransactionsAuditTable } from "@/components/payments/TransactionsAuditTable";
-import { PlatformTreasuryTab } from "@/components/payments/PlatformTreasuryTab";
 
 const dateRangeLabels: Record<DateRangeFilter, string> = {
   this_month: "This Month",
@@ -67,11 +60,8 @@ export default function Payments() {
   const [revenueByAirline, setRevenueByAirline] = useState<RevenueByAirline[]>([]);
   const [revenueByCountry, setRevenueByCountry] = useState<RevenueByCountry[]>([]);
   const [airlineHealth, setAirlineHealth] = useState<AirlineFinancialHealth[]>([]);
-  const [transactions, setTransactions] = useState<WalletTransaction[]>([]);
-  
-  // Treasury data
-  const [treasurySummary, setTreasurySummary] = useState<PlatformTreasurySummary | null>(null);
-  const [reserveTransactions, setReserveTransactions] = useState<PlatformReserveTransaction[]>([]);
+  const [transactions, setTransactions] = useState<BillingTransaction[]>([]);
+
   
   // Reference data
   const [countries, setCountries] = useState<string[]>([]);
@@ -81,10 +71,6 @@ export default function Payments() {
   // Loading states
   const [loading, setLoading] = useState(true);
   const [isFiltering, setIsFiltering] = useState(false);
-
-  // Platform Reserve
-  const [platformReserve, setPlatformReserve] = useState(250000);
-  const [reserveModalOpen, setReserveModalOpen] = useState(false);
 
   // Global filter (header)
   const [globalDateRange, setGlobalDateRange] = useState<DateRangeFilter>("this_month");
@@ -96,9 +82,6 @@ export default function Payments() {
   const [detailAirlineFilter, setDetailAirlineFilter] = useState("all");
   const [detailAirportFilter, setDetailAirportFilter] = useState("all");
   const [detailCountryFilter, setDetailCountryFilter] = useState("all");
-
-  // Treasury date range filter
-  const [treasuryDateRange, setTreasuryDateRange] = useState<DateRangeFilter>("this_month");
 
   // Transaction type filter
   const [transactionTypeFilter, setTransactionTypeFilter] = useState("all");
@@ -118,16 +101,6 @@ export default function Payments() {
     }
   }, []);
 
-  const fetchTreasuryData = useCallback(async () => {
-    const [summary, transactions] = await Promise.all([
-      getPlatformTreasurySummary(),
-      getPlatformReserveTransactions(treasuryDateRange),
-    ]);
-    setTreasurySummary(summary);
-    setReserveTransactions(transactions);
-    setPlatformReserve(summary.currentBalance);
-  }, [treasuryDateRange]);
-
   useEffect(() => {
     const loadData = async () => {
       try {
@@ -141,22 +114,20 @@ export default function Payments() {
         setAirports(airportsData);
 
         // Load initial data with default filters
-        await Promise.all([
-          fetchPaymentData({
-            country: "all",
-            airline: "all",
-            airport: "all",
-            search: "",
-            dateRange: "this_month",
-          }),
-          fetchTreasuryData(),
-        ]);
+        await fetchPaymentData({
+          country: "all",
+          airline: "all",
+          airport: "all",
+          search: "",
+          dateRange: "this_month",
+        });
       } finally {
         setLoading(false);
       }
     };
     loadData();
-  }, [fetchPaymentData, fetchTreasuryData]);
+  }, [fetchPaymentData]);
+
 
   // Auto-apply detail filters (date range here only affects client filtering of transactions)
   const applyDetailFilters = useCallback(
@@ -218,13 +189,6 @@ export default function Payments() {
     });
   };
 
-  // Handle platform reserve transaction
-  const handleReserveTransaction = async (type: "deposit" | "withdraw", amount: number, note: string) => {
-    const txType = type === "deposit" ? "PLATFORM_RESERVE_DEPOSIT" : "PLATFORM_RESERVE_WITHDRAWAL";
-    await addPlatformReserveTransaction(txType, amount, note);
-    await fetchTreasuryData();
-  };
-
   // Date-filter transactions for detailed analysis (client-side)
   const detailedTransactions = useMemo(() => {
     const s = detailStartDate ? new Date(detailStartDate).getTime() : null;
@@ -239,18 +203,18 @@ export default function Payments() {
 
   // Calculate summary stats for detailed analysis
   const summaryStats = useMemo(() => {
-    const bookingTransactions = detailedTransactions.filter(t => t.type === "booking_charge");
-    const topUpTransactions = detailedTransactions.filter(t => t.type === "top_up");
-    const totalBookingAmount = Math.abs(bookingTransactions.reduce((sum, t) => sum + t.amount, 0));
-    const totalTopUpAmount = topUpTransactions.reduce((sum, t) => sum + t.amount, 0);
-    const totalRevenue = airlineHealth.reduce((sum, a) => sum + a.platformRevenue, 0);
+    const feeTransactions = detailedTransactions.filter((t) => t.type === "service_fee");
+    const paymentTransactions = detailedTransactions.filter((t) => t.type === "fee_payment");
+    const totalServiceFees = feeTransactions.reduce((sum, t) => sum + Math.abs(t.amount), 0);
+    const totalPaymentsReceived = paymentTransactions.reduce((sum, t) => sum + Math.abs(t.amount), 0);
+    const totalOutstanding = airlineHealth.reduce((sum, a) => sum + a.outstandingBalance, 0);
 
     return {
-      totalBookingAmount,
-      totalBookingCount: bookingTransactions.length,
-      totalTopUpAmount,
-      totalTopUpCount: topUpTransactions.length,
-      totalRevenue,
+      totalServiceFees,
+      totalFeeCount: feeTransactions.length,
+      totalPaymentsReceived,
+      totalPaymentCount: paymentTransactions.length,
+      totalOutstanding,
     };
   }, [airlineHealth, detailedTransactions]);
 
@@ -301,9 +265,7 @@ export default function Payments() {
           {snapshot && (
             <PlatformOverviewSection
               snapshot={snapshot}
-              platformReserve={platformReserve}
               dateRangeLabel={dateRangeLabels[appliedGlobalDateRange]}
-              onManageReserve={() => setReserveModalOpen(true)}
             />
           )}
 
@@ -354,11 +316,11 @@ export default function Payments() {
 
               {/* Summary Cards */}
               <DetailedAnalysisSummary
-                totalBookingAmount={summaryStats.totalBookingAmount}
-                totalBookingCount={summaryStats.totalBookingCount}
-                totalTopUpAmount={summaryStats.totalTopUpAmount}
-                totalTopUpCount={summaryStats.totalTopUpCount}
-                totalRevenue={summaryStats.totalRevenue}
+                totalServiceFees={summaryStats.totalServiceFees}
+                totalFeeCount={summaryStats.totalFeeCount}
+                totalPaymentsReceived={summaryStats.totalPaymentsReceived}
+                totalPaymentCount={summaryStats.totalPaymentCount}
+                totalOutstanding={summaryStats.totalOutstanding}
               />
             </CardContent>
           </Card>
@@ -378,23 +340,6 @@ export default function Payments() {
         </div>
       )}
 
-      {activeTab === "treasury" && treasurySummary && (
-        <PlatformTreasuryTab
-          treasurySummary={treasurySummary}
-          reserveTransactions={reserveTransactions}
-          dateRange={treasuryDateRange}
-          onDateRangeChange={setTreasuryDateRange}
-          onManageReserve={() => setReserveModalOpen(true)}
-        />
-      )}
-
-      {/* Platform Reserve Modal */}
-      <PlatformReserveModal
-        open={reserveModalOpen}
-        onOpenChange={setReserveModalOpen}
-        currentReserve={platformReserve}
-        onSubmit={handleReserveTransaction}
-      />
     </MainLayout>
   );
 }

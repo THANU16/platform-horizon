@@ -11,12 +11,10 @@ import {
   PlatformFinancialSnapshot,
   CreditRiskOverview,
   AirlineFinancialHealth,
-  WalletTransaction,
+  BillingTransaction,
   PaymentFilters,
   Airport,
   AirlineFinancialStatus,
-  PlatformReserveTransaction,
-  PlatformTreasurySummary
 } from "@/types";
 
 // Simulated delay
@@ -46,7 +44,7 @@ export const airportsData: Airport[] = [
   { code: "SYD", name: "Sydney Airport", country: "Australia" },
 ];
 
-// Mock Airlines Data with wallet/credit model
+// Mock Airlines Data with service-fee billing model
 const airlinesData: Airline[] = [
   {
     id: "1",
@@ -58,18 +56,17 @@ const airlinesData: Airline[] = [
     onboardingDate: "2024-01-15",
     cancelledFlights: 156,
     passengers: 12450,
-    totalSpend: 2450000,
+    totalBookingValue: 2450000,
     platformRevenue: 122500,
     stripeStatus: "connected",
-    allowanceBalance: 500000,
     avgCostPerPassenger: 196.79,
     failedPayments: 2,
     allocationFailures: 5,
     totalBookings: 3240,
-    totalTopUps: 600000,
-    walletBalance: 150000,
+    serviceFeesBilled: 122500,
+    paymentsReceived: 122500,
+    outstandingBalance: 0,
     creditLimit: 100000,
-    creditUsed: 0,
   },
   {
     id: "2",
@@ -81,18 +78,17 @@ const airlinesData: Airline[] = [
     onboardingDate: "2024-02-20",
     cancelledFlights: 89,
     passengers: 7230,
-    totalSpend: 1580000,
+    totalBookingValue: 1580000,
     platformRevenue: 79000,
     stripeStatus: "connected",
-    allowanceBalance: 320000,
     avgCostPerPassenger: 218.53,
     failedPayments: 0,
     allocationFailures: 2,
     totalBookings: 1890,
-    totalTopUps: 400000,
-    walletBalance: 80000,
+    serviceFeesBilled: 79000,
+    paymentsReceived: 54000,
+    outstandingBalance: 25000,
     creditLimit: 75000,
-    creditUsed: 25000,
   },
   {
     id: "3",
@@ -104,18 +100,17 @@ const airlinesData: Airline[] = [
     onboardingDate: "2024-03-01",
     cancelledFlights: 45,
     passengers: 3120,
-    totalSpend: 680000,
+    totalBookingValue: 680000,
     platformRevenue: 34000,
     stripeStatus: "failed",
-    allowanceBalance: 0,
     avgCostPerPassenger: 217.95,
     failedPayments: 8,
     allocationFailures: 12,
     totalBookings: 812,
-    totalTopUps: 200000,
-    walletBalance: -45000,
+    serviceFeesBilled: 34000,
+    paymentsReceived: 0,
+    outstandingBalance: 34000,
     creditLimit: 50000,
-    creditUsed: 45000,
   },
   {
     id: "4",
@@ -127,18 +122,17 @@ const airlinesData: Airline[] = [
     onboardingDate: "2024-04-10",
     cancelledFlights: 234,
     passengers: 18900,
-    totalSpend: 3890000,
+    totalBookingValue: 3890000,
     platformRevenue: 194500,
     stripeStatus: "connected",
-    allowanceBalance: 750000,
     avgCostPerPassenger: 205.82,
     failedPayments: 1,
     allocationFailures: 3,
     totalBookings: 4920,
-    totalTopUps: 850000,
-    walletBalance: 250000,
+    serviceFeesBilled: 194500,
+    paymentsReceived: 194500,
+    outstandingBalance: 0,
     creditLimit: 150000,
-    creditUsed: 0,
   },
   {
     id: "5",
@@ -150,20 +144,20 @@ const airlinesData: Airline[] = [
     onboardingDate: "2024-05-05",
     cancelledFlights: 67,
     passengers: 4560,
-    totalSpend: 920000,
+    totalBookingValue: 920000,
     platformRevenue: 46000,
     stripeStatus: "pending",
-    allowanceBalance: 50000,
     avgCostPerPassenger: 201.75,
     failedPayments: 15,
     allocationFailures: 20,
     totalBookings: 1190,
-    totalTopUps: 300000,
-    walletBalance: -120000,
-    creditLimit: 150000,
-    creditUsed: 120000,
+    serviceFeesBilled: 46000,
+    paymentsReceived: 0,
+    outstandingBalance: 46000,
+    creditLimit: 40000,
   },
 ];
+
 
 // Mock Cancelled Flights Data
 const cancelledFlightsData: CancelledFlight[] = [
@@ -237,7 +231,6 @@ const invitesData: Invite[] = [
     iataCode: "EJA",
     contactEmail: "onboarding@eurojet.com",
     country: "France",
-    initialAllowance: 100000,
     status: "pending",
     invitedBy: "John Smith",
     invitedDate: "2025-01-28",
@@ -249,7 +242,6 @@ const invitesData: Invite[] = [
     iataCode: "CST",
     contactEmail: "admin@coastalairlines.com",
     country: "United States",
-    initialAllowance: 150000,
     status: "accepted",
     invitedBy: "Sarah Johnson",
     invitedDate: "2025-01-15",
@@ -261,7 +253,6 @@ const invitesData: Invite[] = [
     iataCode: "SUM",
     contactEmail: "ops@summitair.com",
     country: "India",
-    initialAllowance: 75000,
     status: "expired",
     invitedBy: "John Smith",
     invitedDate: "2024-12-01",
@@ -273,7 +264,6 @@ const invitesData: Invite[] = [
     iataCode: "AWG",
     contactEmail: "contact@alpinewings.ch",
     country: "Germany",
-    initialAllowance: 120000,
     status: "revoked",
     invitedBy: "Mike Chen",
     invitedDate: "2024-11-15",
@@ -285,7 +275,6 @@ const invitesData: Invite[] = [
     iataCode: "PHZ",
     contactEmail: "admin@pacifichorizon.com",
     country: "Australia",
-    initialAllowance: 200000,
     status: "pending",
     invitedBy: "Sarah Johnson",
     invitedDate: "2025-02-01",
@@ -293,88 +282,111 @@ const invitesData: Invite[] = [
   },
 ];
 
-// Mock Wallet Transactions (NO payouts)
-const walletTransactionsData: WalletTransaction[] = [
+// Mock Billing Transactions (service fees & settlements only)
+const billingTransactionsData: BillingTransaction[] = [
   {
     id: "1",
     airlineId: "1",
     airlineName: "SkyLine Airways",
     country: "United States",
     airport: "JFK",
-    amount: 100000,
-    type: "top_up",
+    amount: 1770,
+    type: "service_fee",
     status: "completed",
     date: "2025-02-01",
-    description: "Wallet top-up via bank transfer",
-    reference: "TOP-2025-001234",
+    description: "Service fee - Flight SKY1234 disruption (180 passengers)",
+    reference: "FEE-2025-001234",
   },
   {
     id: "2",
+    airlineId: "1",
+    airlineName: "SkyLine Airways",
+    country: "United States",
+    amount: -100000,
+    type: "fee_payment",
+    status: "completed",
+    date: "2025-02-02",
+    description: "Service fee settlement via bank transfer",
+    reference: "PAY-2025-001234",
+  },
+  {
+    id: "3",
     airlineId: "2",
     airlineName: "Atlantic Express",
     country: "United Kingdom",
     airport: "LHR",
-    amount: -28000,
-    type: "booking_charge",
+    amount: 1400,
+    type: "service_fee",
     status: "completed",
     date: "2025-02-01",
-    description: "Hotel booking - Flight ATX567 cancellation",
-    reference: "BKG-2025-001235",
-  },
-  {
-    id: "3",
-    airlineId: "4",
-    airlineName: "Northern Star Airlines",
-    country: "Canada",
-    airport: "YYZ",
-    amount: 150000,
-    type: "top_up",
-    status: "completed",
-    date: "2025-02-03",
-    description: "Wallet top-up via credit card",
-    reference: "TOP-2025-001236",
+    description: "Service fee - Flight ATX567 disruption (95 passengers)",
+    reference: "FEE-2025-001235",
   },
   {
     id: "4",
+    airlineId: "2",
+    airlineName: "Atlantic Express",
+    country: "United Kingdom",
+    amount: -54000,
+    type: "fee_payment",
+    status: "completed",
+    date: "2025-01-20",
+    description: "Partial settlement of outstanding service fees",
+    reference: "PAY-2025-001120",
+  },
+  {
+    id: "5",
     airlineId: "3",
     airlineName: "Pacific Wings",
     country: "Australia",
     airport: "SYD",
-    amount: -45000,
-    type: "booking_charge",
-    status: "completed",
+    amount: 2250,
+    type: "service_fee",
+    status: "pending",
     date: "2025-01-28",
-    description: "Hotel booking - Flight PWG890 cancellation (credit used)",
-    reference: "BKG-2025-001230",
+    description: "Service fee - Flight PWG890 disruption",
+    reference: "FEE-2025-001230",
   },
   {
-    id: "5",
+    id: "6",
+    airlineId: "4",
+    airlineName: "Northern Star Airlines",
+    country: "Canada",
+    airport: "YYZ",
+    amount: 3100,
+    type: "service_fee",
+    status: "completed",
+    date: "2025-02-02",
+    description: "Service fee - Flight NSA890 disruption",
+    reference: "FEE-2025-001240",
+  },
+  {
+    id: "7",
+    airlineId: "4",
+    airlineName: "Northern Star Airlines",
+    country: "Canada",
+    amount: -150000,
+    type: "fee_payment",
+    status: "completed",
+    date: "2025-02-03",
+    description: "Service fee settlement via credit card",
+    reference: "PAY-2025-001236",
+  },
+  {
+    id: "8",
     airlineId: "5",
     airlineName: "Meridian Air",
     country: "Germany",
     airport: "FRA",
-    amount: 8500,
-    type: "refund",
+    amount: -850,
+    type: "fee_adjustment",
     status: "completed",
     date: "2025-01-25",
-    description: "Booking cancellation refund - guest no-show",
-    reference: "REF-2025-000456",
+    description: "Service fee waived - duplicate disruption record",
+    reference: "ADJ-2025-000456",
   },
   {
-    id: "6",
-    airlineId: "1",
-    airlineName: "SkyLine Airways",
-    country: "United States",
-    airport: "LAX",
-    amount: -35400,
-    type: "booking_charge",
-    status: "completed",
-    date: "2025-02-01",
-    description: "Hotel booking - Flight SKY1234 cancellation",
-    reference: "BKG-2025-001237",
-  },
-  {
-    id: "7",
+    id: "9",
     airlineId: "2",
     airlineName: "Atlantic Express",
     country: "United Kingdom",
@@ -382,58 +394,33 @@ const walletTransactionsData: WalletTransaction[] = [
     type: "credit_change",
     status: "completed",
     date: "2025-01-10",
-    description: "Admin credit limit increased",
+    description: "Credit limit (max outstanding fees) increased",
     reference: "CRD-2025-000045",
-  },
-  {
-    id: "8",
-    airlineId: "1",
-    airlineName: "SkyLine Airways",
-    country: "United States",
-    amount: -2250,
-    type: "platform_fee",
-    status: "completed",
-    date: "2025-02-01",
-    description: "Platform fee (5% of booking)",
-    reference: "FEE-2025-001234",
-  },
-  {
-    id: "9",
-    airlineId: "4",
-    airlineName: "Northern Star Airlines",
-    country: "Canada",
-    airport: "YYZ",
-    amount: -62000,
-    type: "booking_charge",
-    status: "completed",
-    date: "2025-02-02",
-    description: "Hotel booking - Flight NSA890 cancellation",
-    reference: "BKG-2025-001240",
   },
   {
     id: "10",
     airlineId: "5",
     airlineName: "Meridian Air",
     country: "Germany",
-    amount: 150000,
+    amount: 40000,
     type: "credit_change",
     status: "completed",
     date: "2025-01-05",
-    description: "Admin credit limit set to $150,000",
+    description: "Credit limit set to $40,000",
     reference: "CRD-2025-000050",
   },
   {
     id: "11",
-    airlineId: "2",
-    airlineName: "Atlantic Express",
-    country: "United Kingdom",
-    airport: "LHR",
-    amount: -1400,
-    type: "platform_fee",
-    status: "completed",
+    airlineId: "5",
+    airlineName: "Meridian Air",
+    country: "Germany",
+    airport: "FRA",
+    amount: 4600,
+    type: "service_fee",
+    status: "failed",
     date: "2025-02-01",
-    description: "Platform fee (5% of booking)",
-    reference: "FEE-2025-001235",
+    description: "Service fee billing failed - credit limit exceeded",
+    reference: "FEE-2025-001260",
   },
   {
     id: "12",
@@ -444,64 +431,11 @@ const walletTransactionsData: WalletTransaction[] = [
     type: "credit_change",
     status: "completed",
     date: "2024-12-15",
-    description: "Admin credit limit set to $50,000",
+    description: "Credit limit set to $50,000",
     reference: "CRD-2025-000030",
   },
 ];
 
-// Mock Platform Reserve Transactions
-const platformReserveTransactionsData: PlatformReserveTransaction[] = [
-  {
-    id: "1",
-    type: "PLATFORM_RESERVE_DEPOSIT",
-    amount: 100000,
-    adminUser: "John Smith",
-    timestamp: "2025-02-01T10:30:00Z",
-    reference: "RES-2025-001001",
-    reason: "Initial platform reserve funding",
-    status: "completed",
-  },
-  {
-    id: "2",
-    type: "PLATFORM_RESERVE_DEPOSIT",
-    amount: 150000,
-    adminUser: "Sarah Johnson",
-    timestamp: "2025-01-15T14:20:00Z",
-    reference: "RES-2025-000890",
-    reason: "Q1 reserve top-up",
-    status: "completed",
-  },
-  {
-    id: "3",
-    type: "PLATFORM_RESERVE_WITHDRAWAL",
-    amount: 25000,
-    adminUser: "Mike Chen",
-    timestamp: "2025-01-10T09:15:00Z",
-    reference: "RES-2025-000850",
-    reason: "Emergency operational expense",
-    status: "completed",
-  },
-  {
-    id: "4",
-    type: "PLATFORM_RESERVE_DEPOSIT",
-    amount: 75000,
-    adminUser: "John Smith",
-    timestamp: "2024-12-20T11:00:00Z",
-    reference: "RES-2024-000780",
-    reason: "Year-end reserve adjustment",
-    status: "completed",
-  },
-  {
-    id: "5",
-    type: "PLATFORM_RESERVE_WITHDRAWAL",
-    amount: 50000,
-    adminUser: "Sarah Johnson",
-    timestamp: "2024-12-01T16:45:00Z",
-    reference: "RES-2024-000720",
-    reason: "Partner settlement payment",
-    status: "completed",
-  },
-];
 
 const auditLogsData: AuditLog[] = [
   {
@@ -562,8 +496,10 @@ const dashboardStatsData: DashboardStats = {
   activeAirlines: 3,
   cancelledFlightsThisMonth: 47,
   platformRevenue: 476000,
-  totalHotelSpend: 9520000,
-  revenueToSpendRatio: 0.05,
+  outstandingServiceFees: 105000,
+  creditUtilizationPercent: 25.6,
+  feeCollectionRate: 0.78,
+
   avgRevenuePerAirline: 95200,
   topAirlineByRevenue: "Northern Star Airlines",
   airlineGrowthPercent: 12,
@@ -589,9 +525,10 @@ const dashboardStatsData: DashboardStats = {
 
 // System Settings
 const systemSettingsData: SystemSettings = {
-  platformFeePercent: 5,
-  defaultAllowanceLimit: 100000,
-  maxAllowanceLimit: 1000000,
+  serviceFeePercent: 5,
+  defaultCreditLimit: 100000,
+  maxCreditLimit: 1000000,
+
   defaultCurrency: "USD",
   defaultHotelRules: {
     maxStarRating: 4,
@@ -647,7 +584,6 @@ export const getInvites = async (): Promise<Invite[]> => {
 export const createInvite = async (invite: Partial<Invite> & Pick<Invite, "airlineName" | "iataCode" | "contactEmail" | "country">): Promise<Invite> => {
   await delay(300);
   const newInvite: Invite = {
-    initialAllowance: 100000,
     creditLimit: invite.creditLimit ?? 100000,
     ...invite,
     id: String(invitesData.length + 1),
@@ -736,52 +672,62 @@ export const updateAdminProfile = async (profile: Partial<AdminProfile>): Promis
   return adminProfileData;
 };
 
-// Helper function to determine airline financial status
+// Helper: apply shared filters to airlines
+const filterAirlines = (filters?: PaymentFilters) => {
+  let result = [...airlinesData];
+
+  if (filters?.country && filters.country !== "all") {
+    result = result.filter(a => a.country === filters.country);
+  }
+  if (filters?.airline && filters.airline !== "all") {
+    result = result.filter(a => a.id === filters.airline);
+  }
+  if (filters?.airport && filters.airport !== "all") {
+    const airport = airportsData.find(ap => ap.code === filters.airport);
+    if (airport) {
+      result = result.filter(a => a.country === airport.country);
+    }
+  }
+  if (filters?.search) {
+    const searchLower = filters.search.toLowerCase();
+    result = result.filter(a =>
+      a.name.toLowerCase().includes(searchLower) ||
+      a.iataCode.toLowerCase().includes(searchLower)
+    );
+  }
+  return result;
+};
+
+// Helper: billing status based on outstanding service fees vs credit limit
 const getAirlineFinancialStatus = (airline: Airline): AirlineFinancialStatus => {
-  if (airline.walletBalance >= 0 && airline.creditUsed === 0) {
-    return "healthy";
-  }
-  if (airline.creditUsed > 0 && airline.creditUsed < airline.creditLimit * 0.8) {
-    return "using_credit";
-  }
-  if (airline.creditUsed >= airline.creditLimit * 0.8) {
-    return "critical";
-  }
-  if (airline.walletBalance <= 0 && airline.creditUsed === 0) {
-    return "topup_required";
-  }
-  return "using_credit";
+  const outstanding = airline.outstandingBalance;
+  if (outstanding <= 0) return "settled";
+  if (airline.creditLimit <= 0) return "credit_exceeded";
+
+  const utilization = outstanding / airline.creditLimit;
+  if (utilization >= 1) return "credit_exceeded";
+  if (utilization >= 0.8) return "credit_warning";
+  return "outstanding";
 };
 
 // Platform Financial Snapshot
 export const getPlatformFinancialSnapshot = async (filters?: PaymentFilters): Promise<PlatformFinancialSnapshot> => {
   await delay(200);
-  
-  let filteredAirlines = [...airlinesData];
-  
-  if (filters?.country && filters.country !== "all") {
-    filteredAirlines = filteredAirlines.filter(a => a.country === filters.country);
-  }
-  if (filters?.airline && filters.airline !== "all") {
-    filteredAirlines = filteredAirlines.filter(a => a.id === filters.airline);
-  }
-  if (filters?.airport && filters.airport !== "all") {
-    const airport = airportsData.find(ap => ap.code === filters.airport);
-    if (airport) {
-      filteredAirlines = filteredAirlines.filter(a => a.country === airport.country);
-    }
-  }
-  
-  const totalTopUpBalance = filteredAirlines.reduce((sum, a) => sum + Math.max(0, a.walletBalance), 0);
-  const totalAdminCreditIssued = filteredAirlines.reduce((sum, a) => sum + a.creditLimit, 0);
-  const totalCreditUsed = filteredAirlines.reduce((sum, a) => sum + a.creditUsed, 0);
+
+  const filteredAirlines = filterAirlines(filters);
+
+  const totalServiceFeesBilled = filteredAirlines.reduce((sum, a) => sum + a.serviceFeesBilled, 0);
+  const totalPaymentsReceived = filteredAirlines.reduce((sum, a) => sum + a.paymentsReceived, 0);
+  const totalOutstandingFees = filteredAirlines.reduce((sum, a) => sum + a.outstandingBalance, 0);
+  const totalCreditIssued = filteredAirlines.reduce((sum, a) => sum + a.creditLimit, 0);
   const totalPlatformRevenue = filteredAirlines.reduce((sum, a) => sum + a.platformRevenue, 0);
-  
+
   return {
-    totalTopUpBalance,
-    totalAdminCreditIssued,
-    totalCreditUsed,
-    netPlatformExposure: totalCreditUsed - totalTopUpBalance,
+    totalServiceFeesBilled,
+    totalPaymentsReceived,
+    totalOutstandingFees,
+    totalCreditIssued,
+    creditUtilizationPercent: totalCreditIssued > 0 ? (totalOutstandingFees / totalCreditIssued) * 100 : 0,
     totalPlatformRevenue,
     revenueChangePercent: 18,
   };
@@ -790,61 +736,38 @@ export const getPlatformFinancialSnapshot = async (filters?: PaymentFilters): Pr
 // Credit Risk Overview
 export const getCreditRiskOverview = async (filters?: PaymentFilters): Promise<CreditRiskOverview> => {
   await delay(200);
-  
-  let filteredAirlines = [...airlinesData];
-  
-  if (filters?.country && filters.country !== "all") {
-    filteredAirlines = filteredAirlines.filter(a => a.country === filters.country);
-  }
-  if (filters?.airline && filters.airline !== "all") {
-    filteredAirlines = filteredAirlines.filter(a => a.id === filters.airline);
-  }
-  
+
+  const filteredAirlines = filterAirlines(filters);
+
   const totalCreditAllowed = filteredAirlines.reduce((sum, a) => sum + a.creditLimit, 0);
-  const totalCreditUsed = filteredAirlines.reduce((sum, a) => sum + a.creditUsed, 0);
-  const airlinesUsingCredit = filteredAirlines.filter(a => a.creditUsed > 0).length;
-  
+  const totalOutstandingFees = filteredAirlines.reduce((sum, a) => sum + a.outstandingBalance, 0);
+  const airlinesWithOutstandingFees = filteredAirlines.filter(a => a.outstandingBalance > 0).length;
+
   return {
     totalCreditAllowed,
-    totalCreditUsed,
-    creditUtilizationPercent: totalCreditAllowed > 0 ? (totalCreditUsed / totalCreditAllowed) * 100 : 0,
-    airlinesUsingCredit,
+    totalOutstandingFees,
+    creditUtilizationPercent: totalCreditAllowed > 0 ? (totalOutstandingFees / totalCreditAllowed) * 100 : 0,
+    airlinesWithOutstandingFees,
     totalAirlines: filteredAirlines.length,
   };
 };
 
-// Airline Financial Health Table
+// Airline Billing Health Table
 export const getAirlineFinancialHealth = async (filters?: PaymentFilters): Promise<AirlineFinancialHealth[]> => {
   await delay(300);
-  
-  let filteredAirlines = [...airlinesData];
-  
-  if (filters?.country && filters.country !== "all") {
-    filteredAirlines = filteredAirlines.filter(a => a.country === filters.country);
-  }
-  if (filters?.airline && filters.airline !== "all") {
-    filteredAirlines = filteredAirlines.filter(a => a.id === filters.airline);
-  }
-  if (filters?.search) {
-    const searchLower = filters.search.toLowerCase();
-    filteredAirlines = filteredAirlines.filter(a => 
-      a.name.toLowerCase().includes(searchLower) ||
-      a.iataCode.toLowerCase().includes(searchLower)
-    );
-  }
-  
-  return filteredAirlines.map(airline => ({
+
+  return filterAirlines(filters).map(airline => ({
     airlineId: airline.id,
     airlineName: airline.name,
     iataCode: airline.iataCode,
     country: airline.country,
-    totalTopUps: airline.totalTopUps,
-    totalBookingSpend: airline.totalSpend,
+    totalBookingValue: airline.totalBookingValue,
+    serviceFeesBilled: airline.serviceFeesBilled,
+    paymentsReceived: airline.paymentsReceived,
+    outstandingBalance: airline.outstandingBalance,
     platformRevenue: airline.platformRevenue,
-    walletBalance: airline.walletBalance,
     creditLimit: airline.creditLimit,
-    creditUsed: airline.creditUsed,
-    remainingCredit: airline.creditLimit - airline.creditUsed,
+    remainingCredit: Math.max(0, airline.creditLimit - airline.outstandingBalance),
     status: getAirlineFinancialStatus(airline),
   }));
 };
@@ -852,18 +775,10 @@ export const getAirlineFinancialHealth = async (filters?: PaymentFilters): Promi
 // Revenue by Airline
 export const getRevenueByAirline = async (filters?: PaymentFilters): Promise<RevenueByAirline[]> => {
   await delay(200);
-  
-  let filteredAirlines = [...airlinesData];
-  
-  if (filters?.country && filters.country !== "all") {
-    filteredAirlines = filteredAirlines.filter(a => a.country === filters.country);
-  }
-  if (filters?.airline && filters.airline !== "all") {
-    filteredAirlines = filteredAirlines.filter(a => a.id === filters.airline);
-  }
-  
+
+  const filteredAirlines = filterAirlines(filters);
   const totalRevenue = filteredAirlines.reduce((sum, a) => sum + a.platformRevenue, 0);
-  
+
   return filteredAirlines
     .map(airline => ({
       airlineId: airline.id,
@@ -880,21 +795,10 @@ export const getRevenueByAirline = async (filters?: PaymentFilters): Promise<Rev
 // Revenue by Country
 export const getRevenueByCountry = async (filters?: PaymentFilters): Promise<RevenueByCountry[]> => {
   await delay(200);
-  
-  let filteredAirlines = [...airlinesData];
-  
-  if (filters?.country && filters.country !== "all") {
-    filteredAirlines = filteredAirlines.filter(a => a.country === filters.country);
-  }
-  if (filters?.airport && filters.airport !== "all") {
-    const airport = airportsData.find(ap => ap.code === filters.airport);
-    if (airport) {
-      filteredAirlines = filteredAirlines.filter(a => a.country === airport.country);
-    }
-  }
-  
+
+  const filteredAirlines = filterAirlines(filters);
   const countryMap = new Map<string, { airlines: Set<string>; revenue: number }>();
-  
+
   filteredAirlines.forEach(airline => {
     const existing = countryMap.get(airline.country);
     if (existing) {
@@ -909,7 +813,7 @@ export const getRevenueByCountry = async (filters?: PaymentFilters): Promise<Rev
   });
 
   const totalRevenue = filteredAirlines.reduce((sum, a) => sum + a.platformRevenue, 0);
-  
+
   return Array.from(countryMap.entries())
     .map(([country, data]) => ({
       country,
@@ -920,12 +824,12 @@ export const getRevenueByCountry = async (filters?: PaymentFilters): Promise<Rev
     .sort((a, b) => b.revenue - a.revenue);
 };
 
-// Wallet Transactions
-export const getWalletTransactions = async (filters?: PaymentFilters): Promise<WalletTransaction[]> => {
+// Billing Transactions (service fees, settlements & credit changes)
+export const getBillingTransactions = async (filters?: PaymentFilters): Promise<BillingTransaction[]> => {
   await delay(300);
-  
-  let filteredTransactions = [...walletTransactionsData];
-  
+
+  let filteredTransactions = [...billingTransactionsData];
+
   if (filters?.country && filters.country !== "all") {
     filteredTransactions = filteredTransactions.filter(t => t.country === filters.country);
   }
@@ -937,20 +841,20 @@ export const getWalletTransactions = async (filters?: PaymentFilters): Promise<W
   }
   if (filters?.search) {
     const searchLower = filters.search.toLowerCase();
-    filteredTransactions = filteredTransactions.filter(t => 
+    filteredTransactions = filteredTransactions.filter(t =>
       t.airlineName.toLowerCase().includes(searchLower) ||
       t.reference.toLowerCase().includes(searchLower) ||
       t.description.toLowerCase().includes(searchLower)
     );
   }
-  
+
   return filteredTransactions.sort((a, b) => new Date(b.date).getTime() - new Date(a.date).getTime());
 };
 
 // Combined filtered payment data for the Payments page
 export const getFilteredPaymentData = async (filters: PaymentFilters) => {
   await delay(400);
-  
+
   const [
     snapshot,
     creditRisk,
@@ -964,9 +868,9 @@ export const getFilteredPaymentData = async (filters: PaymentFilters) => {
     getRevenueByAirline(filters),
     getRevenueByCountry(filters),
     getAirlineFinancialHealth(filters),
-    getWalletTransactions(filters),
+    getBillingTransactions(filters),
   ]);
-  
+
   return {
     snapshot,
     creditRisk,
@@ -978,60 +882,21 @@ export const getFilteredPaymentData = async (filters: PaymentFilters) => {
 };
 
 // Get airline transaction detail
-export const getAirlineTransactionDetail = async (airlineId: string): Promise<WalletTransaction[]> => {
+export const getAirlineTransactionDetail = async (airlineId: string): Promise<BillingTransaction[]> => {
   await delay(200);
-  return walletTransactionsData.filter(t => t.airlineId === airlineId);
+  return billingTransactionsData.filter(t => t.airlineId === airlineId);
 };
 
-// Platform Treasury Summary
-export const getPlatformTreasurySummary = async (): Promise<PlatformTreasurySummary> => {
-  await delay(200);
-  
-  const totalDeposited = platformReserveTransactionsData
-    .filter(t => t.type === "PLATFORM_RESERVE_DEPOSIT")
-    .reduce((sum, t) => sum + t.amount, 0);
-  
-  const totalWithdrawn = platformReserveTransactionsData
-    .filter(t => t.type === "PLATFORM_RESERVE_WITHDRAWAL")
-    .reduce((sum, t) => sum + t.amount, 0);
-  
-  return {
-    currentBalance: totalDeposited - totalWithdrawn,
-    totalDeposited,
-    totalWithdrawn,
-  };
-};
-
-// Platform Reserve Transactions
-export const getPlatformReserveTransactions = async (dateRange?: string): Promise<PlatformReserveTransaction[]> => {
+// Record a service fee settlement from an airline
+export const recordFeePayment = async (airlineId: string, amount: number): Promise<Airline> => {
   await delay(300);
-  return platformReserveTransactionsData.sort(
-    (a, b) => new Date(b.timestamp).getTime() - new Date(a.timestamp).getTime()
-  );
+  const airline = airlinesData.find(a => a.id === airlineId);
+  if (!airline) throw new Error("Airline not found");
+  airline.paymentsReceived += amount;
+  airline.outstandingBalance = Math.max(0, airline.serviceFeesBilled - airline.paymentsReceived);
+  return airline;
 };
 
-// Add Platform Reserve Transaction
-export const addPlatformReserveTransaction = async (
-  type: "PLATFORM_RESERVE_DEPOSIT" | "PLATFORM_RESERVE_WITHDRAWAL",
-  amount: number,
-  reason: string
-): Promise<PlatformReserveTransaction> => {
-  await delay(300);
-  
-  const newTransaction: PlatformReserveTransaction = {
-    id: String(platformReserveTransactionsData.length + 1),
-    type,
-    amount,
-    adminUser: "John Smith", // Would come from auth context
-    timestamp: new Date().toISOString(),
-    reference: `RES-${new Date().getFullYear()}-${String(platformReserveTransactionsData.length + 1).padStart(6, "0")}`,
-    reason,
-    status: "completed",
-  };
-  
-  platformReserveTransactionsData.unshift(newTransaction);
-  return newTransaction;
-};
 
 // Seed extended airline/invite profile defaults
 (() => {
@@ -1060,6 +925,6 @@ export const addPlatformReserveTransaction = async (
     i.adminLastName = i.adminLastName ?? "Admin";
     i.adminEmail = i.adminEmail ?? i.contactEmail;
     i.jobTitle = i.jobTitle ?? "Operations Manager";
-    i.creditLimit = i.creditLimit ?? i.initialAllowance;
+    i.creditLimit = i.creditLimit ?? 100000;
   });
 })();

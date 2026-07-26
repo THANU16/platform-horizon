@@ -232,7 +232,7 @@ export default function Airlines() {
                     </TableCell>
                     <TableCell className="text-right">{airline.cancelledFlights}</TableCell>
                     <TableCell className="text-right">{airline.passengers.toLocaleString()}</TableCell>
-                    <TableCell className="text-right">{formatCurrency(airline.totalSpend)}</TableCell>
+                    <TableCell className="text-right">{formatCurrency(airline.totalBookingValue)}</TableCell>
                     <TableCell className="text-right">{formatCurrency(airline.platformRevenue)}</TableCell>
                     <TableCell>
                       <StatusBadge status={getStripeStatusType(airline.stripeStatus)} />
@@ -290,8 +290,8 @@ export default function Airlines() {
                       <p className="font-medium">{airline.passengers.toLocaleString()}</p>
                     </div>
                     <div>
-                      <p className="text-muted-foreground">Spend</p>
-                      <p className="font-medium">{formatCurrency(airline.totalSpend)}</p>
+                      <p className="text-muted-foreground">Booking Value</p>
+                      <p className="font-medium">{formatCurrency(airline.totalBookingValue)}</p>
                     </div>
                     <div>
                       <p className="text-muted-foreground">Revenue</p>

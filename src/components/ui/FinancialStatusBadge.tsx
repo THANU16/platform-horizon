@@ -7,21 +7,21 @@ interface FinancialStatusBadgeProps {
 }
 
 const statusConfig: Record<AirlineFinancialStatus, { label: string; className: string }> = {
-  healthy: {
-    label: "Healthy",
+  settled: {
+    label: "Settled",
     className: "bg-success/10 text-success border-success/20",
   },
-  using_credit: {
-    label: "Using Credit",
+  outstanding: {
+    label: "Fees Outstanding",
+    className: "bg-info/10 text-info border-info/20",
+  },
+  credit_warning: {
+    label: "Credit Warning",
     className: "bg-warning/10 text-warning border-warning/20",
   },
-  critical: {
-    label: "Critical",
+  credit_exceeded: {
+    label: "Credit Exceeded",
     className: "bg-destructive/10 text-destructive border-destructive/20",
-  },
-  topup_required: {
-    label: "Top-up Required",
-    className: "bg-warning/10 text-warning border-warning/20",
   },
 };
 

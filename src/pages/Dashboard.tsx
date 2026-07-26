@@ -231,10 +231,10 @@ export default function Dashboard() {
               </div>
               <div>
                 <p className="text-xs text-muted-foreground uppercase tracking-wide">
-                  Revenue to Spend Ratio
+                  Fee Collection Rate
                 </p>
                 <p className="text-lg font-semibold">
-                  {(stats.revenueToSpendRatio * 100).toFixed(1)}%
+                  {stats.feeCollectionRate.toFixed(1)}%
                 </p>
               </div>
             </div>

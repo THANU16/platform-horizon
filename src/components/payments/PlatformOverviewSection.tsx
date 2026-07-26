@@ -1,20 +1,15 @@
 import { Card, CardContent } from "@/components/ui/card";
-import { Button } from "@/components/ui/button";
-import { Wallet, CircleDollarSign, CreditCard, TrendingDown, TrendingUp, DollarSign, Settings } from "lucide-react";
+import { Receipt, HandCoins, AlertCircle, CreditCard, Gauge, DollarSign } from "lucide-react";
 import { PlatformFinancialSnapshot } from "@/types";
 
 interface PlatformOverviewSectionProps {
   snapshot: PlatformFinancialSnapshot;
-  platformReserve: number;
   dateRangeLabel: string;
-  onManageReserve: () => void;
 }
 
-export function PlatformOverviewSection({ 
-  snapshot, 
-  platformReserve,
+export function PlatformOverviewSection({
+  snapshot,
   dateRangeLabel,
-  onManageReserve 
 }: PlatformOverviewSectionProps) {
   const formatCurrency = (value: number) => {
     return new Intl.NumberFormat("en-US", {
@@ -24,48 +19,47 @@ export function PlatformOverviewSection({
     }).format(value);
   };
 
-  // Net Exposure = Platform Reserve – Total Credit Used
-  const netExposure = platformReserve - snapshot.totalCreditUsed;
-  const isExposureCovered = netExposure >= 0;
+  const utilization = snapshot.creditUtilizationPercent;
 
   const kpiCards = [
     {
-      title: "Total Top-up Balance",
-      value: formatCurrency(snapshot.totalTopUpBalance),
-      subtext: "Real money available",
-      icon: Wallet,
+      title: "Service Fees Billed",
+      value: formatCurrency(snapshot.totalServiceFeesBilled),
+      subtext: "Fees charged to airlines",
+      icon: Receipt,
     },
     {
-      title: "Platform Reserve",
-      value: formatCurrency(platformReserve),
-      subtext: "Admin-deposited funds",
-      icon: CircleDollarSign,
+      title: "Payments Received",
+      value: formatCurrency(snapshot.totalPaymentsReceived),
+      subtext: "Settled by airlines",
+      icon: HandCoins,
+      valueClass: "text-success",
+    },
+    {
+      title: "Outstanding Fees",
+      value: formatCurrency(snapshot.totalOutstandingFees),
+      subtext: "Awaiting settlement",
+      icon: AlertCircle,
+      valueClass: snapshot.totalOutstandingFees > 0 ? "text-warning" : "",
     },
     {
       title: "Total Credit Issued",
-      value: formatCurrency(snapshot.totalAdminCreditIssued),
-      subtext: "Admin-defined limits",
+      value: formatCurrency(snapshot.totalCreditIssued),
+      subtext: "Max outstanding fees allowed",
       icon: CreditCard,
     },
     {
-      title: "Total Credit Used",
-      value: formatCurrency(snapshot.totalCreditUsed),
-      subtext: "Negative balances",
-      icon: TrendingDown,
-      valueClass: snapshot.totalCreditUsed > 0 ? "text-warning" : "",
-    },
-    {
-      title: "Net Exposure",
-      value: formatCurrency(Math.abs(netExposure)),
-      subtext: isExposureCovered ? "Fully covered" : "Financial risk indicator",
-      icon: isExposureCovered ? TrendingUp : TrendingDown,
-      trend: isExposureCovered ? "Covered" : "At Risk",
-      trendClass: isExposureCovered ? "text-success" : "text-destructive",
+      title: "Credit Utilization",
+      value: `${utilization.toFixed(1)}%`,
+      subtext: "Outstanding vs credit limits",
+      icon: Gauge,
+      trend: utilization >= 80 ? "At Risk" : "Healthy",
+      trendClass: utilization >= 80 ? "text-destructive" : "text-success",
     },
     {
       title: "Platform Revenue",
       value: formatCurrency(snapshot.totalPlatformRevenue),
-      subtext: "Platform fees only",
+      subtext: "Service fees only",
       icon: DollarSign,
       trend: `+${snapshot.revenueChangePercent}%`,
       trendClass: "text-success",
@@ -75,18 +69,12 @@ export function PlatformOverviewSection({
   return (
     <div className="space-y-4">
       {/* Section Header */}
-      <div className="flex items-center justify-between">
-        <div className="flex items-center gap-2">
-          <div className="icon-container-sm">
-            <CircleDollarSign className="w-4 h-4 text-primary" />
-          </div>
-          <h2 className="text-base font-semibold text-foreground">Platform Overview</h2>
-          <span className="text-sm text-muted-foreground">({dateRangeLabel})</span>
+      <div className="flex items-center gap-2">
+        <div className="icon-container-sm">
+          <Receipt className="w-4 h-4 text-primary" />
         </div>
-        <Button variant="outline" size="sm" onClick={onManageReserve}>
-          <Settings className="w-4 h-4 mr-2" />
-          Manage Reserve
-        </Button>
+        <h2 className="text-base font-semibold text-foreground">Platform Overview</h2>
+        <span className="text-sm text-muted-foreground">({dateRangeLabel})</span>
       </div>
 
       {/* KPI Cards Grid */}

@@ -89,20 +89,20 @@ export default function SystemSettingsPage() {
           </CardHeader>
           <CardContent className="space-y-4">
             <div className="space-y-2">
-              <Label htmlFor="platformFee">Platform Fee (%)</Label>
+              <Label htmlFor="platformFee">Service Fee (%)</Label>
               <Input
                 id="platformFee"
                 type="number"
-                value={settings.platformFeePercent}
+                value={settings.serviceFeePercent}
                 onChange={(e) =>
-                  setSettings({ ...settings, platformFeePercent: parseFloat(e.target.value) || 0 })
+                  setSettings({ ...settings, serviceFeePercent: parseFloat(e.target.value) || 0 })
                 }
                 min={0}
                 max={100}
                 step={0.1}
               />
               <p className="text-xs text-muted-foreground">
-                Commission charged on all hotel bookings
+                Service fee charged per disruption booking
               </p>
             </div>
           </CardContent>
@@ -111,30 +111,30 @@ export default function SystemSettingsPage() {
         {/* Allowance Settings */}
         <Card>
           <CardHeader>
-            <CardTitle className="text-base font-medium">Allowance Limits</CardTitle>
-            <CardDescription>Set default and maximum allowance values</CardDescription>
+            <CardTitle className="text-base font-medium">Credit Limits</CardTitle>
+            <CardDescription>Set default and maximum outstanding service fee credit</CardDescription>
           </CardHeader>
           <CardContent className="space-y-4">
             <div className="space-y-2">
-              <Label htmlFor="defaultAllowance">Default Allowance (USD)</Label>
+              <Label htmlFor="defaultAllowance">Default Credit Limit (USD)</Label>
               <Input
                 id="defaultAllowance"
                 type="number"
-                value={settings.defaultAllowanceLimit}
+                value={settings.defaultCreditLimit}
                 onChange={(e) =>
-                  setSettings({ ...settings, defaultAllowanceLimit: parseInt(e.target.value) || 0 })
+                  setSettings({ ...settings, defaultCreditLimit: parseInt(e.target.value) || 0 })
                 }
                 min={0}
               />
             </div>
             <div className="space-y-2">
-              <Label htmlFor="maxAllowance">Maximum Allowance (USD)</Label>
+              <Label htmlFor="maxAllowance">Maximum Credit Limit (USD)</Label>
               <Input
                 id="maxAllowance"
                 type="number"
-                value={settings.maxAllowanceLimit}
+                value={settings.maxCreditLimit}
                 onChange={(e) =>
-                  setSettings({ ...settings, maxAllowanceLimit: parseInt(e.target.value) || 0 })
+                  setSettings({ ...settings, maxCreditLimit: parseInt(e.target.value) || 0 })
                 }
                 min={0}
               />
