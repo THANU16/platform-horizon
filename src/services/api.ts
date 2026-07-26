@@ -925,6 +925,6 @@ export const recordFeePayment = async (airlineId: string, amount: number): Promi
     i.adminLastName = i.adminLastName ?? "Admin";
     i.adminEmail = i.adminEmail ?? i.contactEmail;
     i.jobTitle = i.jobTitle ?? "Operations Manager";
-    i.creditLimit = i.creditLimit ?? i.initialAllowance;
+    i.creditLimit = i.creditLimit ?? 100000;
   });
 })();
