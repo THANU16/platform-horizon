@@ -10,9 +10,6 @@ import {
   getAirlines,
   getAirports,
   getFilteredPaymentData,
-  getPlatformTreasurySummary,
-  getPlatformReserveTransactions,
-  addPlatformReserveTransaction,
 } from "@/services/api";
 import { 
   Airline, 
@@ -22,12 +19,10 @@ import {
   RevenueByAirline, 
   RevenueByCountry, 
   AirlineFinancialHealth,
-  WalletTransaction,
+  BillingTransaction,
   PaymentFilters,
   DateRangeFilter,
   PaymentsTabType,
-  PlatformTreasurySummary,
-  PlatformReserveTransaction,
 } from "@/types";
 import {
   Select,
@@ -38,7 +33,6 @@ import {
 } from "@/components/ui/select";
 import { PaymentsTabNav } from "@/components/payments/PaymentsTabNav";
 import { PlatformOverviewSection } from "@/components/payments/PlatformOverviewSection";
-import { PlatformReserveModal } from "@/components/payments/PlatformReserveModal";
 import { RevenueByAirlineSection } from "@/components/payments/RevenueByAirlineSection";
 import { RevenueByCountrySection } from "@/components/payments/RevenueByCountrySection";
 import { CreditRiskCards } from "@/components/payments/CreditRiskCards";
@@ -46,7 +40,6 @@ import { DetailedAnalysisSummary } from "@/components/payments/DetailedAnalysisS
 import { DetailedAnalysisFilterBar } from "@/components/payments/DetailedAnalysisFilterBar";
 import { ExpandableAirlineHealthTable } from "@/components/payments/ExpandableAirlineHealthTable";
 import { TransactionsAuditTable } from "@/components/payments/TransactionsAuditTable";
-import { PlatformTreasuryTab } from "@/components/payments/PlatformTreasuryTab";
 
 const dateRangeLabels: Record<DateRangeFilter, string> = {
   this_month: "This Month",
