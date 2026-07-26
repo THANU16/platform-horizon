@@ -1,85 +1,41 @@
 import { cn } from "@/lib/utils";
 import { ArrowUpRight, ArrowDownRight } from "lucide-react";
-
-export type TransactionBadgeType = 
-  | "AIRLINE_TOPUP" 
-  | "PLATFORM_CREDIT" 
-  | "HOTEL_BOOKING_CHARGE" 
-  | "PLATFORM_RESERVE_DEPOSIT" 
-  | "PLATFORM_RESERVE_WITHDRAWAL"
-  | "top_up"
-  | "booking_charge"
-  | "refund"
-  | "adjustment"
-  | "credit_change"
-  | "platform_fee";
+import { BillingTransactionType } from "@/types";
 
 interface TransactionTypeBadgeProps {
-  type: TransactionBadgeType;
+  type: BillingTransactionType;
   className?: string;
 }
 
-const transactionConfig: Record<TransactionBadgeType, { 
-  label: string; 
-  className: string; 
+const transactionConfig: Record<BillingTransactionType, {
+  label: string;
+  className: string;
   icon?: "up" | "down";
 }> = {
-  // Strict transaction types
-  AIRLINE_TOPUP: { 
-    label: "Airline Top-up", 
+  service_fee: {
+    label: "Service Fee",
+    className: "bg-primary/10 text-primary border-primary/20",
+    icon: "up",
+  },
+  fee_payment: {
+    label: "Fee Payment",
     className: "bg-success/10 text-success border-success/20",
-    icon: "up"
+    icon: "down",
   },
-  PLATFORM_CREDIT: { 
-    label: "Platform Credit", 
-    className: "bg-warning/10 text-warning border-warning/20"
+  fee_adjustment: {
+    label: "Fee Adjustment",
+    className: "bg-info/10 text-info border-info/20",
   },
-  HOTEL_BOOKING_CHARGE: { 
-    label: "Hotel Booking", 
-    className: "bg-muted text-muted-foreground border-border"
-  },
-  PLATFORM_RESERVE_DEPOSIT: { 
-    label: "Deposit", 
-    className: "bg-success/10 text-success border-success/20",
-    icon: "up"
-  },
-  PLATFORM_RESERVE_WITHDRAWAL: { 
-    label: "Withdrawal", 
-    className: "bg-destructive/10 text-destructive border-destructive/20",
-    icon: "down"
-  },
-  // Legacy types mapping
-  top_up: { 
-    label: "Airline Top-up", 
-    className: "bg-success/10 text-success border-success/20",
-    icon: "up"
-  },
-  booking_charge: { 
-    label: "Hotel Booking", 
-    className: "bg-muted text-muted-foreground border-border"
-  },
-  refund: { 
-    label: "Refund", 
-    className: "bg-info/10 text-info border-info/20"
-  },
-  adjustment: { 
-    label: "Adjustment", 
-    className: "bg-secondary text-secondary-foreground border-border"
-  },
-  credit_change: { 
-    label: "Platform Credit", 
-    className: "bg-warning/10 text-warning border-warning/20"
-  },
-  platform_fee: { 
-    label: "Platform Fee", 
-    className: "bg-primary/10 text-primary border-primary/20"
+  credit_change: {
+    label: "Credit Change",
+    className: "bg-warning/10 text-warning border-warning/20",
   },
 };
 
 export function TransactionTypeBadge({ type, className }: TransactionTypeBadgeProps) {
-  const config = transactionConfig[type] || { 
-    label: type, 
-    className: "bg-muted text-muted-foreground border-border" 
+  const config = transactionConfig[type] || {
+    label: type,
+    className: "bg-muted text-muted-foreground border-border",
   };
 
   return (
