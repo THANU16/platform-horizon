@@ -1,6 +1,6 @@
 import { cn } from "@/lib/utils";
 import { PaymentsTabType } from "@/types";
-import { BarChart3, LineChart, Landmark } from "lucide-react";
+import { BarChart3, LineChart } from "lucide-react";
 
 interface PaymentsTabNavProps {
   activeTab: PaymentsTabType;
@@ -10,7 +10,6 @@ interface PaymentsTabNavProps {
 const tabs: { id: PaymentsTabType; label: string; icon: typeof BarChart3 }[] = [
   { id: "overview", label: "Platform Overview", icon: BarChart3 },
   { id: "detailed", label: "Detailed Analysis", icon: LineChart },
-  { id: "treasury", label: "Platform Treasury", icon: Landmark },
 ];
 
 export function PaymentsTabNav({ activeTab, onTabChange }: PaymentsTabNavProps) {

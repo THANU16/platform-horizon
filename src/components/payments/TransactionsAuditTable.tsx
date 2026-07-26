@@ -18,11 +18,11 @@ import { TransactionTypeBadge } from "@/components/ui/TransactionTypeBadge";
 import { StatusBadge, StatusType } from "@/components/ui/StatusBadge";
 import { EmptyState } from "@/components/ui/EmptyState";
 import { Receipt } from "lucide-react";
-import { WalletTransaction } from "@/types";
+import { BillingTransaction } from "@/types";
 import { cn } from "@/lib/utils";
 
 interface TransactionsAuditTableProps {
-  transactions: WalletTransaction[];
+  transactions: BillingTransaction[];
   typeFilter: string;
   onTypeFilterChange: (value: string) => void;
 }
@@ -60,9 +60,10 @@ export function TransactionsAuditTable({
             </SelectTrigger>
             <SelectContent>
               <SelectItem value="all">All Types</SelectItem>
-              <SelectItem value="AIRLINE_TOPUP">Airline Top-up</SelectItem>
-              <SelectItem value="PLATFORM_CREDIT">Platform Credit</SelectItem>
-              <SelectItem value="HOTEL_BOOKING_CHARGE">Hotel Booking</SelectItem>
+              <SelectItem value="service_fee">Service Fee</SelectItem>
+              <SelectItem value="fee_payment">Fee Payment</SelectItem>
+              <SelectItem value="fee_adjustment">Fee Adjustment</SelectItem>
+              <SelectItem value="credit_change">Credit Change</SelectItem>
             </SelectContent>
           </Select>
         </div>
