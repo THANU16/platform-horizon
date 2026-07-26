@@ -72,10 +72,6 @@ export default function Payments() {
   const [loading, setLoading] = useState(true);
   const [isFiltering, setIsFiltering] = useState(false);
 
-  // Platform Reserve
-  const [platformReserve, setPlatformReserve] = useState(250000);
-  const [reserveModalOpen, setReserveModalOpen] = useState(false);
-
   // Global filter (header)
   const [globalDateRange, setGlobalDateRange] = useState<DateRangeFilter>("this_month");
   const [appliedGlobalDateRange, setAppliedGlobalDateRange] = useState<DateRangeFilter>("this_month");
@@ -86,9 +82,6 @@ export default function Payments() {
   const [detailAirlineFilter, setDetailAirlineFilter] = useState("all");
   const [detailAirportFilter, setDetailAirportFilter] = useState("all");
   const [detailCountryFilter, setDetailCountryFilter] = useState("all");
-
-  // Treasury date range filter
-  const [treasuryDateRange, setTreasuryDateRange] = useState<DateRangeFilter>("this_month");
 
   // Transaction type filter
   const [transactionTypeFilter, setTransactionTypeFilter] = useState("all");
@@ -108,16 +101,6 @@ export default function Payments() {
     }
   }, []);
 
-  const fetchTreasuryData = useCallback(async () => {
-    const [summary, transactions] = await Promise.all([
-      getPlatformTreasurySummary(),
-      getPlatformReserveTransactions(treasuryDateRange),
-    ]);
-    setTreasurySummary(summary);
-    setReserveTransactions(transactions);
-    setPlatformReserve(summary.currentBalance);
-  }, [treasuryDateRange]);
-
   useEffect(() => {
     const loadData = async () => {
       try {
@@ -131,22 +114,20 @@ export default function Payments() {
         setAirports(airportsData);
 
         // Load initial data with default filters
-        await Promise.all([
-          fetchPaymentData({
-            country: "all",
-            airline: "all",
-            airport: "all",
-            search: "",
-            dateRange: "this_month",
-          }),
-          fetchTreasuryData(),
-        ]);
+        await fetchPaymentData({
+          country: "all",
+          airline: "all",
+          airport: "all",
+          search: "",
+          dateRange: "this_month",
+        });
       } finally {
         setLoading(false);
       }
     };
     loadData();
-  }, [fetchPaymentData, fetchTreasuryData]);
+  }, [fetchPaymentData]);
+
 
   // Auto-apply detail filters (date range here only affects client filtering of transactions)
   const applyDetailFilters = useCallback(
