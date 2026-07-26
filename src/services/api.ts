@@ -525,9 +525,10 @@ const dashboardStatsData: DashboardStats = {
 
 // System Settings
 const systemSettingsData: SystemSettings = {
-  platformFeePercent: 5,
-  defaultAllowanceLimit: 100000,
-  maxAllowanceLimit: 1000000,
+  serviceFeePercent: 5,
+  defaultCreditLimit: 100000,
+  maxCreditLimit: 1000000,
+
   defaultCurrency: "USD",
   defaultHotelRules: {
     maxStarRating: 4,
