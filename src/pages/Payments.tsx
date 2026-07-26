@@ -60,11 +60,8 @@ export default function Payments() {
   const [revenueByAirline, setRevenueByAirline] = useState<RevenueByAirline[]>([]);
   const [revenueByCountry, setRevenueByCountry] = useState<RevenueByCountry[]>([]);
   const [airlineHealth, setAirlineHealth] = useState<AirlineFinancialHealth[]>([]);
-  const [transactions, setTransactions] = useState<WalletTransaction[]>([]);
-  
-  // Treasury data
-  const [treasurySummary, setTreasurySummary] = useState<PlatformTreasurySummary | null>(null);
-  const [reserveTransactions, setReserveTransactions] = useState<PlatformReserveTransaction[]>([]);
+  const [transactions, setTransactions] = useState<BillingTransaction[]>([]);
+
   
   // Reference data
   const [countries, setCountries] = useState<string[]>([]);
