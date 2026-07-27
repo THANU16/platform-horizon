@@ -483,10 +483,10 @@ const auditLogsData: AuditLog[] = [
     timestamp: "2025-02-01T11:00:00Z",
     adminName: "Sarah Johnson",
     adminEmail: "sarah@flyvoid.com",
-    action: "Processed Top-up",
+    action: "Approved Payment",
     entity: "Transaction",
     entityId: "1",
-    details: "Processed $100,000 top-up for SkyLine Airways",
+    details: "Approved $100,000 bank transfer payment for SkyLine Airways",
   },
 ];
 
@@ -497,6 +497,9 @@ const dashboardStatsData: DashboardStats = {
   cancelledFlightsThisMonth: 47,
   platformRevenue: 476000,
   outstandingPlatformFees: 105000,
+  paymentsReceived: 371000,
+  outstandingReceivables: 105000,
+  totalCreditIssued: 410000,
   creditUtilizationPercent: 25.6,
   feeCollectionRate: 0.78,
 
@@ -761,7 +764,9 @@ export const getAirlineFinancialHealth = async (filters?: PaymentFilters): Promi
     airlineName: airline.name,
     iataCode: airline.iataCode,
     country: airline.country,
+    totalBookings: airline.totalBookings,
     totalBookingValue: airline.totalBookingValue,
+    platformFeePercent: airline.platformFeePercent,
     platformFeesBilled: airline.platformFeesBilled,
     paymentsReceived: airline.paymentsReceived,
     outstandingBalance: airline.outstandingBalance,
@@ -913,6 +918,10 @@ export const recordFeePayment = async (airlineId: string, amount: number): Promi
     a.adminEmail = a.adminEmail ?? a.contactEmail;
     a.jobTitle = a.jobTitle ?? "Operations Manager";
   });
+  const feePercents = [5, 4.5, 6, 5.5, 4];
+  airlinesData.forEach((a, idx) => {
+    a.platformFeePercent = a.platformFeePercent ?? feePercents[idx % feePercents.length];
+  });
   invitesData.forEach((i) => {
     i.companyRegistrationNumber = i.companyRegistrationNumber ?? `REG-${i.iataCode}-${2000 + Number(i.id)}`;
     i.website = i.website ?? "";
@@ -926,5 +935,96 @@ export const recordFeePayment = async (airlineId: string, amount: number): Promi
     i.adminEmail = i.adminEmail ?? i.contactEmail;
     i.jobTitle = i.jobTitle ?? "Operations Manager";
     i.creditLimit = i.creditLimit ?? 100000;
+    i.platformFeePercent = i.platformFeePercent ?? 5;
   });
 })();
+
+
+// ==================== Payment Approvals (settlement of platform fees) ====================
+const paymentApprovalsData: PaymentApproval[] = [
+  {
+    id: "pa-1",
+    airlineId: "1",
+    airlineName: "SkyLine Airways",
+    country: "United States",
+    amount: 45000,
+    method: "bank_transfer",
+    status: "pending",
+    submittedAt: "2025-02-18T09:24:00Z",
+    referenceNumber: "TRF-8845-2201",
+    receiptUrl: "https://example.com/receipts/TRF-8845-2201.pdf",
+    bankName: "First National Bank",
+    notes: "Settlement for January platform fees",
+  },
+  {
+    id: "pa-2",
+    airlineId: "3",
+    airlineName: "Pacific Wings",
+    country: "Australia",
+    amount: 18750,
+    method: "bank_transfer",
+    status: "pending",
+    submittedAt: "2025-02-17T14:10:00Z",
+    referenceNumber: "TRF-2210-9931",
+    receiptUrl: "https://example.com/receipts/TRF-2210-9931.pdf",
+    bankName: "Commonwealth Bank",
+  },
+  {
+    id: "pa-3",
+    airlineId: "2",
+    airlineName: "EuroConnect",
+    country: "Germany",
+    amount: 32000,
+    method: "credit_card",
+    status: "approved",
+    submittedAt: "2025-02-12T08:00:00Z",
+    reviewedAt: "2025-02-12T08:01:00Z",
+    referenceNumber: "CARD-4412-7781",
+  },
+  {
+    id: "pa-4",
+    airlineId: "4",
+    airlineName: "Northern Star Airlines",
+    country: "Canada",
+    amount: 9500,
+    method: "bank_transfer",
+    status: "rejected",
+    submittedAt: "2025-02-08T11:30:00Z",
+    reviewedAt: "2025-02-09T10:00:00Z",
+    referenceNumber: "TRF-7781-0042",
+    receiptUrl: "https://example.com/receipts/TRF-7781-0042.pdf",
+    bankName: "Royal Bank of Canada",
+    rejectionReason: "Receipt amount did not match the reference number",
+  },
+];
+
+export const getPaymentApprovals = async (): Promise<PaymentApproval[]> => {
+  await delay(250);
+  return [...paymentApprovalsData];
+};
+
+export const approvePayment = async (id: string): Promise<PaymentApproval | null> => {
+  await delay(300);
+  const approval = paymentApprovalsData.find((p) => p.id === id);
+  if (!approval || approval.status !== "pending") return null;
+  approval.status = "approved";
+  approval.reviewedAt = new Date().toISOString();
+
+  // Settling a payment reduces the airline outstanding balance
+  const airline = airlinesData.find((a) => a.id === approval.airlineId);
+  if (airline) {
+    airline.paymentsReceived += approval.amount;
+    airline.outstandingBalance = Math.max(0, airline.outstandingBalance - approval.amount);
+  }
+  return { ...approval };
+};
+
+export const rejectPayment = async (id: string, reason: string): Promise<PaymentApproval | null> => {
+  await delay(300);
+  const approval = paymentApprovalsData.find((p) => p.id === id);
+  if (!approval || approval.status !== "pending") return null;
+  approval.status = "rejected";
+  approval.rejectionReason = reason;
+  approval.reviewedAt = new Date().toISOString();
+  return { ...approval };
+};
