@@ -2,7 +2,7 @@ import { Card, CardContent } from "@/components/ui/card";
 import { Receipt, CheckCircle2, AlertCircle } from "lucide-react";
 
 interface DetailedAnalysisSummaryProps {
-  totalServiceFees: number;
+  totalPlatformFees: number;
   totalFeeCount: number;
   totalPaymentsReceived: number;
   totalPaymentCount: number;
@@ -10,7 +10,7 @@ interface DetailedAnalysisSummaryProps {
 }
 
 export function DetailedAnalysisSummary({
-  totalServiceFees,
+  totalPlatformFees,
   totalFeeCount,
   totalPaymentsReceived,
   totalPaymentCount,
@@ -33,10 +33,10 @@ export function DetailedAnalysisSummary({
       <Card className="border-l-4 border-l-primary">
         <CardContent className="p-4">
           <div className="flex items-start justify-between mb-2">
-            <p className="text-xs text-muted-foreground">Service Fees Billed</p>
+            <p className="text-xs text-muted-foreground">Platform Fees Billed</p>
             <Receipt className="w-4 h-4 text-primary" />
           </div>
-          <p className="text-2xl font-bold text-foreground">{formatCurrency(totalServiceFees)}</p>
+          <p className="text-2xl font-bold text-foreground">{formatCurrency(totalPlatformFees)}</p>
           <p className="text-xs text-muted-foreground mt-1">{formatNumber(totalFeeCount)} fee charges</p>
         </CardContent>
       </Card>
@@ -59,7 +59,7 @@ export function DetailedAnalysisSummary({
             <AlertCircle className="w-4 h-4 text-warning" />
           </div>
           <p className="text-2xl font-bold text-warning">{formatCurrency(totalOutstanding)}</p>
-          <p className="text-xs text-muted-foreground mt-1">Unsettled service fees</p>
+          <p className="text-xs text-muted-foreground mt-1">Unsettled platform fees</p>
         </CardContent>
       </Card>
     </div>

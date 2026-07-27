@@ -146,6 +146,7 @@ export default function Invites() {
     setEditingInvite(invite);
     setFormValues({
       airlineName: invite.airlineName,
+      platformFeePercent: invite.platformFeePercent ?? 5,
       iataCode: invite.iataCode,
       country: invite.country,
       companyRegistrationNumber: invite.companyRegistrationNumber ?? "",

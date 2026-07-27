@@ -17,11 +17,13 @@ export interface Airline {
   failedPayments: number;
   allocationFailures: number;
   totalBookings: number;
-  // Service fee billing
-  serviceFeesBilled: number;
+  // Platform fee billing
+  platformFeesBilled: number;
   paymentsReceived: number;
   outstandingBalance: number;
-  // Max outstanding service fees allowed before settlement is required
+  // Per-airline platform fee percentage applied to each booking
+  platformFeePercent: number;
+  // Max outstanding platform fees allowed before settlement is required
   creditLimit: number;
   // Extended profile (airline details)
   companyRegistrationNumber?: string;
@@ -76,6 +78,7 @@ export interface Invite {
   jobTitle?: string;
   // Credit
   creditLimit?: number;
+  platformFeePercent?: number;
 }
 
 export interface AuditLog {
@@ -90,7 +93,7 @@ export interface AuditLog {
 }
 
 export interface SystemSettings {
-  serviceFeePercent: number;
+  defaultPlatformFeePercent: number;
   defaultCreditLimit: number;
   maxCreditLimit: number;
   defaultCurrency: string;
@@ -121,7 +124,10 @@ export interface DashboardStats {
   activeAirlines: number;
   cancelledFlightsThisMonth: number;
   platformRevenue: number;
-  outstandingServiceFees: number;
+  outstandingPlatformFees: number;
+  paymentsReceived: number;
+  outstandingReceivables: number;
+  totalCreditIssued: number;
   creditUtilizationPercent: number;
   feeCollectionRate: number;
   avgRevenuePerAirline: number;
@@ -155,7 +161,7 @@ export type DateRangeFilter = "this_month" | "last_month" | "last_7_days" | "las
 
 // STRICT Transaction Types - Only these are allowed
 export type BillingTransactionType =
-  | "service_fee"
+  | "platform_fee"
   | "fee_payment"
   | "fee_adjustment"
   | "credit_change";
@@ -176,7 +182,7 @@ export interface BillingTransaction {
 
 // Platform Financial Snapshot
 export interface PlatformFinancialSnapshot {
-  totalServiceFeesBilled: number;
+  totalPlatformFeesBilled: number;
   totalPaymentsReceived: number;
   totalOutstandingFees: number;
   totalCreditIssued: number;
@@ -202,8 +208,10 @@ export interface AirlineFinancialHealth {
   airlineName: string;
   iataCode: string;
   country: string;
+  totalBookings: number;
   totalBookingValue: number;
-  serviceFeesBilled: number;
+  platformFeePercent: number;
+  platformFeesBilled: number;
   paymentsReceived: number;
   outstandingBalance: number;
   platformRevenue: number;
@@ -229,4 +237,26 @@ export interface Airport {
 }
 
 // Tab types for Payments page
-export type PaymentsTabType = "overview" | "detailed";
+export type PaymentsTabType = "overview" | "detailed" | "approvals";
+
+// Payment settlement methods
+export type PaymentMethod = "credit_card" | "bank_transfer";
+
+export type PaymentApprovalStatus = "pending" | "approved" | "rejected";
+
+export interface PaymentApproval {
+  id: string;
+  airlineId: string;
+  airlineName: string;
+  country: string;
+  amount: number;
+  method: PaymentMethod;
+  status: PaymentApprovalStatus;
+  submittedAt: string;
+  referenceNumber: string;
+  receiptUrl?: string;
+  bankName?: string;
+  notes?: string;
+  rejectionReason?: string;
+  reviewedAt?: string;
+}

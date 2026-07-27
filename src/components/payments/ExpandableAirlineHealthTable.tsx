@@ -32,8 +32,10 @@ interface ExpandableAirlineHealthTableProps {
 type SortField =
   | "airlineName"
   | "country"
+  | "totalBookings"
   | "totalBookingValue"
-  | "serviceFeesBilled"
+  | "platformFeePercent"
+  | "platformFeesBilled"
   | "paymentsReceived"
   | "outstandingBalance"
   | "creditLimit";
@@ -90,10 +92,10 @@ export function ExpandableAirlineHealthTable({ data, transactions, onAirlineClic
 
   const getAirlineStats = (airline: AirlineFinancialHealth) => {
     const airlineTransactions = transactions.filter(t => t.airlineId === airline.airlineId);
-    const serviceFees = airlineTransactions.filter(t => t.type === "service_fee");
+    const serviceFees = airlineTransactions.filter(t => t.type === "platform_fee");
     const disruptions = serviceFees.length;
-    const collectionRate = airline.serviceFeesBilled > 0
-      ? (airline.paymentsReceived / airline.serviceFeesBilled) * 100
+    const collectionRate = airline.platformFeesBilled > 0
+      ? (airline.paymentsReceived / airline.platformFeesBilled) * 100
       : 100;
     const creditUtilization = airline.creditLimit > 0
       ? (airline.outstandingBalance / airline.creditLimit) * 100
@@ -147,8 +149,10 @@ export function ExpandableAirlineHealthTable({ data, transactions, onAirlineClic
                   <TableRow className="table-header">
                     <SortHeader field="airlineName">Airline</SortHeader>
                     <SortHeader field="country">Country</SortHeader>
+                    <SortHeader field="totalBookings">Total Bookings</SortHeader>
                     <SortHeader field="totalBookingValue">Booking Value</SortHeader>
-                    <SortHeader field="serviceFeesBilled">Service Fees</SortHeader>
+                    <SortHeader field="platformFeePercent">Platform Fee %</SortHeader>
+                    <SortHeader field="platformFeesBilled">Total Platform Fees</SortHeader>
                     <SortHeader field="paymentsReceived">Payments Received</SortHeader>
                     <SortHeader field="outstandingBalance">Outstanding</SortHeader>
                     <SortHeader field="creditLimit">Credit Limit</SortHeader>
@@ -180,9 +184,13 @@ export function ExpandableAirlineHealthTable({ data, transactions, onAirlineClic
                             {airline.country}
                           </TableCell>
                           <TableCell className="text-muted-foreground">
+                            {airline.totalBookings.toLocaleString()}
+                          </TableCell>
+                          <TableCell className="text-muted-foreground">
                             {formatCurrency(airline.totalBookingValue)}
                           </TableCell>
-                          <TableCell>{formatCurrency(airline.serviceFeesBilled)}</TableCell>
+                          <TableCell>{airline.platformFeePercent}%</TableCell>
+                          <TableCell>{formatCurrency(airline.platformFeesBilled)}</TableCell>
                           <TableCell className="text-success font-medium">
                             {formatCurrency(airline.paymentsReceived)}
                           </TableCell>
@@ -215,7 +223,7 @@ export function ExpandableAirlineHealthTable({ data, transactions, onAirlineClic
                         {/* Expanded Row */}
                         {isExpanded && (
                           <TableRow key={`${airline.airlineId}-expanded`} className="bg-muted/20">
-                            <TableCell colSpan={10} className="p-0">
+                            <TableCell colSpan={12} className="p-0">
                               <div className="p-4 space-y-4">
                                 {/* Stats Row */}
                                 <div className="grid grid-cols-4 gap-4">
@@ -316,8 +324,16 @@ export function ExpandableAirlineHealthTable({ data, transactions, onAirlineClic
 
                       <div className="grid grid-cols-2 gap-3 text-sm">
                         <div>
-                          <span className="text-muted-foreground">Service Fees</span>
-                          <p className="font-semibold">{formatCurrency(airline.serviceFeesBilled)}</p>
+                          <span className="text-muted-foreground">Total Bookings</span>
+                          <p className="font-semibold">{airline.totalBookings.toLocaleString()}</p>
+                        </div>
+                        <div>
+                          <span className="text-muted-foreground">Platform Fee %</span>
+                          <p className="font-semibold">{airline.platformFeePercent}%</p>
+                        </div>
+                        <div>
+                          <span className="text-muted-foreground">Total Platform Fees</span>
+                          <p className="font-semibold">{formatCurrency(airline.platformFeesBilled)}</p>
                         </div>
                         <div>
                           <span className="text-muted-foreground">Payments Received</span>
