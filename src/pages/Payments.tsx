@@ -10,6 +10,9 @@ import {
   getAirlines,
   getAirports,
   getFilteredPaymentData,
+  getPaymentApprovals,
+  approvePayment,
+  rejectPayment,
 } from "@/services/api";
 import { 
   Airline, 
@@ -23,6 +26,7 @@ import {
   PaymentFilters,
   DateRangeFilter,
   PaymentsTabType,
+  PaymentApproval,
 } from "@/types";
 import {
   Select,
@@ -40,6 +44,8 @@ import { DetailedAnalysisSummary } from "@/components/payments/DetailedAnalysisS
 import { DetailedAnalysisFilterBar } from "@/components/payments/DetailedAnalysisFilterBar";
 import { ExpandableAirlineHealthTable } from "@/components/payments/ExpandableAirlineHealthTable";
 import { TransactionsAuditTable } from "@/components/payments/TransactionsAuditTable";
+import { PaymentApprovalsTable } from "@/components/payments/PaymentApprovalsTable";
+import { useToast } from "@/hooks/use-toast";
 
 const dateRangeLabels: Record<DateRangeFilter, string> = {
   this_month: "This Month",
@@ -83,6 +89,11 @@ export default function Payments() {
   const [detailAirportFilter, setDetailAirportFilter] = useState("all");
   const [detailCountryFilter, setDetailCountryFilter] = useState("all");
 
+  // Payment approvals
+  const [approvals, setApprovals] = useState<PaymentApproval[]>([]);
+  const [approvalStatusFilter, setApprovalStatusFilter] = useState("pending");
+  const { toast } = useToast();
+
   // Transaction type filter
   const [transactionTypeFilter, setTransactionTypeFilter] = useState("all");
 
@@ -112,6 +123,7 @@ export default function Payments() {
         setCountries(countriesData);
         setAirlines(airlinesData);
         setAirports(airportsData);
+        setApprovals(await getPaymentApprovals());
 
         // Load initial data with default filters
         await fetchPaymentData({
@@ -217,6 +229,36 @@ export default function Payments() {
       totalOutstanding,
     };
   }, [airlineHealth, detailedTransactions]);
+
+  const handleApprove = async (id: string) => {
+    const updated = await approvePayment(id);
+    if (updated) {
+      setApprovals((prev) => prev.map((a) => (a.id === id ? updated : a)));
+      toast({
+        title: "Payment approved",
+        description: `Outstanding balance reduced for ${updated.airlineName}.`,
+      });
+      await fetchPaymentData({
+        search: "",
+        country: detailCountryFilter,
+        airline: detailAirlineFilter,
+        airport: detailAirportFilter,
+        dateRange: appliedGlobalDateRange,
+      });
+    }
+  };
+
+  const handleReject = async (id: string, reason: string) => {
+    const updated = await rejectPayment(id, reason);
+    if (updated) {
+      setApprovals((prev) => prev.map((a) => (a.id === id ? updated : a)));
+      toast({
+        title: "Payment rejected",
+        description: `${updated.airlineName} · ${updated.referenceNumber}`,
+        variant: "destructive",
+      });
+    }
+  };
 
   if (loading) {
     return (
@@ -338,6 +380,16 @@ export default function Payments() {
             onTypeFilterChange={setTransactionTypeFilter}
           />
         </div>
+      )}
+
+      {activeTab === "approvals" && (
+        <PaymentApprovalsTable
+          approvals={approvals}
+          statusFilter={approvalStatusFilter}
+          onStatusFilterChange={setApprovalStatusFilter}
+          onApprove={handleApprove}
+          onReject={handleReject}
+        />
       )}
 
     </MainLayout>

@@ -32,7 +32,9 @@ interface ExpandableAirlineHealthTableProps {
 type SortField =
   | "airlineName"
   | "country"
+  | "totalBookings"
   | "totalBookingValue"
+  | "platformFeePercent"
   | "platformFeesBilled"
   | "paymentsReceived"
   | "outstandingBalance"
@@ -147,8 +149,10 @@ export function ExpandableAirlineHealthTable({ data, transactions, onAirlineClic
                   <TableRow className="table-header">
                     <SortHeader field="airlineName">Airline</SortHeader>
                     <SortHeader field="country">Country</SortHeader>
+                    <SortHeader field="totalBookings">Total Bookings</SortHeader>
                     <SortHeader field="totalBookingValue">Booking Value</SortHeader>
-                    <SortHeader field="platformFeesBilled">Platform Fees</SortHeader>
+                    <SortHeader field="platformFeePercent">Platform Fee %</SortHeader>
+                    <SortHeader field="platformFeesBilled">Total Platform Fees</SortHeader>
                     <SortHeader field="paymentsReceived">Payments Received</SortHeader>
                     <SortHeader field="outstandingBalance">Outstanding</SortHeader>
                     <SortHeader field="creditLimit">Credit Limit</SortHeader>
@@ -180,8 +184,12 @@ export function ExpandableAirlineHealthTable({ data, transactions, onAirlineClic
                             {airline.country}
                           </TableCell>
                           <TableCell className="text-muted-foreground">
+                            {airline.totalBookings.toLocaleString()}
+                          </TableCell>
+                          <TableCell className="text-muted-foreground">
                             {formatCurrency(airline.totalBookingValue)}
                           </TableCell>
+                          <TableCell>{airline.platformFeePercent}%</TableCell>
                           <TableCell>{formatCurrency(airline.platformFeesBilled)}</TableCell>
                           <TableCell className="text-success font-medium">
                             {formatCurrency(airline.paymentsReceived)}
@@ -215,7 +223,7 @@ export function ExpandableAirlineHealthTable({ data, transactions, onAirlineClic
                         {/* Expanded Row */}
                         {isExpanded && (
                           <TableRow key={`${airline.airlineId}-expanded`} className="bg-muted/20">
-                            <TableCell colSpan={10} className="p-0">
+                            <TableCell colSpan={12} className="p-0">
                               <div className="p-4 space-y-4">
                                 {/* Stats Row */}
                                 <div className="grid grid-cols-4 gap-4">
@@ -316,7 +324,15 @@ export function ExpandableAirlineHealthTable({ data, transactions, onAirlineClic
 
                       <div className="grid grid-cols-2 gap-3 text-sm">
                         <div>
-                          <span className="text-muted-foreground">Platform Fees</span>
+                          <span className="text-muted-foreground">Total Bookings</span>
+                          <p className="font-semibold">{airline.totalBookings.toLocaleString()}</p>
+                        </div>
+                        <div>
+                          <span className="text-muted-foreground">Platform Fee %</span>
+                          <p className="font-semibold">{airline.platformFeePercent}%</p>
+                        </div>
+                        <div>
+                          <span className="text-muted-foreground">Total Platform Fees</span>
                           <p className="font-semibold">{formatCurrency(airline.platformFeesBilled)}</p>
                         </div>
                         <div>

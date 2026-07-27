@@ -25,6 +25,7 @@ export interface AirlineDetailsFormValues {
   adminEmail: string;
   jobTitle: string;
   creditLimit: number;
+  platformFeePercent: number;
 }
 
 interface Props {
@@ -138,6 +139,16 @@ export function AirlineDetailsForm({ values, countries, onChange, disabled }: Pr
               disabled={disabled}
             />
           </Field>
+          <Field label="Platform Fee (%)">
+            <Input
+              type="number"
+              min={0}
+              step={0.1}
+              value={values.platformFeePercent}
+              onChange={(e) => set("platformFeePercent", parseFloat(e.target.value) || 0)}
+              disabled={disabled}
+            />
+          </Field>
         </div>
       </section>
     </div>
@@ -170,4 +181,5 @@ export const emptyAirlineDetails: AirlineDetailsFormValues = {
   adminEmail: "",
   jobTitle: "",
   creditLimit: 100000,
+  platformFeePercent: 5,
 };
