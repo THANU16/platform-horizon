@@ -221,8 +221,13 @@ export default function AirlineDetail() {
           </CardHeader>
           <CardContent className="space-y-3">
             <InfoRow label="Total Booking Value" value={formatCurrency(airline.totalBookingValue)} />
-            <InfoRow label="Platform Fees Billed" value={formatCurrency(airline.platformFeesBilled)} />
-            <InfoRow label="Outstanding Balance" value={formatCurrency(airline.outstandingBalance)} />
+            <InfoRow label="Platform Fee Percentage" value={`${airline.platformFeePercent}%`} />
+            <InfoRow label="Total Platform Fees" value={formatCurrency(airline.platformFeesBilled)} />
+            <InfoRow label="Payments Received" value={formatCurrency(airline.paymentsReceived)} />
+            <InfoRow label="Outstanding Platform Balance" value={formatCurrency(airline.outstandingBalance)} />
+            <InfoRow label="Credit Limit" value={formatCurrency(airline.creditLimit)} />
+            <InfoRow label="Remaining Credit" value={formatCurrency(Math.max(0, airline.creditLimit - airline.outstandingBalance))} />
+            <InfoRow label="Total Platform Revenue" value={formatCurrency(airline.platformRevenue)} />
             <InfoRow label="Stripe Connection">
               <StatusBadge
                 status={airline.stripeStatus === "connected" ? "connected" : airline.stripeStatus === "pending" ? "pending" : "failed"}
