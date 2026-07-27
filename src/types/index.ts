@@ -76,6 +76,7 @@ export interface Invite {
   jobTitle?: string;
   // Credit
   creditLimit?: number;
+  platformFeePercent?: number;
 }
 
 export interface AuditLog {
@@ -122,6 +123,9 @@ export interface DashboardStats {
   cancelledFlightsThisMonth: number;
   platformRevenue: number;
   outstandingPlatformFees: number;
+  paymentsReceived: number;
+  outstandingReceivables: number;
+  totalCreditIssued: number;
   creditUtilizationPercent: number;
   feeCollectionRate: number;
   avgRevenuePerAirline: number;
@@ -202,7 +206,9 @@ export interface AirlineFinancialHealth {
   airlineName: string;
   iataCode: string;
   country: string;
+  totalBookings: number;
   totalBookingValue: number;
+  platformFeePercent: number;
   platformFeesBilled: number;
   paymentsReceived: number;
   outstandingBalance: number;
@@ -229,4 +235,26 @@ export interface Airport {
 }
 
 // Tab types for Payments page
-export type PaymentsTabType = "overview" | "detailed";
+export type PaymentsTabType = "overview" | "detailed" | "approvals";
+
+// Payment settlement methods
+export type PaymentMethod = "credit_card" | "bank_transfer";
+
+export type PaymentApprovalStatus = "pending" | "approved" | "rejected";
+
+export interface PaymentApproval {
+  id: string;
+  airlineId: string;
+  airlineName: string;
+  country: string;
+  amount: number;
+  method: PaymentMethod;
+  status: PaymentApprovalStatus;
+  submittedAt: string;
+  referenceNumber: string;
+  receiptUrl?: string;
+  bankName?: string;
+  notes?: string;
+  rejectionReason?: string;
+  reviewedAt?: string;
+}
