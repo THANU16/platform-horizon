@@ -17,10 +17,12 @@ export interface Airline {
   failedPayments: number;
   allocationFailures: number;
   totalBookings: number;
-  // Service fee billing
+  // Platform fee billing
   platformFeesBilled: number;
   paymentsReceived: number;
   outstandingBalance: number;
+  // Per-airline platform fee percentage applied to each booking
+  platformFeePercent: number;
   // Max outstanding platform fees allowed before settlement is required
   creditLimit: number;
   // Extended profile (airline details)
