@@ -18,10 +18,10 @@ export interface Airline {
   allocationFailures: number;
   totalBookings: number;
   // Service fee billing
-  serviceFeesBilled: number;
+  platformFeesBilled: number;
   paymentsReceived: number;
   outstandingBalance: number;
-  // Max outstanding service fees allowed before settlement is required
+  // Max outstanding platform fees allowed before settlement is required
   creditLimit: number;
   // Extended profile (airline details)
   companyRegistrationNumber?: string;
@@ -90,7 +90,7 @@ export interface AuditLog {
 }
 
 export interface SystemSettings {
-  serviceFeePercent: number;
+  defaultPlatformFeePercent: number;
   defaultCreditLimit: number;
   maxCreditLimit: number;
   defaultCurrency: string;
@@ -121,7 +121,7 @@ export interface DashboardStats {
   activeAirlines: number;
   cancelledFlightsThisMonth: number;
   platformRevenue: number;
-  outstandingServiceFees: number;
+  outstandingPlatformFees: number;
   creditUtilizationPercent: number;
   feeCollectionRate: number;
   avgRevenuePerAirline: number;
@@ -155,7 +155,7 @@ export type DateRangeFilter = "this_month" | "last_month" | "last_7_days" | "las
 
 // STRICT Transaction Types - Only these are allowed
 export type BillingTransactionType =
-  | "service_fee"
+  | "platform_fee"
   | "fee_payment"
   | "fee_adjustment"
   | "credit_change";
@@ -176,7 +176,7 @@ export interface BillingTransaction {
 
 // Platform Financial Snapshot
 export interface PlatformFinancialSnapshot {
-  totalServiceFeesBilled: number;
+  totalPlatformFeesBilled: number;
   totalPaymentsReceived: number;
   totalOutstandingFees: number;
   totalCreditIssued: number;
@@ -203,7 +203,7 @@ export interface AirlineFinancialHealth {
   iataCode: string;
   country: string;
   totalBookingValue: number;
-  serviceFeesBilled: number;
+  platformFeesBilled: number;
   paymentsReceived: number;
   outstandingBalance: number;
   platformRevenue: number;

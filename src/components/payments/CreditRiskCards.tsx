@@ -38,10 +38,10 @@ export function CreditRiskCards({ data }: CreditRiskCardsProps) {
             <p className="text-xs text-muted-foreground mt-1">Total Credit Allowed</p>
           </div>
 
-          {/* Outstanding Service Fees */}
+          {/* Outstanding Platform Fees */}
           <div className="bg-muted/30 rounded-lg p-4 text-center">
             <p className="text-2xl font-bold text-warning">{formatCurrency(data.totalOutstandingFees)}</p>
-            <p className="text-xs text-muted-foreground mt-1">Outstanding Service Fees</p>
+            <p className="text-xs text-muted-foreground mt-1">Outstanding Platform Fees</p>
           </div>
 
           {/* Credit Utilization */}

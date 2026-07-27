@@ -89,13 +89,13 @@ export default function SystemSettingsPage() {
           </CardHeader>
           <CardContent className="space-y-4">
             <div className="space-y-2">
-              <Label htmlFor="platformFee">Service Fee (%)</Label>
+              <Label htmlFor="platformFee">Platform Fee (%)</Label>
               <Input
                 id="platformFee"
                 type="number"
-                value={settings.serviceFeePercent}
+                value={settings.defaultPlatformFeePercent}
                 onChange={(e) =>
-                  setSettings({ ...settings, serviceFeePercent: parseFloat(e.target.value) || 0 })
+                  setSettings({ ...settings, defaultPlatformFeePercent: parseFloat(e.target.value) || 0 })
                 }
                 min={0}
                 max={100}
@@ -112,7 +112,7 @@ export default function SystemSettingsPage() {
         <Card>
           <CardHeader>
             <CardTitle className="text-base font-medium">Credit Limits</CardTitle>
-            <CardDescription>Set default and maximum outstanding service fee credit</CardDescription>
+            <CardDescription>Set default and maximum outstanding platform fee credit</CardDescription>
           </CardHeader>
           <CardContent className="space-y-4">
             <div className="space-y-2">

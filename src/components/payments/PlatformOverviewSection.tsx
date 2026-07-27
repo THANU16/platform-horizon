@@ -23,8 +23,8 @@ export function PlatformOverviewSection({
 
   const kpiCards = [
     {
-      title: "Service Fees Billed",
-      value: formatCurrency(snapshot.totalServiceFeesBilled),
+      title: "Platform Fees Billed",
+      value: formatCurrency(snapshot.totalPlatformFeesBilled),
       subtext: "Fees charged to airlines",
       icon: Receipt,
     },

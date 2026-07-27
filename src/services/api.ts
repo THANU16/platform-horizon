@@ -63,7 +63,7 @@ const airlinesData: Airline[] = [
     failedPayments: 2,
     allocationFailures: 5,
     totalBookings: 3240,
-    serviceFeesBilled: 122500,
+    platformFeesBilled: 122500,
     paymentsReceived: 122500,
     outstandingBalance: 0,
     creditLimit: 100000,
@@ -85,7 +85,7 @@ const airlinesData: Airline[] = [
     failedPayments: 0,
     allocationFailures: 2,
     totalBookings: 1890,
-    serviceFeesBilled: 79000,
+    platformFeesBilled: 79000,
     paymentsReceived: 54000,
     outstandingBalance: 25000,
     creditLimit: 75000,
@@ -107,7 +107,7 @@ const airlinesData: Airline[] = [
     failedPayments: 8,
     allocationFailures: 12,
     totalBookings: 812,
-    serviceFeesBilled: 34000,
+    platformFeesBilled: 34000,
     paymentsReceived: 0,
     outstandingBalance: 34000,
     creditLimit: 50000,
@@ -129,7 +129,7 @@ const airlinesData: Airline[] = [
     failedPayments: 1,
     allocationFailures: 3,
     totalBookings: 4920,
-    serviceFeesBilled: 194500,
+    platformFeesBilled: 194500,
     paymentsReceived: 194500,
     outstandingBalance: 0,
     creditLimit: 150000,
@@ -151,7 +151,7 @@ const airlinesData: Airline[] = [
     failedPayments: 15,
     allocationFailures: 20,
     totalBookings: 1190,
-    serviceFeesBilled: 46000,
+    platformFeesBilled: 46000,
     paymentsReceived: 0,
     outstandingBalance: 46000,
     creditLimit: 40000,
@@ -282,7 +282,7 @@ const invitesData: Invite[] = [
   },
 ];
 
-// Mock Billing Transactions (service fees & settlements only)
+// Mock Billing Transactions (platform fees & settlements only)
 const billingTransactionsData: BillingTransaction[] = [
   {
     id: "1",
@@ -291,7 +291,7 @@ const billingTransactionsData: BillingTransaction[] = [
     country: "United States",
     airport: "JFK",
     amount: 1770,
-    type: "service_fee",
+    type: "platform_fee",
     status: "completed",
     date: "2025-02-01",
     description: "Service fee - Flight SKY1234 disruption (180 passengers)",
@@ -316,7 +316,7 @@ const billingTransactionsData: BillingTransaction[] = [
     country: "United Kingdom",
     airport: "LHR",
     amount: 1400,
-    type: "service_fee",
+    type: "platform_fee",
     status: "completed",
     date: "2025-02-01",
     description: "Service fee - Flight ATX567 disruption (95 passengers)",
@@ -331,7 +331,7 @@ const billingTransactionsData: BillingTransaction[] = [
     type: "fee_payment",
     status: "completed",
     date: "2025-01-20",
-    description: "Partial settlement of outstanding service fees",
+    description: "Partial settlement of outstanding platform fees",
     reference: "PAY-2025-001120",
   },
   {
@@ -341,7 +341,7 @@ const billingTransactionsData: BillingTransaction[] = [
     country: "Australia",
     airport: "SYD",
     amount: 2250,
-    type: "service_fee",
+    type: "platform_fee",
     status: "pending",
     date: "2025-01-28",
     description: "Service fee - Flight PWG890 disruption",
@@ -354,7 +354,7 @@ const billingTransactionsData: BillingTransaction[] = [
     country: "Canada",
     airport: "YYZ",
     amount: 3100,
-    type: "service_fee",
+    type: "platform_fee",
     status: "completed",
     date: "2025-02-02",
     description: "Service fee - Flight NSA890 disruption",
@@ -416,7 +416,7 @@ const billingTransactionsData: BillingTransaction[] = [
     country: "Germany",
     airport: "FRA",
     amount: 4600,
-    type: "service_fee",
+    type: "platform_fee",
     status: "failed",
     date: "2025-02-01",
     description: "Service fee billing failed - credit limit exceeded",
@@ -496,7 +496,7 @@ const dashboardStatsData: DashboardStats = {
   activeAirlines: 3,
   cancelledFlightsThisMonth: 47,
   platformRevenue: 476000,
-  outstandingServiceFees: 105000,
+  outstandingPlatformFees: 105000,
   creditUtilizationPercent: 25.6,
   feeCollectionRate: 0.78,
 
@@ -525,7 +525,7 @@ const dashboardStatsData: DashboardStats = {
 
 // System Settings
 const systemSettingsData: SystemSettings = {
-  serviceFeePercent: 5,
+  defaultPlatformFeePercent: 5,
   defaultCreditLimit: 100000,
   maxCreditLimit: 1000000,
 
@@ -698,7 +698,7 @@ const filterAirlines = (filters?: PaymentFilters) => {
   return result;
 };
 
-// Helper: billing status based on outstanding service fees vs credit limit
+// Helper: billing status based on outstanding platform fees vs credit limit
 const getAirlineFinancialStatus = (airline: Airline): AirlineFinancialStatus => {
   const outstanding = airline.outstandingBalance;
   if (outstanding <= 0) return "settled";
@@ -716,14 +716,14 @@ export const getPlatformFinancialSnapshot = async (filters?: PaymentFilters): Pr
 
   const filteredAirlines = filterAirlines(filters);
 
-  const totalServiceFeesBilled = filteredAirlines.reduce((sum, a) => sum + a.serviceFeesBilled, 0);
+  const totalPlatformFeesBilled = filteredAirlines.reduce((sum, a) => sum + a.platformFeesBilled, 0);
   const totalPaymentsReceived = filteredAirlines.reduce((sum, a) => sum + a.paymentsReceived, 0);
   const totalOutstandingFees = filteredAirlines.reduce((sum, a) => sum + a.outstandingBalance, 0);
   const totalCreditIssued = filteredAirlines.reduce((sum, a) => sum + a.creditLimit, 0);
   const totalPlatformRevenue = filteredAirlines.reduce((sum, a) => sum + a.platformRevenue, 0);
 
   return {
-    totalServiceFeesBilled,
+    totalPlatformFeesBilled,
     totalPaymentsReceived,
     totalOutstandingFees,
     totalCreditIssued,
@@ -762,7 +762,7 @@ export const getAirlineFinancialHealth = async (filters?: PaymentFilters): Promi
     iataCode: airline.iataCode,
     country: airline.country,
     totalBookingValue: airline.totalBookingValue,
-    serviceFeesBilled: airline.serviceFeesBilled,
+    platformFeesBilled: airline.platformFeesBilled,
     paymentsReceived: airline.paymentsReceived,
     outstandingBalance: airline.outstandingBalance,
     platformRevenue: airline.platformRevenue,
@@ -824,7 +824,7 @@ export const getRevenueByCountry = async (filters?: PaymentFilters): Promise<Rev
     .sort((a, b) => b.revenue - a.revenue);
 };
 
-// Billing Transactions (service fees, settlements & credit changes)
+// Billing Transactions (platform fees, settlements & credit changes)
 export const getBillingTransactions = async (filters?: PaymentFilters): Promise<BillingTransaction[]> => {
   await delay(300);
 
@@ -887,13 +887,13 @@ export const getAirlineTransactionDetail = async (airlineId: string): Promise<Bi
   return billingTransactionsData.filter(t => t.airlineId === airlineId);
 };
 
-// Record a service fee settlement from an airline
+// Record a platform fee settlement from an airline
 export const recordFeePayment = async (airlineId: string, amount: number): Promise<Airline> => {
   await delay(300);
   const airline = airlinesData.find(a => a.id === airlineId);
   if (!airline) throw new Error("Airline not found");
   airline.paymentsReceived += amount;
-  airline.outstandingBalance = Math.max(0, airline.serviceFeesBilled - airline.paymentsReceived);
+  airline.outstandingBalance = Math.max(0, airline.platformFeesBilled - airline.paymentsReceived);
   return airline;
 };
 

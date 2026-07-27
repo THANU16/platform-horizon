@@ -12,8 +12,8 @@ const transactionConfig: Record<BillingTransactionType, {
   className: string;
   icon?: "up" | "down";
 }> = {
-  service_fee: {
-    label: "Service Fee",
+  platform_fee: {
+    label: "Platform Fee",
     className: "bg-primary/10 text-primary border-primary/20",
     icon: "up",
   },

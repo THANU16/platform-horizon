@@ -60,7 +60,7 @@ export function TransactionsAuditTable({
             </SelectTrigger>
             <SelectContent>
               <SelectItem value="all">All Types</SelectItem>
-              <SelectItem value="service_fee">Service Fee</SelectItem>
+              <SelectItem value="platform_fee">Platform Fee</SelectItem>
               <SelectItem value="fee_payment">Fee Payment</SelectItem>
               <SelectItem value="fee_adjustment">Fee Adjustment</SelectItem>
               <SelectItem value="credit_change">Credit Change</SelectItem>

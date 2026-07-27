@@ -203,14 +203,14 @@ export default function Payments() {
 
   // Calculate summary stats for detailed analysis
   const summaryStats = useMemo(() => {
-    const feeTransactions = detailedTransactions.filter((t) => t.type === "service_fee");
+    const feeTransactions = detailedTransactions.filter((t) => t.type === "platform_fee");
     const paymentTransactions = detailedTransactions.filter((t) => t.type === "fee_payment");
-    const totalServiceFees = feeTransactions.reduce((sum, t) => sum + Math.abs(t.amount), 0);
+    const totalPlatformFees = feeTransactions.reduce((sum, t) => sum + Math.abs(t.amount), 0);
     const totalPaymentsReceived = paymentTransactions.reduce((sum, t) => sum + Math.abs(t.amount), 0);
     const totalOutstanding = airlineHealth.reduce((sum, a) => sum + a.outstandingBalance, 0);
 
     return {
-      totalServiceFees,
+      totalPlatformFees,
       totalFeeCount: feeTransactions.length,
       totalPaymentsReceived,
       totalPaymentCount: paymentTransactions.length,
@@ -316,7 +316,7 @@ export default function Payments() {
 
               {/* Summary Cards */}
               <DetailedAnalysisSummary
-                totalServiceFees={summaryStats.totalServiceFees}
+                totalPlatformFees={summaryStats.totalPlatformFees}
                 totalFeeCount={summaryStats.totalFeeCount}
                 totalPaymentsReceived={summaryStats.totalPaymentsReceived}
                 totalPaymentCount={summaryStats.totalPaymentCount}

@@ -221,7 +221,7 @@ export default function AirlineDetail() {
           </CardHeader>
           <CardContent className="space-y-3">
             <InfoRow label="Total Booking Value" value={formatCurrency(airline.totalBookingValue)} />
-            <InfoRow label="Service Fees Billed" value={formatCurrency(airline.serviceFeesBilled)} />
+            <InfoRow label="Platform Fees Billed" value={formatCurrency(airline.platformFeesBilled)} />
             <InfoRow label="Outstanding Balance" value={formatCurrency(airline.outstandingBalance)} />
             <InfoRow label="Stripe Connection">
               <StatusBadge
