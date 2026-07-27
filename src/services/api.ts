@@ -68,6 +68,7 @@ const airlinesData: Airline[] = [
     paymentsReceived: 122500,
     outstandingBalance: 0,
     creditLimit: 100000,
+    platformFeePercent: 5,
   },
   {
     id: "2",
@@ -90,6 +91,7 @@ const airlinesData: Airline[] = [
     paymentsReceived: 54000,
     outstandingBalance: 25000,
     creditLimit: 75000,
+    platformFeePercent: 4.5,
   },
   {
     id: "3",
@@ -112,6 +114,7 @@ const airlinesData: Airline[] = [
     paymentsReceived: 0,
     outstandingBalance: 34000,
     creditLimit: 50000,
+    platformFeePercent: 6,
   },
   {
     id: "4",
@@ -134,6 +137,7 @@ const airlinesData: Airline[] = [
     paymentsReceived: 194500,
     outstandingBalance: 0,
     creditLimit: 150000,
+    platformFeePercent: 5.5,
   },
   {
     id: "5",
@@ -156,6 +160,7 @@ const airlinesData: Airline[] = [
     paymentsReceived: 0,
     outstandingBalance: 46000,
     creditLimit: 40000,
+    platformFeePercent: 4,
   },
 ];
 
