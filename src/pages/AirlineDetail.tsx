@@ -58,6 +58,7 @@ export default function AirlineDetail() {
     if (!airline) return;
     setForm({
       airlineName: airline.name,
+      platformFeePercent: airline.platformFeePercent,
       iataCode: airline.iataCode,
       country: airline.country,
       companyRegistrationNumber: airline.companyRegistrationNumber ?? "",
