@@ -56,14 +56,6 @@ export function PlatformOverviewSection({
       trend: utilization >= 80 ? "At Risk" : "Healthy",
       trendClass: utilization >= 80 ? "text-destructive" : "text-success",
     },
-    {
-      title: "Platform Revenue",
-      value: formatCurrency(snapshot.totalPlatformRevenue),
-      subtext: "Service fees only",
-      icon: DollarSign,
-      trend: `+${snapshot.revenueChangePercent}%`,
-      trendClass: "text-success",
-    },
   ];
 
   return (
