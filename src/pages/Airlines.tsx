@@ -3,7 +3,7 @@ import { useNavigate } from "react-router-dom";
 import { MainLayout } from "@/components/layout/MainLayout";
 import { Header } from "@/components/layout/Header";
 import { FilterBar } from "@/components/ui/FilterBar";
-import { StatusBadge, StatusType } from "@/components/ui/StatusBadge";
+import { StatusBadge } from "@/components/ui/StatusBadge";
 import { ToggleSwitch } from "@/components/ui/ToggleSwitch";
 import { LoadingState } from "@/components/ui/Spinner";
 import { EmptyState } from "@/components/ui/EmptyState";
@@ -141,19 +141,6 @@ export default function Airlines() {
     }).format(value);
   };
 
-  const getStripeStatusType = (status: string): StatusType => {
-    switch (status) {
-      case "connected":
-        return "connected";
-      case "pending":
-        return "pending";
-      case "failed":
-        return "failed";
-      default:
-        return "default";
-    }
-  };
-
   if (loading) {
     return (
       <MainLayout>
@@ -218,7 +205,6 @@ export default function Airlines() {
                   <TableHead className="text-right">Passengers</TableHead>
                   <TableHead className="text-right">Spend</TableHead>
                   <TableHead className="text-right">Revenue</TableHead>
-                  <TableHead>Stripe</TableHead>
                   <TableHead className="text-right">Actions</TableHead>
                 </TableRow>
               </TableHeader>
@@ -234,9 +220,6 @@ export default function Airlines() {
                     <TableCell className="text-right">{airline.passengers.toLocaleString()}</TableCell>
                     <TableCell className="text-right">{formatCurrency(airline.totalBookingValue)}</TableCell>
                     <TableCell className="text-right">{formatCurrency(airline.platformRevenue)}</TableCell>
-                    <TableCell>
-                      <StatusBadge status={getStripeStatusType(airline.stripeStatus)} />
-                    </TableCell>
                     <TableCell>
                       <div className="flex items-center justify-end gap-2">
                         <ToggleSwitch
@@ -298,11 +281,7 @@ export default function Airlines() {
                       <p className="font-medium">{formatCurrency(airline.platformRevenue)}</p>
                     </div>
                   </div>
-                  <div className="flex items-center justify-between pt-3 border-t">
-                    <div className="flex items-center gap-2">
-                      <span className="text-sm text-muted-foreground">Stripe:</span>
-                      <StatusBadge status={getStripeStatusType(airline.stripeStatus)} />
-                    </div>
+                  <div className="flex items-center justify-end pt-3 border-t">
                     <div className="flex items-center gap-2">
                       <ToggleSwitch
                         checked={airline.status === "active"}

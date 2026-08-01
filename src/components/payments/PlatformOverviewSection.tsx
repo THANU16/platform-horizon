@@ -1,5 +1,5 @@
 import { Card, CardContent } from "@/components/ui/card";
-import { Receipt, HandCoins, AlertCircle, CreditCard, Gauge, DollarSign } from "lucide-react";
+import { Receipt, HandCoins, AlertCircle, CreditCard, Gauge } from "lucide-react";
 import { PlatformFinancialSnapshot } from "@/types";
 
 interface PlatformOverviewSectionProps {
@@ -55,14 +55,6 @@ export function PlatformOverviewSection({
       icon: Gauge,
       trend: utilization >= 80 ? "At Risk" : "Healthy",
       trendClass: utilization >= 80 ? "text-destructive" : "text-success",
-    },
-    {
-      title: "Platform Revenue",
-      value: formatCurrency(snapshot.totalPlatformRevenue),
-      subtext: "Service fees only",
-      icon: DollarSign,
-      trend: `+${snapshot.revenueChangePercent}%`,
-      trendClass: "text-success",
     },
   ];
 

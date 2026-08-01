@@ -145,11 +145,9 @@ export default function Dashboard() {
 
 
       {/* Platform Financial Metrics */}
-      <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4 mb-8">
+      <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4 mb-8">
         <KpiCard title="Total Platform Revenue" value={formatCurrency(stats.platformRevenue)} icon={DollarSign} subtext="Platform fees earned" />
         <KpiCard title="Outstanding Platform Fees" value={formatCurrency(stats.outstandingPlatformFees)} icon={DollarSign} subtext="Billed but unsettled" />
-        <KpiCard title="Payments Received" value={formatCurrency(stats.paymentsReceived)} icon={DollarSign} subtext="Settled by airlines" />
-        <KpiCard title="Outstanding Receivables" value={formatCurrency(stats.outstandingReceivables)} icon={DollarSign} subtext="Awaiting collection" />
         <KpiCard title="Total Credit Issued" value={formatCurrency(stats.totalCreditIssued)} icon={DollarSign} subtext="Max outstanding fees allowed" />
         <KpiCard title="Credit Utilization" value={`${stats.creditUtilizationPercent.toFixed(1)}%`} icon={TrendingUp} subtext="Outstanding vs credit limits" />
       </div>
