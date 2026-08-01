@@ -1,5 +1,5 @@
 import { Card, CardContent } from "@/components/ui/card";
-import { Receipt, HandCoins, AlertCircle, CreditCard, Gauge, DollarSign } from "lucide-react";
+import { Receipt, HandCoins, AlertCircle, CreditCard, Gauge } from "lucide-react";
 import { PlatformFinancialSnapshot } from "@/types";
 
 interface PlatformOverviewSectionProps {

@@ -3,7 +3,7 @@ import { useNavigate } from "react-router-dom";
 import { MainLayout } from "@/components/layout/MainLayout";
 import { Header } from "@/components/layout/Header";
 import { FilterBar } from "@/components/ui/FilterBar";
-import { StatusBadge, StatusType } from "@/components/ui/StatusBadge";
+import { StatusBadge } from "@/components/ui/StatusBadge";
 import { ToggleSwitch } from "@/components/ui/ToggleSwitch";
 import { LoadingState } from "@/components/ui/Spinner";
 import { EmptyState } from "@/components/ui/EmptyState";
