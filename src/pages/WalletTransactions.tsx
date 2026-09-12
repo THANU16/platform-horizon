@@ -129,16 +129,12 @@ export default function WalletTransactions() {
 
   return (
     <MainLayout>
-      <Header
-        title="Wallet Transactions"
-        subtitle={subtitle}
-        actions={
-          <Button variant="outline" size="sm" onClick={() => navigate("/airlines")}>
-            <ArrowLeft className="w-4 h-4 mr-1" />
-            Back to Airlines
-          </Button>
-        }
-      />
+      <Header title="Wallet Transactions" subtitle={subtitle}>
+        <Button variant="outline" size="sm" onClick={() => navigate("/airlines")}>
+          <ArrowLeft className="w-4 h-4 mr-1" />
+          Back to Airlines
+        </Button>
+      </Header>
 
       <FilterBar
         searchPlaceholder="Search by ID, reference or reason..."
