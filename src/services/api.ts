@@ -597,7 +597,9 @@ airlinesData.forEach((a, i) => {
   seeds.forEach((s) => {
     const opening = running[s.field];
     const closing = Math.max(0, s.direction === "credit" ? opening + s.amount : opening - s.amount);
-    running[s.field] = closing;
+    // Only successful transactions advance the running balance; pending/failed
+    // show a projected closing but the next transaction opens from the last success.
+    if (s.status === "completed") running[s.field] = closing;
     walletTransactionsData.push({
       id: txId(),
       airlineId: a.id,
