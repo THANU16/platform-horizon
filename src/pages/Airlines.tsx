@@ -132,7 +132,7 @@ export default function Airlines() {
     const delta = mode === "add" ? amount : -amount;
     setWalletSaving(true);
     try {
-      const updated = await adjustAirlineWallet(airline.id, field, delta);
+      const updated = await adjustAirlineWallet(airline.id, field, delta, "manual", remarks);
       setAirlines((prev) => prev.map((a) => (a.id === airline.id ? { ...a, [field]: updated[field] } : a)));
       toast({
         title: mode === "add" ? "Amount added" : "Amount deducted",
