@@ -264,24 +264,22 @@ export default function WalletTransactions() {
                   </div>
                   <div className="grid grid-cols-2 gap-2 text-sm mb-2">
                     <div>
-                      <p className="text-muted-foreground">Type</p>
-                      <p className="font-medium">
-                        {tx.field === "walletCredit" ? "Wallet Credit" : "Wallet Balance"}
-                      </p>
-                    </div>
-                    <div>
-                      <p className="text-muted-foreground">Reason</p>
-                      <p className="font-medium">
-                        {tx.source === "cancelled_flight" ? "Cancelled flight" : "Manual adjustment"}
-                      </p>
-                    </div>
-                    <div>
                       <p className="text-muted-foreground">Opening</p>
                       <p className="font-medium tabular-nums">{formatCurrency(tx.openingBalance)}</p>
                     </div>
                     <div>
                       <p className="text-muted-foreground">Closing</p>
                       <p className="font-medium tabular-nums">{formatCurrency(tx.closingBalance)}</p>
+                    </div>
+                    <div>
+                      <p className="text-muted-foreground">Credit Limit</p>
+                      <p className="font-medium tabular-nums">{formatCurrency(airline?.creditLimit ?? 0)}</p>
+                    </div>
+                    <div>
+                      <p className="text-muted-foreground">Reason</p>
+                      <p className="font-medium">
+                        {tx.source === "cancelled_flight" ? "Cancelled flight" : "Manual adjustment"}
+                      </p>
                     </div>
                   </div>
                   <div className="pt-2 border-t">
