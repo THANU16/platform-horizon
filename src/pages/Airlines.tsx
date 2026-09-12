@@ -369,16 +369,16 @@ export default function Airlines() {
                   </div>
                   <div className="grid grid-cols-2 gap-3 text-sm mb-4">
                     <div>
+                      <p className="text-muted-foreground">Country</p>
+                      <p className="font-medium">{airline.country}</p>
+                    </div>
+                    <div>
                       <p className="text-muted-foreground">Credit Limit($)</p>
                       <p className="font-medium">{formatCurrency(airline.creditLimit ?? 0)}</p>
                     </div>
                     <div>
                       <p className="text-muted-foreground">Platform Fee (%)</p>
                       <p className="font-medium">{(airline.platformFeePercent ?? 5).toFixed(1)}%</p>
-                    </div>
-                    <div>
-                      <p className="text-muted-foreground">Outstanding Balance</p>
-                      <p className="font-medium">{formatCurrency(airline.outstandingBalance ?? 0)}</p>
                     </div>
                   </div>
                   <div className="space-y-3 mb-4">
