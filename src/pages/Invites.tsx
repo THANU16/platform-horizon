@@ -341,7 +341,7 @@ export default function Invites() {
                   <TableHead>Invited By</TableHead>
                   <TableHead>Invited Date</TableHead>
                   <TableHead>Expiry Date</TableHead>
-                  <TableHead className="text-right">Credit Limit</TableHead>
+                  <TableHead className="text-right">Credit Limit($)</TableHead>
                   <TableHead className="text-right">Platform Fee (%)</TableHead>
                   <TableHead>Status</TableHead>
                   <TableHead className="text-right">Actions</TableHead>
