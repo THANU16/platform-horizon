@@ -589,7 +589,7 @@ airlinesData.forEach((a, i) => {
   const seeds: Array<{ days: number; field: "walletBalance" | "walletCredit"; direction: "credit" | "debit"; source: "manual" | "cancelled_flight"; amount: number; status: WalletTransaction["status"]; description: string }> = [
     { days: 24, field: "walletBalance", direction: "credit", source: "manual", amount: 25000, status: "completed", description: "Manual top-up by admin" },
     { days: 17, field: "walletBalance", direction: "debit", source: "cancelled_flight", amount: 4820.5 + i * 15, status: "completed", description: "Deduction for cancelled flight accommodation" },
-    { days: 11, field: "walletCredit", direction: "credit", source: "manual", amount: 10000, status: "completed", description: "Credit limit adjustment" },
+    { days: 11, field: "walletBalance", direction: "credit", source: "manual", amount: 10000, status: "completed", description: "Manual top-up by admin" },
     { days: 6, field: "walletBalance", direction: "debit", source: "manual", amount: 1500, status: "pending", description: "Manual deduction - correction" },
     { days: 2, field: "walletBalance", direction: "debit", source: "cancelled_flight", amount: 2310.75, status: "completed", description: "Deduction for cancelled flight accommodation" },
   ];
