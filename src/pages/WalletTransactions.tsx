@@ -193,11 +193,11 @@ export default function WalletTransactions() {
                 <TableRow className="table-header">
                   <TableHead>Date</TableHead>
                   <TableHead>Transaction ID</TableHead>
-                  <TableHead>Type</TableHead>
-                  <TableHead>Reason</TableHead>
                   <TableHead className="text-right">Opening Balance</TableHead>
                   <TableHead className="text-right">Amount</TableHead>
                   <TableHead className="text-right">Closing Balance</TableHead>
+                  <TableHead className="text-right">Credit Limit</TableHead>
+                  <TableHead>Reason</TableHead>
                   <TableHead>Status</TableHead>
                 </TableRow>
               </TableHeader>
@@ -208,17 +208,6 @@ export default function WalletTransactions() {
                     <TableRow key={tx.id} className="table-row-hover">
                       <TableCell className="whitespace-nowrap text-sm">{formatDate(tx.date)}</TableCell>
                       <TableCell className="font-mono text-sm">{tx.id}</TableCell>
-                      <TableCell className="text-sm">
-                        {tx.field === "walletCredit" ? "Wallet Credit" : "Wallet Balance"}
-                      </TableCell>
-                      <TableCell className="text-sm">
-                        <div>
-                          {tx.source === "cancelled_flight" ? "Cancelled flight" : "Manual adjustment"}
-                        </div>
-                        {tx.reference && (
-                          <div className="text-xs text-muted-foreground font-mono">{tx.reference}</div>
-                        )}
-                      </TableCell>
                       <TableCell className="text-right tabular-nums">
                         {formatCurrency(tx.openingBalance)}
                       </TableCell>
@@ -234,6 +223,17 @@ export default function WalletTransactions() {
                       </TableCell>
                       <TableCell className="text-right tabular-nums">
                         {formatCurrency(tx.closingBalance)}
+                      </TableCell>
+                      <TableCell className="text-right tabular-nums">
+                        {formatCurrency(airline?.creditLimit ?? 0)}
+                      </TableCell>
+                      <TableCell className="text-sm">
+                        <div>
+                          {tx.source === "cancelled_flight" ? "Cancelled flight" : "Manual adjustment"}
+                        </div>
+                        {tx.reference && (
+                          <div className="text-xs text-muted-foreground font-mono">{tx.reference}</div>
+                        )}
                       </TableCell>
                       <TableCell>
                         <Badge variant="outline" className={`rounded-full capitalize ${statusVariant(tx.status)}`}>
