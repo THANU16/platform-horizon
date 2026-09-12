@@ -51,6 +51,19 @@ const statusVariant = (status: WalletTransaction["status"]) =>
     ? "bg-warning/15 text-warning border-warning/30"
     : "bg-destructive/15 text-destructive border-destructive/30";
 
+// Which wallet balance the transaction touched
+const walletFieldLabel = (field: WalletTransaction["field"]) =>
+  field === "walletBalance" ? "Wallet Balance" : "Wallet Credit";
+
+// Reason label: cancelled flight is the usual case, manual deduction is rare,
+// wallet top-up (manual credit) is the green-plus case.
+const reasonLabel = (tx: WalletTransaction) =>
+  tx.source === "cancelled_flight"
+    ? "Cancelled flight"
+    : tx.direction === "credit"
+    ? "Wallet top-up"
+    : "Manual deduction";
+
 export default function WalletTransactions() {
   const { id } = useParams<{ id: string }>();
   const navigate = useNavigate();
@@ -199,6 +212,7 @@ export default function WalletTransactions() {
                 <TableRow className="table-header">
                   <TableHead>Date</TableHead>
                   <TableHead>Transaction ID</TableHead>
+                  <TableHead>Wallet Balance</TableHead>
                   <TableHead className="text-right">Opening Balance</TableHead>
                   <TableHead className="text-right">Amount</TableHead>
                   <TableHead className="text-right">Closing Balance</TableHead>
@@ -210,12 +224,14 @@ export default function WalletTransactions() {
               <TableBody>
                 {paginated.map((tx) => {
                   const isCredit = tx.direction === "credit";
-                  const reasonText =
-                    tx.source === "cancelled_flight" ? "Cancelled flight" : "Manual adjustment";
+                  const reason = reasonLabel(tx);
                   return (
                     <TableRow key={tx.id} className="table-row-hover">
                       <TableCell className="whitespace-nowrap text-sm">{formatDate(tx.date)}</TableCell>
                       <TableCell className="font-mono text-sm">{tx.id}</TableCell>
+                      <TableCell className="text-sm">
+                        <span className="text-muted-foreground">{walletFieldLabel(tx.field)}</span>
+                      </TableCell>
                       <TableCell className="text-right tabular-nums">
                         {formatCurrency(tx.openingBalance)}
                       </TableCell>
@@ -241,13 +257,13 @@ export default function WalletTransactions() {
                             <TooltipTrigger asChild>
                               <div
                                 className="max-w-[180px] truncate cursor-help"
-                                title={reasonText}
+                                title={tx.description || reason}
                               >
-                                {reasonText}
+                                {reason}
                               </div>
                             </TooltipTrigger>
                             <TooltipContent className="max-w-[280px] whitespace-normal text-left">
-                              {reasonText}
+                              {tx.description || reason}
                               {tx.reference && (
                                 <div className="text-xs text-muted-foreground font-mono mt-1">
                                   {tx.reference}
@@ -298,9 +314,13 @@ export default function WalletTransactions() {
                       <p className="font-medium tabular-nums">{formatCurrency(airline?.creditLimit ?? 0)}</p>
                     </div>
                     <div>
+                      <p className="text-muted-foreground">Wallet Balance</p>
+                      <p className="font-medium">{walletFieldLabel(tx.field)}</p>
+                    </div>
+                    <div>
                       <p className="text-muted-foreground">Reason</p>
-                      <p className="font-medium">
-                        {tx.source === "cancelled_flight" ? "Cancelled flight" : "Manual adjustment"}
+                      <p className="font-medium" title={tx.description || reasonLabel(tx)}>
+                        {reasonLabel(tx)}
                       </p>
                     </div>
                   </div>
