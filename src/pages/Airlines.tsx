@@ -204,6 +204,8 @@ export default function Airlines() {
                     <TableHead className="text-right">Credit Limit($)</TableHead>
                     <TableHead className="text-right">Platform Fee (%)</TableHead>
                     <TableHead className="text-right">Outstanding Balance</TableHead>
+                    <TableHead className="text-center">Wallet Balance</TableHead>
+                    <TableHead className="text-center">Wallet Credit</TableHead>
                     <TableHead className="text-right">Actions</TableHead>
                   </TableRow>
               </TableHeader>
@@ -218,6 +220,20 @@ export default function Airlines() {
                     <TableCell className="text-right">{formatCurrency(airline.creditLimit ?? 0)}</TableCell>
                     <TableCell className="text-right">{(airline.platformFeePercent ?? 5).toFixed(1)}%</TableCell>
                     <TableCell className="text-right">{formatCurrency(airline.outstandingBalance ?? 0)}</TableCell>
+                    <TableCell>
+                      <WalletCell
+                        value={airline.walletBalance ?? 0}
+                        onAdd={() => openWallet(airline, "walletBalance", "add")}
+                        onSubtract={() => openWallet(airline, "walletBalance", "subtract")}
+                      />
+                    </TableCell>
+                    <TableCell>
+                      <WalletCell
+                        value={airline.walletCredit ?? 0}
+                        onAdd={() => openWallet(airline, "walletCredit", "add")}
+                        onSubtract={() => openWallet(airline, "walletCredit", "subtract")}
+                      />
+                    </TableCell>
                     <TableCell>
                       <div className="flex items-center justify-end gap-2">
                         <ToggleSwitch
