@@ -197,16 +197,15 @@ export default function Airlines() {
           <div className="hidden lg:block border rounded-lg overflow-hidden">
             <Table>
               <TableHeader>
-                <TableRow className="table-header">
-                  <TableHead>Airline</TableHead>
-                  <TableHead>IATA</TableHead>
-                  <TableHead>Status</TableHead>
-                  <TableHead className="text-right">Flights</TableHead>
-                  <TableHead className="text-right">Passengers</TableHead>
-                  <TableHead className="text-right">Spend</TableHead>
-                  <TableHead className="text-right">Revenue</TableHead>
-                  <TableHead className="text-right">Actions</TableHead>
-                </TableRow>
+                  <TableRow className="table-header">
+                    <TableHead>Airline</TableHead>
+                    <TableHead>IATA</TableHead>
+                    <TableHead>Status</TableHead>
+                    <TableHead className="text-right">Credit Limit($)</TableHead>
+                    <TableHead className="text-right">Platform Fee (%)</TableHead>
+                    <TableHead className="text-right">Outstanding Balance</TableHead>
+                    <TableHead className="text-right">Actions</TableHead>
+                  </TableRow>
               </TableHeader>
               <TableBody>
                 {paginated.map((airline) => (
@@ -216,10 +215,9 @@ export default function Airlines() {
                     <TableCell>
                       <StatusBadge status={airline.status} />
                     </TableCell>
-                    <TableCell className="text-right">{airline.cancelledFlights}</TableCell>
-                    <TableCell className="text-right">{airline.passengers.toLocaleString()}</TableCell>
-                    <TableCell className="text-right">{formatCurrency(airline.totalBookingValue)}</TableCell>
-                    <TableCell className="text-right">{formatCurrency(airline.platformRevenue)}</TableCell>
+                    <TableCell className="text-right">{formatCurrency(airline.creditLimit ?? 0)}</TableCell>
+                    <TableCell className="text-right">{(airline.platformFeePercent ?? 5).toFixed(1)}%</TableCell>
+                    <TableCell className="text-right">{formatCurrency(airline.outstandingBalance ?? 0)}</TableCell>
                     <TableCell>
                       <div className="flex items-center justify-end gap-2">
                         <ToggleSwitch
@@ -265,20 +263,16 @@ export default function Airlines() {
                   </div>
                   <div className="grid grid-cols-2 gap-3 text-sm mb-4">
                     <div>
-                      <p className="text-muted-foreground">Flights</p>
-                      <p className="font-medium">{airline.cancelledFlights}</p>
+                      <p className="text-muted-foreground">Credit Limit($)</p>
+                      <p className="font-medium">{formatCurrency(airline.creditLimit ?? 0)}</p>
                     </div>
                     <div>
-                      <p className="text-muted-foreground">Passengers</p>
-                      <p className="font-medium">{airline.passengers.toLocaleString()}</p>
+                      <p className="text-muted-foreground">Platform Fee (%)</p>
+                      <p className="font-medium">{(airline.platformFeePercent ?? 5).toFixed(1)}%</p>
                     </div>
                     <div>
-                      <p className="text-muted-foreground">Booking Value</p>
-                      <p className="font-medium">{formatCurrency(airline.totalBookingValue)}</p>
-                    </div>
-                    <div>
-                      <p className="text-muted-foreground">Revenue</p>
-                      <p className="font-medium">{formatCurrency(airline.platformRevenue)}</p>
+                      <p className="text-muted-foreground">Outstanding Balance</p>
+                      <p className="font-medium">{formatCurrency(airline.outstandingBalance ?? 0)}</p>
                     </div>
                   </div>
                   <div className="flex items-center justify-end pt-3 border-t">
