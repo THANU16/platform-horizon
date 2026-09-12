@@ -210,6 +210,8 @@ export default function WalletTransactions() {
               <TableBody>
                 {paginated.map((tx) => {
                   const isCredit = tx.direction === "credit";
+                  const reasonText =
+                    tx.source === "cancelled_flight" ? "Cancelled flight" : "Manual adjustment";
                   return (
                     <TableRow key={tx.id} className="table-row-hover">
                       <TableCell className="whitespace-nowrap text-sm">{formatDate(tx.date)}</TableCell>
@@ -234,12 +236,26 @@ export default function WalletTransactions() {
                         {formatCurrency(airline?.creditLimit ?? 0)}
                       </TableCell>
                       <TableCell className="text-sm">
-                        <div>
-                          {tx.source === "cancelled_flight" ? "Cancelled flight" : "Manual adjustment"}
-                        </div>
-                        {tx.reference && (
-                          <div className="text-xs text-muted-foreground font-mono">{tx.reference}</div>
-                        )}
+                        <TooltipProvider delayDuration={200}>
+                          <Tooltip>
+                            <TooltipTrigger asChild>
+                              <div
+                                className="max-w-[180px] truncate cursor-help"
+                                title={reasonText}
+                              >
+                                {reasonText}
+                              </div>
+                            </TooltipTrigger>
+                            <TooltipContent className="max-w-[280px] whitespace-normal text-left">
+                              {reasonText}
+                              {tx.reference && (
+                                <div className="text-xs text-muted-foreground font-mono mt-1">
+                                  {tx.reference}
+                                </div>
+                              )}
+                            </TooltipContent>
+                          </Tooltip>
+                        </TooltipProvider>
                       </TableCell>
                       <TableCell>
                         <Badge variant="outline" className={`rounded-full capitalize ${statusVariant(tx.status)}`}>
