@@ -8,6 +8,7 @@ import { ProtectedRoute } from "./components/ProtectedRoute";
 import Dashboard from "./pages/Dashboard";
 import Airlines from "./pages/Airlines";
 import AirlineDetail from "./pages/AirlineDetail";
+import WalletTransactions from "./pages/WalletTransactions";
 import CancelledFlights from "./pages/CancelledFlights";
 import Payments from "./pages/Payments";
 import Invites from "./pages/Invites";
@@ -34,6 +35,7 @@ const App = () => (
             <Route path="/" element={<ProtectedRoute><Dashboard /></ProtectedRoute>} />
             <Route path="/airlines" element={<ProtectedRoute><Airlines /></ProtectedRoute>} />
             <Route path="/airlines/:id" element={<ProtectedRoute><AirlineDetail /></ProtectedRoute>} />
+            <Route path="/airlines/:id/wallet-transactions" element={<ProtectedRoute><WalletTransactions /></ProtectedRoute>} />
             <Route path="/cancelled-flights" element={<ProtectedRoute><CancelledFlights /></ProtectedRoute>} />
             <Route path="/payments" element={<ProtectedRoute><Payments /></ProtectedRoute>} />
             <Route path="/invites" element={<ProtectedRoute><Invites /></ProtectedRoute>} />
