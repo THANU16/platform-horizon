@@ -447,7 +447,7 @@ export default function Invites() {
                     <Row label="Email">{invite.contactEmail}</Row>
                     <Row label="Country">{invite.country}</Row>
                     <Row label="Invited By">{invite.invitedBy}</Row>
-                    <Row label="Credit Limit">{formatCurrency(invite.creditLimit ?? 0)}</Row>
+                    <Row label="Credit Limit($)">{formatCurrency(invite.creditLimit ?? 0)}</Row>
                     <Row label="Platform Fee">{(invite.platformFeePercent ?? 5).toFixed(1)}%</Row>
                     <Row label="Expires">{new Date(invite.expiryDate).toLocaleDateString()}</Row>
                   </div>
