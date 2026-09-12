@@ -573,10 +573,10 @@ export const getAirlineById = async (id: string): Promise<Airline | undefined> =
   return airlinesData.find(a => a.id === id);
 };
 
-// Seed wallet values for mock airlines
-airlinesData.forEach((a, i) => {
-  if (a.walletBalance === undefined) a.walletBalance = [95413.48, 89032.54, 4274.05, 42100.9, 12850.25][i % 5];
-  if (a.walletCredit === undefined) a.walletCredit = [25000, 15000, 5000, 30000, 10000][i % 5];
+// Seed wallet values for mock airlines — start from zero balance
+airlinesData.forEach((a) => {
+  if (a.walletBalance === undefined) a.walletBalance = 0;
+  if (a.walletCredit === undefined) a.walletCredit = 0;
 });
 
 // Wallet transaction ledger (mock)
@@ -593,7 +593,7 @@ airlinesData.forEach((a, i) => {
     { days: 6, field: "walletBalance", direction: "debit", source: "manual", amount: 1500, status: "pending", description: "Manual deduction - correction" },
     { days: 2, field: "walletBalance", direction: "debit", source: "cancelled_flight", amount: 2310.75, status: "completed", description: "Deduction for cancelled flight accommodation" },
   ];
-  let running = { walletBalance: (a.walletBalance ?? 0) * 0.8, walletCredit: (a.walletCredit ?? 0) * 0.6 };
+  let running = { walletBalance: 0, walletCredit: 0 };
   seeds.forEach((s) => {
     const opening = running[s.field];
     const closing = Math.max(0, s.direction === "credit" ? opening + s.amount : opening - s.amount);
