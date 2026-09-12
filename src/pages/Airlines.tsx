@@ -288,33 +288,33 @@ export default function Airlines() {
             <Table>
               <TableHeader>
                   <TableRow className="table-header">
-                    <TableHead>Airline</TableHead>
-                    <TableHead>IATA</TableHead>
-                    <TableHead>Status</TableHead>
-                    <TableHead className="text-right">Credit Limit($)</TableHead>
-                    <TableHead className="text-right">Platform Fee (%)</TableHead>
-                    <TableHead className="text-right">Outstanding Balance</TableHead>
-                    <TableHead className="text-center">Wallet Balance</TableHead>
-                    <TableHead className="text-right">Actions</TableHead>
-                  </TableRow>
+                     <TableHead>Airline</TableHead>
+                     <TableHead>IATA</TableHead>
+                     <TableHead>Country</TableHead>
+                     <TableHead className="text-right">Credit Limit($)</TableHead>
+                     <TableHead className="text-right">Platform Fee (%)</TableHead>
+                     <TableHead className="text-center">Wallet Balance</TableHead>
+                     <TableHead>Status</TableHead>
+                     <TableHead className="text-right">Actions</TableHead>
+                   </TableRow>
               </TableHeader>
               <TableBody>
                 {paginated.map((airline) => (
                   <TableRow key={airline.id} className="table-row-hover">
                     <TableCell className="font-medium">{airline.name}</TableCell>
                     <TableCell className="font-mono text-sm">{airline.iataCode}</TableCell>
-                    <TableCell>
-                      <StatusBadge status={airline.status} />
-                    </TableCell>
+                    <TableCell className="text-sm">{airline.country}</TableCell>
                     <TableCell className="text-right">{formatCurrency(airline.creditLimit ?? 0)}</TableCell>
                     <TableCell className="text-right">{(airline.platformFeePercent ?? 5).toFixed(1)}%</TableCell>
-                    <TableCell className="text-right">{formatCurrency(airline.outstandingBalance ?? 0)}</TableCell>
                     <TableCell>
                       <WalletCell
                         value={airline.walletBalance ?? 0}
                         onAdd={() => openWallet(airline, "walletBalance", "add")}
                         onSubtract={() => openWallet(airline, "walletBalance", "subtract")}
                       />
+                    </TableCell>
+                    <TableCell>
+                      <StatusBadge status={airline.status} />
                     </TableCell>
                     <TableCell>
                       <div className="flex items-center justify-end gap-2">
