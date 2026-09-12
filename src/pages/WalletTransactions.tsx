@@ -314,9 +314,13 @@ export default function WalletTransactions() {
                       <p className="font-medium tabular-nums">{formatCurrency(airline?.creditLimit ?? 0)}</p>
                     </div>
                     <div>
+                      <p className="text-muted-foreground">Wallet Balance</p>
+                      <p className="font-medium">{walletFieldLabel(tx.field)}</p>
+                    </div>
+                    <div>
                       <p className="text-muted-foreground">Reason</p>
-                      <p className="font-medium">
-                        {tx.source === "cancelled_flight" ? "Cancelled flight" : "Manual adjustment"}
+                      <p className="font-medium" title={tx.description || reasonLabel(tx)}>
+                        {reasonLabel(tx)}
                       </p>
                     </div>
                   </div>
