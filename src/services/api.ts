@@ -628,7 +628,8 @@ export const adjustAirlineWallet = async (
   id: string,
   field: "walletBalance" | "walletCredit",
   amount: number,
-  source: "manual" | "cancelled_flight" = "manual"
+  source: "manual" | "cancelled_flight" = "manual",
+  remarks?: string
 ): Promise<Airline> => {
   await delay(300);
   const airline = airlinesData.find(a => a.id === id);
@@ -646,7 +647,9 @@ export const adjustAirlineWallet = async (
     openingBalance: opening,
     closingBalance: airline[field] ?? 0,
     status: "completed",
-    description: amount >= 0 ? "Manual addition by admin" : "Manual deduction by admin",
+    description: remarks?.trim()
+      ? `${amount >= 0 ? "Manual addition by admin" : "Manual deduction by admin"} — ${remarks.trim()}`
+      : amount >= 0 ? "Manual addition by admin" : "Manual deduction by admin",
   });
   return airline;
 };

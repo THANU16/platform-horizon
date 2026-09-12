@@ -107,10 +107,12 @@ export default function Airlines() {
     mode: "add" | "subtract";
   } | null>(null);
   const [walletAmount, setWalletAmount] = useState("");
+  const [walletRemarks, setWalletRemarks] = useState("");
   const [walletSaving, setWalletSaving] = useState(false);
 
   const openWallet = (airline: Airline, field: WalletField, mode: "add" | "subtract") => {
     setWalletAmount("");
+    setWalletRemarks("");
     setWalletDialog({ airline, field, mode });
   };
 
@@ -121,11 +123,16 @@ export default function Airlines() {
       toast({ title: "Invalid amount", description: "Enter an amount greater than 0.", variant: "destructive" });
       return;
     }
+    const remarks = walletRemarks.trim();
+    if (walletDialog.mode === "subtract" && !remarks) {
+      toast({ title: "Remarks required", description: "Please enter a reason for deducting funds.", variant: "destructive" });
+      return;
+    }
     const { airline, field, mode } = walletDialog;
     const delta = mode === "add" ? amount : -amount;
     setWalletSaving(true);
     try {
-      const updated = await adjustAirlineWallet(airline.id, field, delta);
+      const updated = await adjustAirlineWallet(airline.id, field, delta, "manual", remarks);
       setAirlines((prev) => prev.map((a) => (a.id === airline.id ? { ...a, [field]: updated[field] } : a)));
       toast({
         title: mode === "add" ? "Amount added" : "Amount deducted",
@@ -450,6 +457,28 @@ export default function Airlines() {
               placeholder="0.00"
               value={walletAmount}
               onChange={(e) => setWalletAmount(e.target.value)}
+            />
+          </div>
+          <div className="space-y-2">
+            <Label htmlFor="wallet-remarks" className="flex items-center gap-1">
+              Remarks
+              {walletDialog?.mode === "subtract" && (
+                <span className="text-destructive text-xs">*</span>
+              )}
+              {walletDialog?.mode === "add" && (
+                <span className="text-muted-foreground text-xs">(optional)</span>
+              )}
+            </Label>
+            <textarea
+              id="wallet-remarks"
+              className="flex w-full rounded-md border border-input bg-transparent px-3 py-2 text-sm shadow-sm placeholder:text-muted-foreground focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-ring min-h-[72px] resize-y"
+              placeholder={
+                walletDialog?.mode === "subtract"
+                  ? "Reason for deduction (required)"
+                  : "Add a note (optional)"
+              }
+              value={walletRemarks}
+              onChange={(e) => setWalletRemarks(e.target.value)}
             />
           </div>
           <DialogFooter>
