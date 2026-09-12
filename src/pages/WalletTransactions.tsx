@@ -212,6 +212,7 @@ export default function WalletTransactions() {
                 <TableRow className="table-header">
                   <TableHead>Date</TableHead>
                   <TableHead>Transaction ID</TableHead>
+                  <TableHead>Wallet Balance</TableHead>
                   <TableHead className="text-right">Opening Balance</TableHead>
                   <TableHead className="text-right">Amount</TableHead>
                   <TableHead className="text-right">Closing Balance</TableHead>
