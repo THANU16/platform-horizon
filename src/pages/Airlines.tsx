@@ -459,6 +459,28 @@ export default function Airlines() {
               onChange={(e) => setWalletAmount(e.target.value)}
             />
           </div>
+          <div className="space-y-2">
+            <Label htmlFor="wallet-remarks" className="flex items-center gap-1">
+              Remarks
+              {walletDialog?.mode === "subtract" && (
+                <span className="text-destructive text-xs">*</span>
+              )}
+              {walletDialog?.mode === "add" && (
+                <span className="text-muted-foreground text-xs">(optional)</span>
+              )}
+            </Label>
+            <textarea
+              id="wallet-remarks"
+              className="flex w-full rounded-md border border-input bg-transparent px-3 py-2 text-sm shadow-sm placeholder:text-muted-foreground focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-ring min-h-[72px] resize-y"
+              placeholder={
+                walletDialog?.mode === "subtract"
+                  ? "Reason for deduction (required)"
+                  : "Add a note (optional)"
+              }
+              value={walletRemarks}
+              onChange={(e) => setWalletRemarks(e.target.value)}
+            />
+          </div>
           <DialogFooter>
             <Button variant="outline" onClick={() => setWalletDialog(null)}>Cancel</Button>
             <Button onClick={handleWalletSubmit} disabled={walletSaving}>
