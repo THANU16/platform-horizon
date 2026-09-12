@@ -51,6 +51,19 @@ const statusVariant = (status: WalletTransaction["status"]) =>
     ? "bg-warning/15 text-warning border-warning/30"
     : "bg-destructive/15 text-destructive border-destructive/30";
 
+// Which wallet balance the transaction touched
+const walletFieldLabel = (field: WalletTransaction["field"]) =>
+  field === "walletBalance" ? "Wallet Balance" : "Wallet Credit";
+
+// Reason label: cancelled flight is the usual case, manual deduction is rare,
+// wallet top-up (manual credit) is the green-plus case.
+const reasonLabel = (tx: WalletTransaction) =>
+  tx.source === "cancelled_flight"
+    ? "Cancelled flight"
+    : tx.direction === "credit"
+    ? "Wallet top-up"
+    : "Manual deduction";
+
 export default function WalletTransactions() {
   const { id } = useParams<{ id: string }>();
   const navigate = useNavigate();
