@@ -16,6 +16,7 @@ import {
   Airport,
   AirlineFinancialStatus,
   PaymentApproval,
+  WalletTransaction,
 } from "@/types";
 
 // Simulated delay
