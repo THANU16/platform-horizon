@@ -482,6 +482,8 @@ export default function Airlines() {
         </DialogContent>
       </Dialog>
 
+      <WalletTransactionsDialog airline={txAirline} onOpenChange={(o) => !o && setTxAirline(null)} />
+
       <AlertDialog open={!!suspendDialog} onOpenChange={() => setSuspendDialog(null)}>
         <AlertDialogContent>
           <AlertDialogHeader>
