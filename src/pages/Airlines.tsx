@@ -10,7 +10,8 @@ import { EmptyState } from "@/components/ui/EmptyState";
 import { SimplePagination } from "@/components/ui/SimplePagination";
 import { getAirlines, getCountries, updateAirlineStatus, adjustAirlineWallet } from "@/services/api";
 import { Airline } from "@/types";
-import { Eye, AlertTriangle, Plane, Plus, Minus } from "lucide-react";
+import { Eye, AlertTriangle, Plane, Plus, Minus, Receipt } from "lucide-react";
+import { WalletTransactionsDialog } from "@/components/airlines/WalletTransactionsDialog";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import {
