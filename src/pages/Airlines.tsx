@@ -8,9 +8,19 @@ import { ToggleSwitch } from "@/components/ui/ToggleSwitch";
 import { LoadingState } from "@/components/ui/Spinner";
 import { EmptyState } from "@/components/ui/EmptyState";
 import { SimplePagination } from "@/components/ui/SimplePagination";
-import { getAirlines, getCountries, updateAirlineStatus } from "@/services/api";
+import { getAirlines, getCountries, updateAirlineStatus, adjustAirlineWallet } from "@/services/api";
 import { Airline } from "@/types";
-import { Eye, AlertTriangle, Plane } from "lucide-react";
+import { Eye, AlertTriangle, Plane, Plus, Minus } from "lucide-react";
+import { Input } from "@/components/ui/input";
+import { Label } from "@/components/ui/label";
+import {
+  Dialog,
+  DialogContent,
+  DialogDescription,
+  DialogFooter,
+  DialogHeader,
+  DialogTitle,
+} from "@/components/ui/dialog";
 import { Button } from "@/components/ui/button";
 import {
   Table,
@@ -33,6 +43,46 @@ import {
 import { useToast } from "@/hooks/use-toast";
 import { Card, CardContent } from "@/components/ui/card";
 
+type WalletField = "walletBalance" | "walletCredit";
+
+function WalletCell({
+  value,
+  onAdd,
+  onSubtract,
+}: {
+  value: number;
+  onAdd: () => void;
+  onSubtract: () => void;
+}) {
+  return (
+    <div className="flex items-center justify-center gap-3">
+      <Button
+        type="button"
+        size="icon"
+        variant="secondary"
+        className="h-7 w-7 rounded-full"
+        onClick={onAdd}
+        aria-label="Add funds"
+      >
+        <Plus className="w-4 h-4" />
+      </Button>
+      <span className="font-medium tabular-nums min-w-[90px] text-center">
+        {new Intl.NumberFormat("en-US", { style: "currency", currency: "USD" }).format(value)}
+      </span>
+      <Button
+        type="button"
+        size="icon"
+        variant="secondary"
+        className="h-7 w-7 rounded-full"
+        onClick={onSubtract}
+        aria-label="Deduct funds"
+      >
+        <Minus className="w-4 h-4" />
+      </Button>
+    </div>
+  );
+}
+
 export default function Airlines() {
   const [airlines, setAirlines] = useState<Airline[]>([]);
   const [countries, setCountries] = useState<string[]>([]);
@@ -48,6 +98,44 @@ export default function Airlines() {
   const [pageSize, setPageSize] = useState(10);
 
   const [suspendDialog, setSuspendDialog] = useState<Airline | null>(null);
+
+  const [walletDialog, setWalletDialog] = useState<{
+    airline: Airline;
+    field: WalletField;
+    mode: "add" | "subtract";
+  } | null>(null);
+  const [walletAmount, setWalletAmount] = useState("");
+  const [walletSaving, setWalletSaving] = useState(false);
+
+  const openWallet = (airline: Airline, field: WalletField, mode: "add" | "subtract") => {
+    setWalletAmount("");
+    setWalletDialog({ airline, field, mode });
+  };
+
+  const handleWalletSubmit = async () => {
+    if (!walletDialog) return;
+    const amount = parseFloat(walletAmount);
+    if (!amount || amount <= 0) {
+      toast({ title: "Invalid amount", description: "Enter an amount greater than 0.", variant: "destructive" });
+      return;
+    }
+    const { airline, field, mode } = walletDialog;
+    const delta = mode === "add" ? amount : -amount;
+    setWalletSaving(true);
+    try {
+      const updated = await adjustAirlineWallet(airline.id, field, delta);
+      setAirlines((prev) => prev.map((a) => (a.id === airline.id ? { ...a, [field]: updated[field] } : a)));
+      toast({
+        title: mode === "add" ? "Amount added" : "Amount deducted",
+        description: `${airline.name} — ${field === "walletBalance" ? "Wallet Balance" : "Wallet Credit"} updated.`,
+      });
+      setWalletDialog(null);
+    } catch {
+      toast({ title: "Error", description: "Failed to update wallet.", variant: "destructive" });
+    } finally {
+      setWalletSaving(false);
+    }
+  };
 
   useEffect(() => {
     const load = async () => {
@@ -291,6 +379,24 @@ export default function Airlines() {
                       <p className="font-medium">{formatCurrency(airline.outstandingBalance ?? 0)}</p>
                     </div>
                   </div>
+                  <div className="space-y-3 mb-4">
+                    <div>
+                      <p className="text-sm text-muted-foreground mb-1">Wallet Balance</p>
+                      <WalletCell
+                        value={airline.walletBalance ?? 0}
+                        onAdd={() => openWallet(airline, "walletBalance", "add")}
+                        onSubtract={() => openWallet(airline, "walletBalance", "subtract")}
+                      />
+                    </div>
+                    <div>
+                      <p className="text-sm text-muted-foreground mb-1">Wallet Credit</p>
+                      <WalletCell
+                        value={airline.walletCredit ?? 0}
+                        onAdd={() => openWallet(airline, "walletCredit", "add")}
+                        onSubtract={() => openWallet(airline, "walletCredit", "subtract")}
+                      />
+                    </div>
+                  </div>
                   <div className="flex items-center justify-end pt-3 border-t">
                     <div className="flex items-center gap-2">
                       <ToggleSwitch
@@ -320,6 +426,43 @@ export default function Airlines() {
           />
         </>
       )}
+
+      <Dialog open={!!walletDialog} onOpenChange={(o) => !o && setWalletDialog(null)}>
+        <DialogContent className="sm:max-w-md">
+          <DialogHeader>
+            <DialogTitle>
+              {walletDialog?.mode === "add" ? "Add to" : "Deduct from"}{" "}
+              {walletDialog?.field === "walletCredit" ? "Wallet Credit" : "Wallet Balance"}
+            </DialogTitle>
+            <DialogDescription>
+              {walletDialog?.airline.name} — current{" "}
+              {formatCurrency(
+                (walletDialog?.field === "walletCredit"
+                  ? walletDialog?.airline.walletCredit
+                  : walletDialog?.airline.walletBalance) ?? 0
+              )}
+            </DialogDescription>
+          </DialogHeader>
+          <div className="space-y-2">
+            <Label htmlFor="wallet-amount">Amount (USD)</Label>
+            <Input
+              id="wallet-amount"
+              type="number"
+              min="0"
+              step="0.01"
+              placeholder="0.00"
+              value={walletAmount}
+              onChange={(e) => setWalletAmount(e.target.value)}
+            />
+          </div>
+          <DialogFooter>
+            <Button variant="outline" onClick={() => setWalletDialog(null)}>Cancel</Button>
+            <Button onClick={handleWalletSubmit} disabled={walletSaving}>
+              {walletSaving ? "Saving..." : walletDialog?.mode === "add" ? "Add Amount" : "Deduct Amount"}
+            </Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
 
       <AlertDialog open={!!suspendDialog} onOpenChange={() => setSuspendDialog(null)}>
         <AlertDialogContent>
