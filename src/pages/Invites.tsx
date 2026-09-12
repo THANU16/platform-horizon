@@ -342,6 +342,7 @@ export default function Invites() {
                   <TableHead>Invited Date</TableHead>
                   <TableHead>Expiry Date</TableHead>
                   <TableHead className="text-right">Credit Limit</TableHead>
+                  <TableHead className="text-right">Platform Fee (%)</TableHead>
                   <TableHead>Status</TableHead>
                   <TableHead className="text-right">Actions</TableHead>
                 </TableRow>
@@ -365,6 +366,9 @@ export default function Invites() {
                     <TableCell>{new Date(invite.expiryDate).toLocaleDateString()}</TableCell>
                     <TableCell className="text-right">
                       {formatCurrency(invite.creditLimit ?? 0)}
+                    </TableCell>
+                    <TableCell className="text-right">
+                      {(invite.platformFeePercent ?? 5).toFixed(1)}%
                     </TableCell>
                     <TableCell>
                       <StatusBadge status={getStatusBadgeStatus(invite.status)} label={invite.status} />
@@ -444,6 +448,7 @@ export default function Invites() {
                     <Row label="Country">{invite.country}</Row>
                     <Row label="Invited By">{invite.invitedBy}</Row>
                     <Row label="Credit Limit">{formatCurrency(invite.creditLimit ?? 0)}</Row>
+                    <Row label="Platform Fee">{(invite.platformFeePercent ?? 5).toFixed(1)}%</Row>
                     <Row label="Expires">{new Date(invite.expiryDate).toLocaleDateString()}</Row>
                   </div>
                   <div className="flex flex-wrap gap-2 mt-4 pt-4 border-t">
