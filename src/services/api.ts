@@ -572,6 +572,24 @@ export const getAirlineById = async (id: string): Promise<Airline | undefined> =
   return airlinesData.find(a => a.id === id);
 };
 
+// Seed wallet values for mock airlines
+airlinesData.forEach((a, i) => {
+  if (a.walletBalance === undefined) a.walletBalance = [95413.48, 89032.54, 4274.05, 42100.9, 12850.25][i % 5];
+  if (a.walletCredit === undefined) a.walletCredit = [25000, 15000, 5000, 30000, 10000][i % 5];
+});
+
+export const adjustAirlineWallet = async (
+  id: string,
+  field: "walletBalance" | "walletCredit",
+  amount: number
+): Promise<Airline> => {
+  await delay(300);
+  const airline = airlinesData.find(a => a.id === id);
+  if (!airline) throw new Error("Airline not found");
+  airline[field] = Math.max(0, (airline[field] ?? 0) + amount);
+  return airline;
+};
+
 export const updateAirlineStatus = async (id: string, status: Airline["status"]): Promise<Airline> => {
   await delay(300);
   const airline = airlinesData.find(a => a.id === id);

@@ -25,6 +25,9 @@ export interface Airline {
   platformFeePercent: number;
   // Max outstanding platform fees allowed before settlement is required
   creditLimit: number;
+  // Wallet
+  walletBalance?: number;
+  walletCredit?: number;
   // Extended profile (airline details)
   companyRegistrationNumber?: string;
   website?: string;
