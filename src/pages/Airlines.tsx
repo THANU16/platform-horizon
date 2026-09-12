@@ -99,6 +99,7 @@ export default function Airlines() {
   const [pageSize, setPageSize] = useState(10);
 
   const [suspendDialog, setSuspendDialog] = useState<Airline | null>(null);
+  const [txAirline, setTxAirline] = useState<Airline | null>(null);
 
   const [walletDialog, setWalletDialog] = useState<{
     airline: Airline;
