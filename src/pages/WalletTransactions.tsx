@@ -46,7 +46,7 @@ const statusLabel = (status: WalletTransaction["status"]) =>
 
 const statusVariant = (status: WalletTransaction["status"]) =>
   status === "completed"
-    ? "bg-secondary/15 text-secondary border-secondary/30"
+    ? "bg-success/15 text-success border-success/30"
     : status === "pending"
     ? "bg-warning/15 text-warning border-warning/30"
     : "bg-destructive/15 text-destructive border-destructive/30";
@@ -238,7 +238,7 @@ export default function WalletTransactions() {
                       <TableCell className="text-right">
                         <span
                           className={`inline-flex items-center gap-1 font-medium tabular-nums ${
-                            isCredit ? "text-secondary" : "text-destructive"
+                            isCredit ? "text-success" : "text-destructive"
                           }`}
                         >
                           {isCredit ? <Plus className="w-3.5 h-3.5" /> : <Minus className="w-3.5 h-3.5" />}
@@ -327,7 +327,7 @@ export default function WalletTransactions() {
                   <div className="pt-2 border-t">
                     <span
                       className={`inline-flex items-center gap-1 font-medium tabular-nums ${
-                        isCredit ? "text-secondary" : "text-destructive"
+                        isCredit ? "text-success" : "text-destructive"
                       }`}
                     >
                       {isCredit ? <Plus className="w-3.5 h-3.5" /> : <Minus className="w-3.5 h-3.5" />}
