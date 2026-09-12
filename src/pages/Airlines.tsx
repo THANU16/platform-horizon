@@ -334,6 +334,14 @@ export default function Airlines() {
                         <Button
                           variant="ghost"
                           size="icon"
+                          onClick={() => setTxAirline(airline)}
+                          aria-label="View wallet transactions"
+                        >
+                          <Receipt className="w-4 h-4" />
+                        </Button>
+                        <Button
+                          variant="ghost"
+                          size="icon"
                           onClick={() => navigate(`/airlines/${airline.id}`)}
                         >
                           <Eye className="w-4 h-4" />
