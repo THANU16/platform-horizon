@@ -44,7 +44,7 @@ import {
 import { useToast } from "@/hooks/use-toast";
 import { Card, CardContent } from "@/components/ui/card";
 
-type WalletField = "walletBalance" | "walletCredit";
+type WalletField = "walletBalance";
 
 function WalletCell({
   value,
@@ -295,7 +295,6 @@ export default function Airlines() {
                     <TableHead className="text-right">Platform Fee (%)</TableHead>
                     <TableHead className="text-right">Outstanding Balance</TableHead>
                     <TableHead className="text-center">Wallet Balance</TableHead>
-                    <TableHead className="text-center">Wallet Credit</TableHead>
                     <TableHead className="text-right">Actions</TableHead>
                   </TableRow>
               </TableHeader>
@@ -315,13 +314,6 @@ export default function Airlines() {
                         value={airline.walletBalance ?? 0}
                         onAdd={() => openWallet(airline, "walletBalance", "add")}
                         onSubtract={() => openWallet(airline, "walletBalance", "subtract")}
-                      />
-                    </TableCell>
-                    <TableCell>
-                      <WalletCell
-                        value={airline.walletCredit ?? 0}
-                        onAdd={() => openWallet(airline, "walletCredit", "add")}
-                        onSubtract={() => openWallet(airline, "walletCredit", "subtract")}
                       />
                     </TableCell>
                     <TableCell>
@@ -398,14 +390,6 @@ export default function Airlines() {
                         onSubtract={() => openWallet(airline, "walletBalance", "subtract")}
                       />
                     </div>
-                    <div>
-                      <p className="text-sm text-muted-foreground mb-1">Wallet Credit</p>
-                      <WalletCell
-                        value={airline.walletCredit ?? 0}
-                        onAdd={() => openWallet(airline, "walletCredit", "add")}
-                        onSubtract={() => openWallet(airline, "walletCredit", "subtract")}
-                      />
-                    </div>
                   </div>
                   <div className="flex items-center justify-end pt-3 border-t">
                     <div className="flex items-center gap-2">
@@ -449,16 +433,11 @@ export default function Airlines() {
         <DialogContent className="sm:max-w-md">
           <DialogHeader>
             <DialogTitle>
-              {walletDialog?.mode === "add" ? "Add to" : "Deduct from"}{" "}
-              {walletDialog?.field === "walletCredit" ? "Wallet Credit" : "Wallet Balance"}
+              {walletDialog?.mode === "add" ? "Add to" : "Deduct from"} Wallet Balance
             </DialogTitle>
             <DialogDescription>
               {walletDialog?.airline.name} — current{" "}
-              {formatCurrency(
-                (walletDialog?.field === "walletCredit"
-                  ? walletDialog?.airline.walletCredit
-                  : walletDialog?.airline.walletBalance) ?? 0
-              )}
+              {formatCurrency(walletDialog?.airline.walletBalance ?? 0)}
             </DialogDescription>
           </DialogHeader>
           <div className="space-y-2">

@@ -63,8 +63,7 @@ export function WalletTransactionsDialog({
         <DialogHeader>
           <DialogTitle>Wallet Transactions</DialogTitle>
           <DialogDescription>
-            {airline?.name} — balance {formatCurrency(airline?.walletBalance ?? 0)} · credit{" "}
-            {formatCurrency(airline?.walletCredit ?? 0)}
+            {airline?.name} — balance {formatCurrency(airline?.walletBalance ?? 0)}
           </DialogDescription>
         </DialogHeader>
 
