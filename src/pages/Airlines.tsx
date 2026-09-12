@@ -11,7 +11,7 @@ import { SimplePagination } from "@/components/ui/SimplePagination";
 import { getAirlines, getCountries, updateAirlineStatus, adjustAirlineWallet } from "@/services/api";
 import { Airline } from "@/types";
 import { Eye, AlertTriangle, Plane, Plus, Minus, Receipt } from "lucide-react";
-import { WalletTransactionsDialog } from "@/components/airlines/WalletTransactionsDialog";
+// WalletTransactionsDialog removed — wallet history now opens on its own page
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import {
@@ -99,7 +99,7 @@ export default function Airlines() {
   const [pageSize, setPageSize] = useState(10);
 
   const [suspendDialog, setSuspendDialog] = useState<Airline | null>(null);
-  const [txAirline, setTxAirline] = useState<Airline | null>(null);
+  // wallet transaction history opens on its own route now
 
   const [walletDialog, setWalletDialog] = useState<{
     airline: Airline;
@@ -326,7 +326,7 @@ export default function Airlines() {
                         <Button
                           variant="ghost"
                           size="icon"
-                          onClick={() => setTxAirline(airline)}
+                          onClick={() => navigate(`/airlines/${airline.id}/wallet-transactions`)}
                           aria-label="View wallet transactions"
                         >
                           <Receipt className="w-4 h-4" />
@@ -401,7 +401,7 @@ export default function Airlines() {
                       <Button
                         variant="ghost"
                         size="icon"
-                        onClick={() => setTxAirline(airline)}
+                        onClick={() => navigate(`/airlines/${airline.id}/wallet-transactions`)}
                         aria-label="View wallet transactions"
                       >
                         <Receipt className="w-4 h-4" />
@@ -461,7 +461,7 @@ export default function Airlines() {
         </DialogContent>
       </Dialog>
 
-      <WalletTransactionsDialog airline={txAirline} onOpenChange={(o) => !o && setTxAirline(null)} />
+      {/* wallet transaction dialog removed — history now on its own page */}
 
       <AlertDialog open={!!suspendDialog} onOpenChange={() => setSuspendDialog(null)}>
         <AlertDialogContent>
