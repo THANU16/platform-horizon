@@ -107,10 +107,12 @@ export default function Airlines() {
     mode: "add" | "subtract";
   } | null>(null);
   const [walletAmount, setWalletAmount] = useState("");
+  const [walletRemarks, setWalletRemarks] = useState("");
   const [walletSaving, setWalletSaving] = useState(false);
 
   const openWallet = (airline: Airline, field: WalletField, mode: "add" | "subtract") => {
     setWalletAmount("");
+    setWalletRemarks("");
     setWalletDialog({ airline, field, mode });
   };
 
@@ -119,6 +121,11 @@ export default function Airlines() {
     const amount = parseFloat(walletAmount);
     if (!amount || amount <= 0) {
       toast({ title: "Invalid amount", description: "Enter an amount greater than 0.", variant: "destructive" });
+      return;
+    }
+    const remarks = walletRemarks.trim();
+    if (walletDialog.mode === "subtract" && !remarks) {
+      toast({ title: "Remarks required", description: "Please enter a reason for deducting funds.", variant: "destructive" });
       return;
     }
     const { airline, field, mode } = walletDialog;
