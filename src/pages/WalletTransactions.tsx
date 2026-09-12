@@ -46,7 +46,7 @@ const statusLabel = (status: WalletTransaction["status"]) =>
 
 const statusVariant = (status: WalletTransaction["status"]) =>
   status === "completed"
-    ? "bg-secondary/15 text-secondary border-secondary/30"
+    ? "bg-success/15 text-success border-success/30"
     : status === "pending"
     ? "bg-warning/15 text-warning border-warning/30"
     : "bg-destructive/15 text-destructive border-destructive/30";
