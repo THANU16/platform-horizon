@@ -263,3 +263,20 @@ export interface PaymentApproval {
   rejectionReason?: string;
   reviewedAt?: string;
 }
+
+export type WalletTxSource = "manual" | "cancelled_flight";
+
+export interface WalletTransaction {
+  id: string;
+  airlineId: string;
+  date: string;
+  field: "walletBalance" | "walletCredit";
+  direction: "credit" | "debit";
+  source: WalletTxSource;
+  amount: number;
+  openingBalance: number;
+  closingBalance: number;
+  status: "completed" | "pending" | "failed";
+  reference?: string;
+  description?: string;
+}

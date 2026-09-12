@@ -10,7 +10,8 @@ import { EmptyState } from "@/components/ui/EmptyState";
 import { SimplePagination } from "@/components/ui/SimplePagination";
 import { getAirlines, getCountries, updateAirlineStatus, adjustAirlineWallet } from "@/services/api";
 import { Airline } from "@/types";
-import { Eye, AlertTriangle, Plane, Plus, Minus } from "lucide-react";
+import { Eye, AlertTriangle, Plane, Plus, Minus, Receipt } from "lucide-react";
+import { WalletTransactionsDialog } from "@/components/airlines/WalletTransactionsDialog";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import {
@@ -98,6 +99,7 @@ export default function Airlines() {
   const [pageSize, setPageSize] = useState(10);
 
   const [suspendDialog, setSuspendDialog] = useState<Airline | null>(null);
+  const [txAirline, setTxAirline] = useState<Airline | null>(null);
 
   const [walletDialog, setWalletDialog] = useState<{
     airline: Airline;
@@ -332,6 +334,14 @@ export default function Airlines() {
                         <Button
                           variant="ghost"
                           size="icon"
+                          onClick={() => setTxAirline(airline)}
+                          aria-label="View wallet transactions"
+                        >
+                          <Receipt className="w-4 h-4" />
+                        </Button>
+                        <Button
+                          variant="ghost"
+                          size="icon"
                           onClick={() => navigate(`/airlines/${airline.id}`)}
                         >
                           <Eye className="w-4 h-4" />
@@ -407,6 +417,14 @@ export default function Airlines() {
                       <Button
                         variant="ghost"
                         size="icon"
+                        onClick={() => setTxAirline(airline)}
+                        aria-label="View wallet transactions"
+                      >
+                        <Receipt className="w-4 h-4" />
+                      </Button>
+                      <Button
+                        variant="ghost"
+                        size="icon"
                         onClick={() => navigate(`/airlines/${airline.id}`)}
                       >
                         <Eye className="w-4 h-4" />
@@ -463,6 +481,8 @@ export default function Airlines() {
           </DialogFooter>
         </DialogContent>
       </Dialog>
+
+      <WalletTransactionsDialog airline={txAirline} onOpenChange={(o) => !o && setTxAirline(null)} />
 
       <AlertDialog open={!!suspendDialog} onOpenChange={() => setSuspendDialog(null)}>
         <AlertDialogContent>
