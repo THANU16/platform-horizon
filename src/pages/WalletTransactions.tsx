@@ -224,12 +224,14 @@ export default function WalletTransactions() {
               <TableBody>
                 {paginated.map((tx) => {
                   const isCredit = tx.direction === "credit";
-                  const reasonText =
-                    tx.source === "cancelled_flight" ? "Cancelled flight" : "Manual adjustment";
+                  const reason = reasonLabel(tx);
                   return (
                     <TableRow key={tx.id} className="table-row-hover">
                       <TableCell className="whitespace-nowrap text-sm">{formatDate(tx.date)}</TableCell>
                       <TableCell className="font-mono text-sm">{tx.id}</TableCell>
+                      <TableCell className="text-sm">
+                        <span className="text-muted-foreground">{walletFieldLabel(tx.field)}</span>
+                      </TableCell>
                       <TableCell className="text-right tabular-nums">
                         {formatCurrency(tx.openingBalance)}
                       </TableCell>
@@ -255,13 +257,13 @@ export default function WalletTransactions() {
                             <TooltipTrigger asChild>
                               <div
                                 className="max-w-[180px] truncate cursor-help"
-                                title={reasonText}
+                                title={tx.description || reason}
                               >
-                                {reasonText}
+                                {reason}
                               </div>
                             </TooltipTrigger>
                             <TooltipContent className="max-w-[280px] whitespace-normal text-left">
-                              {reasonText}
+                              {tx.description || reason}
                               {tx.reference && (
                                 <div className="text-xs text-muted-foreground font-mono mt-1">
                                   {tx.reference}
