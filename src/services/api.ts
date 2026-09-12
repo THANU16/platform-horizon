@@ -578,15 +578,75 @@ airlinesData.forEach((a, i) => {
   if (a.walletCredit === undefined) a.walletCredit = [25000, 15000, 5000, 30000, 10000][i % 5];
 });
 
+// Wallet transaction ledger (mock)
+const walletTransactionsData: WalletTransaction[] = [];
+
+const txId = () => `WTX-${String(walletTransactionsData.length + 1001)}`;
+
+// Seed some history per airline
+airlinesData.forEach((a, i) => {
+  const seeds: Array<{ days: number; field: "walletBalance" | "walletCredit"; direction: "credit" | "debit"; source: "manual" | "cancelled_flight"; amount: number; status: WalletTransaction["status"]; description: string }> = [
+    { days: 24, field: "walletBalance", direction: "credit", source: "manual", amount: 25000, status: "completed", description: "Manual top-up by admin" },
+    { days: 17, field: "walletBalance", direction: "debit", source: "cancelled_flight", amount: 4820.5 + i * 15, status: "completed", description: "Deduction for cancelled flight accommodation" },
+    { days: 11, field: "walletCredit", direction: "credit", source: "manual", amount: 10000, status: "completed", description: "Credit limit adjustment" },
+    { days: 6, field: "walletBalance", direction: "debit", source: "manual", amount: 1500, status: "pending", description: "Manual deduction - correction" },
+    { days: 2, field: "walletBalance", direction: "debit", source: "cancelled_flight", amount: 2310.75, status: "completed", description: "Deduction for cancelled flight accommodation" },
+  ];
+  let running = { walletBalance: (a.walletBalance ?? 0) * 0.8, walletCredit: (a.walletCredit ?? 0) * 0.6 };
+  seeds.forEach((s) => {
+    const opening = running[s.field];
+    const closing = Math.max(0, s.direction === "credit" ? opening + s.amount : opening - s.amount);
+    running[s.field] = closing;
+    walletTransactionsData.push({
+      id: txId(),
+      airlineId: a.id,
+      date: new Date(Date.now() - s.days * 86400000).toISOString(),
+      field: s.field,
+      direction: s.direction,
+      source: s.source,
+      amount: s.amount,
+      openingBalance: opening,
+      closingBalance: closing,
+      status: s.status,
+      reference: s.source === "cancelled_flight" ? `FL-${1000 + i}${s.days}` : undefined,
+      description: s.description,
+    });
+  });
+  a.walletBalance = running.walletBalance;
+  a.walletCredit = running.walletCredit;
+});
+
+export const getWalletTransactions = async (airlineId: string): Promise<WalletTransaction[]> => {
+  await delay(300);
+  return walletTransactionsData
+    .filter(t => t.airlineId === airlineId)
+    .sort((a, b) => b.date.localeCompare(a.date));
+};
+
 export const adjustAirlineWallet = async (
   id: string,
   field: "walletBalance" | "walletCredit",
-  amount: number
+  amount: number,
+  source: "manual" | "cancelled_flight" = "manual"
 ): Promise<Airline> => {
   await delay(300);
   const airline = airlinesData.find(a => a.id === id);
   if (!airline) throw new Error("Airline not found");
-  airline[field] = Math.max(0, (airline[field] ?? 0) + amount);
+  const opening = airline[field] ?? 0;
+  airline[field] = Math.max(0, opening + amount);
+  walletTransactionsData.push({
+    id: txId(),
+    airlineId: id,
+    date: new Date().toISOString(),
+    field,
+    direction: amount >= 0 ? "credit" : "debit",
+    source,
+    amount: Math.abs(amount),
+    openingBalance: opening,
+    closingBalance: airline[field] ?? 0,
+    status: "completed",
+    description: amount >= 0 ? "Manual addition by admin" : "Manual deduction by admin",
+  });
   return airline;
 };
 
