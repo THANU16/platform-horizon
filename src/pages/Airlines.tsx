@@ -248,7 +248,22 @@ export default function Airlines() {
 
   return (
     <MainLayout>
-      <Header title="Airlines" subtitle="Manage all registered airlines" />
+      <Header title="Airlines" subtitle="Manage all registered airlines">
+        <div className="flex items-stretch divide-x divide-border rounded-lg border bg-muted/40 px-1">
+          <div className="px-4 py-2 text-center">
+            <p className="text-[11px] uppercase tracking-wide text-muted-foreground">Total Wallet Balance</p>
+            <p className="text-lg font-bold text-primary tabular-nums">
+              {new Intl.NumberFormat("en-US", { style: "currency", currency: "USD" }).format(totalWalletBalance)}
+            </p>
+          </div>
+          <div className="px-4 py-2 text-center">
+            <p className="text-[11px] uppercase tracking-wide text-muted-foreground">Total Credit Limit</p>
+            <p className="text-lg font-bold text-primary tabular-nums">
+              {new Intl.NumberFormat("en-US", { style: "currency", currency: "USD" }).format(totalCreditLimit)}
+            </p>
+          </div>
+        </div>
+      </Header>
 
       <FilterBar
         searchPlaceholder="Search airlines..."
