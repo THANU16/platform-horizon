@@ -186,6 +186,15 @@ export default function Airlines() {
 
   useEffect(() => { setPage(1); }, [search, statusFilter, countryFilter, pageSize]);
 
+  const totalWalletBalance = useMemo(
+    () => filteredAirlines.reduce((sum, a) => sum + (a.walletBalance ?? 0), 0),
+    [filteredAirlines]
+  );
+  const totalCreditLimit = useMemo(
+    () => filteredAirlines.reduce((sum, a) => sum + (a.creditLimit ?? 0), 0),
+    [filteredAirlines]
+  );
+
 
   const handleToggleStatus = async (airline: Airline) => {
     const newStatus = airline.status === "active" ? "disabled" : "active";
