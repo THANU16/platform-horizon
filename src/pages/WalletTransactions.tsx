@@ -212,7 +212,7 @@ export default function WalletTransactions() {
                 <TableRow className="table-header">
                   <TableHead>Date</TableHead>
                   <TableHead>Transaction ID</TableHead>
-                  <TableHead>Wallet Balance</TableHead>
+                  
                   <TableHead className="text-right">Opening Balance</TableHead>
                   <TableHead className="text-right">Amount</TableHead>
                   <TableHead className="text-right">Closing Balance</TableHead>
@@ -229,9 +229,6 @@ export default function WalletTransactions() {
                     <TableRow key={tx.id} className="table-row-hover">
                       <TableCell className="whitespace-nowrap text-sm">{formatDate(tx.date)}</TableCell>
                       <TableCell className="font-mono text-sm">{tx.id}</TableCell>
-                      <TableCell className="text-sm">
-                        <span className="text-muted-foreground">{walletFieldLabel(tx.field)}</span>
-                      </TableCell>
                       <TableCell className="text-right tabular-nums">
                         {formatCurrency(tx.openingBalance)}
                       </TableCell>
@@ -312,10 +309,6 @@ export default function WalletTransactions() {
                     <div>
                       <p className="text-muted-foreground">Credit Limit</p>
                       <p className="font-medium tabular-nums">{formatCurrency(airline?.creditLimit ?? 0)}</p>
-                    </div>
-                    <div>
-                      <p className="text-muted-foreground">Wallet Balance</p>
-                      <p className="font-medium">{walletFieldLabel(tx.field)}</p>
                     </div>
                     <div>
                       <p className="text-muted-foreground">Reason</p>
