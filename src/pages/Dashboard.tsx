@@ -1,12 +1,13 @@
-import { useEffect, useState } from "react";
+import { useEffect, useState, useMemo } from "react";
 import { MainLayout } from "@/components/layout/MainLayout";
 import { Header } from "@/components/layout/Header";
 import { KpiCard } from "@/components/ui/KpiCard";
 import { LoadingState } from "@/components/ui/Spinner";
-import { getDashboardStats } from "@/services/api";
-import { DashboardStats } from "@/types";
-import { Plane, Building2, PlaneTakeoff, DollarSign, TrendingUp, Award } from "lucide-react";
+import { getDashboardStats, getAirlines } from "@/services/api";
+import { DashboardStats, Airline } from "@/types";
+import { Plane, PlaneTakeoff, DollarSign, TrendingUp, CreditCard, Wallet } from "lucide-react";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import { Badge } from "@/components/ui/badge";
 import {
   Select,
   SelectContent,
@@ -47,20 +48,40 @@ const RANGE_FACTOR: Record<KpiRange, number> = {
 
 export default function Dashboard() {
   const [stats, setStats] = useState<DashboardStats | null>(null);
+  const [airlines, setAirlines] = useState<Airline[]>([]);
   const [loading, setLoading] = useState(true);
   const [kpiRange, setKpiRange] = useState<KpiRange>("this_month");
 
   useEffect(() => {
-    const loadStats = async () => {
+    const load = async () => {
       try {
-        const data = await getDashboardStats();
+        const [data, a] = await Promise.all([getDashboardStats(), getAirlines()]);
         setStats(data);
+        setAirlines(a);
       } finally {
         setLoading(false);
       }
     };
-    loadStats();
+    load();
   }, []);
+
+  const topAirlines = useMemo(
+    () =>
+      [...airlines]
+        .sort((a, b) => b.platformRevenue - a.platformRevenue)
+        .slice(0, 10),
+    [airlines]
+  );
+
+  const totalWalletBalance = useMemo(
+    () => airlines.reduce((sum, a) => sum + (a.walletBalance ?? 0), 0),
+    [airlines]
+  );
+
+  const totalBookingValue = useMemo(
+    () => airlines.reduce((sum, a) => sum + (a.totalBookingValue ?? 0), 0),
+    [airlines]
+  );
 
   if (loading) {
     return (
@@ -83,13 +104,9 @@ export default function Dashboard() {
 
   const f = RANGE_FACTOR[kpiRange];
   const scaledTotalAirlines = Math.max(0, Math.round(stats.totalAirlines * Math.min(1, f)));
-  const scaledActiveAirlines = Math.max(0, Math.round(stats.activeAirlines * Math.min(1, f)));
   const scaledFlights = Math.max(0, Math.round(stats.cancelledFlightsThisMonth * f));
-  const scaledRevenue = Math.max(0, stats.platformRevenue * f);
-
-  const adoptionPercentage = scaledTotalAirlines > 0
-    ? Math.round((scaledActiveAirlines / scaledTotalAirlines) * 100)
-    : 0;
+  const scaledRevenue = Math.max(0, totalBookingValue * f);
+  const scaledEarnings = Math.max(0, stats.platformRevenue * f);
 
   return (
     <MainLayout>
@@ -112,62 +129,103 @@ export default function Dashboard() {
         </Select>
       </div>
 
-      <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4 mb-8">
+      {/* Row 1 */}
+      <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4 mb-4">
+        <KpiCard
+          title="Total Revenue"
+          value={formatCurrency(scaledRevenue)}
+          icon={DollarSign}
+          trend={{ value: stats.revenueChangePercent, label: "vs prior period" }}
+          subtext="Total booking value"
+        />
+        <KpiCard
+          title="Total Cancelled Flights"
+          value={scaledFlights}
+          icon={PlaneTakeoff}
+          trend={{ value: stats.flightChangePercent, label: "vs prior period" }}
+          subtext={RANGE_LABEL[kpiRange]}
+        />
+        <KpiCard
+          title="Total Earnings"
+          value={formatCurrency(scaledEarnings)}
+          icon={TrendingUp}
+          trend={{ value: stats.revenueChangePercent, label: "vs prior period" }}
+          subtext="Platform fees earned"
+        />
+      </div>
+
+      {/* Row 2 */}
+      <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4 mb-8">
         <KpiCard
           title="Total Airlines"
           value={scaledTotalAirlines}
           icon={Plane}
-          trend={{ value: stats.airlineGrowthPercent, label: `vs prior period` }}
+          trend={{ value: stats.airlineGrowthPercent, label: "vs prior period" }}
           subtext={RANGE_LABEL[kpiRange]}
         />
         <KpiCard
-          title="Active Airlines"
-          value={scaledActiveAirlines}
-          icon={Building2}
-          trend={{ value: 0, label: `${adoptionPercentage}% of onboarded` }}
-          subtext="Adoption & retention"
+          title="Total Credit Issued"
+          value={formatCurrency(stats.totalCreditIssued)}
+          icon={CreditCard}
+          subtext="Max outstanding fees allowed"
         />
         <KpiCard
-          title="Cancelled Flights"
-          value={scaledFlights}
-          icon={PlaneTakeoff}
-          trend={{ value: stats.flightChangePercent, label: `vs prior period` }}
-          subtext={RANGE_LABEL[kpiRange]}
-        />
-        <KpiCard
-          title="Platform Revenue"
-          value={formatCurrency(scaledRevenue)}
-          icon={DollarSign}
-          trend={{ value: stats.revenueChangePercent, label: `vs prior period` }}
-          subtext="Platform fees only"
+          title="Total Wallet Balance"
+          value={formatCurrency(totalWalletBalance)}
+          icon={Wallet}
+          subtext="All airline wallets (bank balance)"
         />
       </div>
 
+      {/* Row 3 — Monthly Platform Revenue (full width) */}
+      <Card className="animate-fade-in mb-6">
+        <CardHeader>
+          <CardTitle className="text-base font-medium">Monthly Platform Revenue</CardTitle>
+        </CardHeader>
+        <CardContent>
+          <div className="h-[300px]">
+            <ResponsiveContainer width="100%" height="100%">
+              <LineChart data={stats.monthlyRevenue}>
+                <CartesianGrid strokeDasharray="3 3" stroke="hsl(var(--border))" />
+                <XAxis dataKey="month" stroke="hsl(var(--muted-foreground))" fontSize={12} />
+                <YAxis
+                  stroke="hsl(var(--muted-foreground))"
+                  fontSize={12}
+                  tickFormatter={(value) => `$${value / 1000}k`}
+                />
+                <Tooltip
+                  formatter={(value: number) => [`$${value.toLocaleString()}`, "Revenue"]}
+                  contentStyle={{
+                    backgroundColor: "hsl(var(--card))",
+                    border: "1px solid hsl(var(--border))",
+                    borderRadius: "8px",
+                  }}
+                />
+                <Line
+                  type="monotone"
+                  dataKey="revenue"
+                  stroke="hsl(var(--success))"
+                  strokeWidth={2}
+                  dot={{ fill: "hsl(var(--success))", strokeWidth: 0, r: 4 }}
+                />
+              </LineChart>
+            </ResponsiveContainer>
+          </div>
+        </CardContent>
+      </Card>
 
-      {/* Platform Financial Metrics */}
-      <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4 mb-8">
-        <KpiCard title="Total Platform Revenue" value={formatCurrency(stats.platformRevenue)} icon={DollarSign} subtext="Platform fees earned" />
-        <KpiCard title="Outstanding Platform Fees" value={formatCurrency(stats.outstandingPlatformFees)} icon={DollarSign} subtext="Billed but unsettled" />
-        <KpiCard title="Total Credit Issued" value={formatCurrency(stats.totalCreditIssued)} icon={DollarSign} subtext="Max outstanding fees allowed" />
-        <KpiCard title="Credit Utilization" value={`${stats.creditUtilizationPercent.toFixed(1)}%`} icon={TrendingUp} subtext="Outstanding vs credit limits" />
-      </div>
-
-      {/* Charts Section */}
-      <div className="grid grid-cols-1 lg:grid-cols-2 gap-6 mb-6">
+      {/* Row 4 — Cancelled flights trend + Top 10 airlines */}
+      <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
         <Card className="animate-fade-in">
           <CardHeader>
-            <CardTitle className="text-base font-medium">Monthly Cancelled Flights</CardTitle>
+            <CardTitle className="text-base font-medium">Cancelled Flights Trend</CardTitle>
           </CardHeader>
           <CardContent>
-            <div className="h-[280px]">
+            <div className="h-[320px]">
               <ResponsiveContainer width="100%" height="100%">
                 <BarChart data={stats.monthlyCancellations}>
                   <CartesianGrid strokeDasharray="3 3" stroke="hsl(var(--border))" />
-                  <XAxis
-                    dataKey="month"
-                    stroke="hsl(var(--muted-foreground))"
-                    fontSize={12}
-                  />
+                  <XAxis dataKey="month" stroke="hsl(var(--muted-foreground))" fontSize={12} />
                   <YAxis stroke="hsl(var(--muted-foreground))" fontSize={12} />
                   <Tooltip
                     contentStyle={{
@@ -177,11 +235,7 @@ export default function Dashboard() {
                     }}
                     formatter={(value: number) => [value, "Flights"]}
                   />
-                  <Bar
-                    dataKey="count"
-                    fill="hsl(var(--primary))"
-                    radius={[4, 4, 0, 0]}
-                  />
+                  <Bar dataKey="count" fill="hsl(var(--primary))" radius={[4, 4, 0, 0]} />
                 </BarChart>
               </ResponsiveContainer>
             </div>
@@ -190,87 +244,40 @@ export default function Dashboard() {
 
         <Card className="animate-fade-in">
           <CardHeader>
-            <CardTitle className="text-base font-medium">Monthly Platform Revenue</CardTitle>
+            <CardTitle className="text-base font-medium">Top 10 Airlines</CardTitle>
           </CardHeader>
           <CardContent>
-            <div className="h-[280px]">
-              <ResponsiveContainer width="100%" height="100%">
-                <LineChart data={stats.monthlyRevenue}>
-                  <CartesianGrid strokeDasharray="3 3" stroke="hsl(var(--border))" />
-                  <XAxis
-                    dataKey="month"
-                    stroke="hsl(var(--muted-foreground))"
-                    fontSize={12}
-                  />
-                  <YAxis
-                    stroke="hsl(var(--muted-foreground))"
-                    fontSize={12}
-                    tickFormatter={(value) => `$${value / 1000}k`}
-                  />
-                  <Tooltip
-                    formatter={(value: number) => [`$${value.toLocaleString()}`, "Revenue"]}
-                    contentStyle={{
-                      backgroundColor: "hsl(var(--card))",
-                      border: "1px solid hsl(var(--border))",
-                      borderRadius: "8px",
-                    }}
-                  />
-                  <Line
-                    type="monotone"
-                    dataKey="revenue"
-                    stroke="hsl(var(--success))"
-                    strokeWidth={2}
-                    dot={{ fill: "hsl(var(--success))", strokeWidth: 0, r: 4 }}
-                  />
-                </LineChart>
-              </ResponsiveContainer>
+            <div className="h-[320px] overflow-y-auto pr-1 space-y-2">
+              {topAirlines.map((airline, index) => (
+                <div
+                  key={airline.id}
+                  className="flex items-center justify-between gap-3 rounded-lg border p-3"
+                >
+                  <div className="flex items-center gap-3 min-w-0">
+                    <span className="w-6 h-6 shrink-0 rounded-full bg-muted text-xs font-semibold flex items-center justify-center">
+                      {index + 1}
+                    </span>
+                    <div className="min-w-0">
+                      <p className="text-sm font-medium truncate">{airline.name}</p>
+                      <Badge variant="secondary" className="rounded-full text-xs font-mono h-5 mt-1">
+                        {airline.iataCode}
+                      </Badge>
+                    </div>
+                  </div>
+                  <div className="text-right shrink-0">
+                    <p className="text-sm font-semibold tabular-nums">
+                      {formatCurrency(airline.platformRevenue)}
+                    </p>
+                    <p className="text-xs text-muted-foreground">
+                      {airline.cancelledFlights.toLocaleString()} cancelled flights
+                    </p>
+                  </div>
+                </div>
+              ))}
             </div>
           </CardContent>
         </Card>
       </div>
-
-      {/* Performance Indicators Strip */}
-      <Card className="animate-fade-in">
-        <CardContent className="py-4">
-          <div className="grid grid-cols-1 sm:grid-cols-3 gap-4 sm:gap-8">
-            <div className="flex items-center gap-3">
-              <div className="w-10 h-10 rounded-lg bg-muted flex items-center justify-center">
-                <TrendingUp className="w-5 h-5 text-primary" />
-              </div>
-              <div>
-                <p className="text-xs text-muted-foreground uppercase tracking-wide">
-                  Fee Collection Rate
-                </p>
-                <p className="text-lg font-semibold">
-                  {stats.feeCollectionRate.toFixed(1)}%
-                </p>
-              </div>
-            </div>
-            <div className="flex items-center gap-3">
-              <div className="w-10 h-10 rounded-lg bg-muted flex items-center justify-center">
-                <DollarSign className="w-5 h-5 text-primary" />
-              </div>
-              <div>
-                <p className="text-xs text-muted-foreground uppercase tracking-wide">
-                  Avg Revenue per Airline
-                </p>
-                <p className="text-lg font-semibold">{formatCurrency(stats.avgRevenuePerAirline)}</p>
-              </div>
-            </div>
-            <div className="flex items-center gap-3">
-              <div className="w-10 h-10 rounded-lg bg-muted flex items-center justify-center">
-                <Award className="w-5 h-5 text-primary" />
-              </div>
-              <div>
-                <p className="text-xs text-muted-foreground uppercase tracking-wide">
-                  Top Airline (Revenue)
-                </p>
-                <p className="text-lg font-semibold truncate">{stats.topAirlineByRevenue}</p>
-              </div>
-            </div>
-          </div>
-        </CardContent>
-      </Card>
     </MainLayout>
   );
 }
