@@ -111,8 +111,33 @@ export default function Bookings() {
         </div>
       </FilterBar>
 
+      <div className="grid gap-4 md:grid-cols-3">
+        <Card>
+          <CardContent className="p-5">
+            <p className="text-sm text-muted-foreground">Total Payments by Airlines</p>
+            <p className="text-2xl font-bold mt-1">{money(totals.totalCost)}</p>
+            <p className="text-xs text-muted-foreground mt-1">Sum of all booking total costs</p>
+          </CardContent>
+        </Card>
+        <Card>
+          <CardContent className="p-5">
+            <p className="text-sm text-muted-foreground">Total Paid to Hotels</p>
+            <p className="text-2xl font-bold mt-1">{money(totals.hotelCost)}</p>
+            <p className="text-xs text-muted-foreground mt-1">Sum of all hotel costs</p>
+          </CardContent>
+        </Card>
+        <Card>
+          <CardContent className="p-5">
+            <p className="text-sm text-muted-foreground">Total Earnings</p>
+            <p className="text-2xl font-bold mt-1 text-success">{money(totals.earnings)}</p>
+            <p className="text-xs text-muted-foreground mt-1">Platform fees + hotel commissions</p>
+          </CardContent>
+        </Card>
+      </div>
+
       {filtered.length === 0 ? (
         <EmptyState icon={Hotel} title="No bookings found" description="No bookings match your current filters." />
+      ) : (
       ) : (
         <>
           <div className="hidden lg:block border rounded-lg overflow-x-auto">
