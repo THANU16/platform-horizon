@@ -368,7 +368,7 @@ export default function Dashboard() {
           </CardTitle>
         </CardHeader>
         <CardContent>
-          <div className="divide-y">
+          <div className="space-y-1">
             {vendorStats.map((vendor) => (
               <div key={vendor.id} className="py-4 first:pt-0 last:pb-0">
                 <div className="flex flex-wrap items-center justify-between gap-x-8 gap-y-3">

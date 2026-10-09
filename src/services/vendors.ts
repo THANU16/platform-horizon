@@ -16,6 +16,11 @@ export const VENDORS: Vendor[] = [
 ];
 
 // Semantic accent tokens, cycled by position, so a new vendor never needs a colour decision.
-const ACCENTS = ["var(--primary)", "var(--success)", "var(--warning)", "var(--info)"];
+const ACCENTS = [
+  "hsl(var(--primary))",
+  "hsl(var(--success))",
+  "hsl(var(--warning))",
+  "hsl(var(--info))",
+];
 
 export const vendorAccent = (index: number) => ACCENTS[index % ACCENTS.length];
