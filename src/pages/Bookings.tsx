@@ -72,6 +72,17 @@ export default function Bookings() {
     });
   }, [bookings, search, country, airline, vendor, startDate, endDate]);
 
+  const totals = useMemo(() => {
+    return filtered.reduce(
+      (acc, b) => ({
+        totalCost: acc.totalCost + b.totalCost,
+        hotelCost: acc.hotelCost + b.hotelCost,
+        earnings: acc.earnings + b.earnings,
+      }),
+      { totalCost: 0, hotelCost: 0, earnings: 0 }
+    );
+  }, [filtered]);
+
   useEffect(() => setPage(1), [search, country, airline, vendor, startDate, endDate, pageSize]);
   const paged = filtered.slice((page - 1) * pageSize, page * pageSize);
 
@@ -110,6 +121,30 @@ export default function Bookings() {
           </div>
         </div>
       </FilterBar>
+
+      <div className="grid gap-4 md:grid-cols-3">
+        <Card>
+          <CardContent className="p-5">
+            <p className="text-sm text-muted-foreground">Total Payments by Airlines</p>
+            <p className="text-2xl font-bold mt-1">{money(totals.totalCost)}</p>
+            <p className="text-xs text-muted-foreground mt-1">Sum of all booking total costs</p>
+          </CardContent>
+        </Card>
+        <Card>
+          <CardContent className="p-5">
+            <p className="text-sm text-muted-foreground">Total Paid to Hotels</p>
+            <p className="text-2xl font-bold mt-1">{money(totals.hotelCost)}</p>
+            <p className="text-xs text-muted-foreground mt-1">Sum of all hotel costs</p>
+          </CardContent>
+        </Card>
+        <Card>
+          <CardContent className="p-5">
+            <p className="text-sm text-muted-foreground">Total Earnings</p>
+            <p className="text-2xl font-bold mt-1 text-success">{money(totals.earnings)}</p>
+            <p className="text-xs text-muted-foreground mt-1">Platform fees + hotel commissions</p>
+          </CardContent>
+        </Card>
+      </div>
 
       {filtered.length === 0 ? (
         <EmptyState icon={Hotel} title="No bookings found" description="No bookings match your current filters." />
