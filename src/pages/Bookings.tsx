@@ -7,7 +7,8 @@ import { LoadingState } from "@/components/ui/Spinner";
 import { EmptyState } from "@/components/ui/EmptyState";
 import { SimplePagination } from "@/components/ui/SimplePagination";
 import { getBookings, Booking } from "@/services/bookings";
-import { Hotel, Eye } from "lucide-react";
+import { KpiCard } from "@/components/ui/KpiCard";
+import { Hotel, Eye, DollarSign, TrendingUp } from "lucide-react";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
 import { Card, CardContent } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
@@ -122,28 +123,22 @@ export default function Bookings() {
         </div>
       </FilterBar>
 
-      <div className="grid gap-4 md:grid-cols-3">
-        <Card>
-          <CardContent className="p-5">
-            <p className="text-sm text-muted-foreground">Total Payments by Airlines</p>
-            <p className="text-2xl font-bold mt-1">{money(totals.totalCost)}</p>
-            <p className="text-xs text-muted-foreground mt-1">Sum of all booking total costs</p>
-          </CardContent>
-        </Card>
-        <Card>
-          <CardContent className="p-5">
-            <p className="text-sm text-muted-foreground">Total Paid to Hotels</p>
-            <p className="text-2xl font-bold mt-1">{money(totals.hotelCost)}</p>
-            <p className="text-xs text-muted-foreground mt-1">Sum of all hotel costs</p>
-          </CardContent>
-        </Card>
-        <Card>
-          <CardContent className="p-5">
-            <p className="text-sm text-muted-foreground">Total Earnings</p>
-            <p className="text-2xl font-bold mt-1 text-success">{money(totals.earnings)}</p>
-            <p className="text-xs text-muted-foreground mt-1">Platform fees + hotel commissions</p>
-          </CardContent>
-        </Card>
+      <div className="grid grid-cols-1 sm:grid-cols-3 gap-4 mb-6">
+        <KpiCard
+          title="Total Payments by Airlines"
+          value={money(totals.totalCost)}
+          icon={DollarSign}
+        />
+        <KpiCard
+          title="Total Paid to Hotels"
+          value={money(totals.hotelCost)}
+          icon={Hotel}
+        />
+        <KpiCard
+          title="Total Earnings"
+          value={money(totals.earnings)}
+          icon={TrendingUp}
+        />
       </div>
 
       {filtered.length === 0 ? (
