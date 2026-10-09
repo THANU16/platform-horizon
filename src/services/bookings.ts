@@ -1,4 +1,5 @@
 import { getAirlines, getCancelledFlights } from "@/services/api";
+import { VENDORS } from "@/services/vendors";
 
 export type BookingStatus = "completed" | "pending" | "failed";
 
@@ -35,7 +36,6 @@ export interface Booking {
   };
 }
 
-const VENDORS = ["Hotelbeds", "Expedia TAAP", "WebBeds", "Booking.com Affiliate"];
 const HOTELS = ["Hilton Garden Inn", "Marriott Airport", "Holiday Inn Express", "Novotel", "Radisson Blu", "Ibis Styles", "Hyatt Place", "Crowne Plaza"];
 
 const rnd = (seed: number) => {
@@ -72,7 +72,7 @@ export const getBookings = async (): Promise<Booking[]> => {
       const r = rnd(i + 4);
       const status: BookingStatus = r > 0.85 ? "failed" : r > 0.7 ? "pending" : "completed";
       const created = new Date(new Date(f.scheduledDate).getTime() + k * 3600_000);
-      const vendor = VENDORS[Math.floor(rnd(i + 5) * VENDORS.length)];
+      const vendor = VENDORS[Math.floor(rnd(i + 5) * VENDORS.length)].name;
       list.push({
         id: `BK-${String(10000 + i)}`,
         airlineId: f.airlineId,
