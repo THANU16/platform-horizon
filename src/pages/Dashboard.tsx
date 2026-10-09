@@ -19,6 +19,8 @@ import {
 import {
   AreaChart,
   Area,
+  BarChart,
+  Bar,
   XAxis,
   YAxis,
   CartesianGrid,
@@ -304,17 +306,12 @@ export default function Dashboard() {
           <CardContent>
             <div className="h-[320px]">
               <ResponsiveContainer width="100%" height="100%">
-                <AreaChart data={cancellationSeries} margin={{ top: 12, right: 12, left: 0, bottom: 0 }}>
-                  <defs>
-                    <linearGradient id="dashboardCancellationsFill" x1="0" y1="0" x2="0" y2="1">
-                      <stop offset="0%" stopColor="hsl(var(--primary))" stopOpacity={0.2} />
-                      <stop offset="100%" stopColor="hsl(var(--primary))" stopOpacity={0} />
-                    </linearGradient>
-                  </defs>
+                <BarChart data={cancellationSeries} margin={{ top: 12, right: 12, left: 0, bottom: 0 }} barCategoryGap="25%">
                   <CartesianGrid vertical={false} strokeDasharray="3 3" stroke="hsl(var(--border))" />
                   <XAxis dataKey="label" stroke="hsl(var(--muted-foreground))" fontSize={12} axisLine={false} tickLine={false} tickMargin={10} minTickGap={24} />
                   <YAxis stroke="hsl(var(--muted-foreground))" fontSize={12} axisLine={false} tickLine={false} tickMargin={8} tickCount={5} domain={[0, "auto"]} allowDecimals={false} />
                   <Tooltip
+                    cursor={{ fill: "hsl(var(--muted))", opacity: 0.35 }}
                     contentStyle={{
                       backgroundColor: "hsl(var(--card))",
                       border: "1px solid hsl(var(--border))",
@@ -322,8 +319,13 @@ export default function Dashboard() {
                     }}
                     formatter={(value: number) => [value, "Flights"]}
                   />
-                  <Area type="monotone" dataKey="value" stroke="hsl(var(--primary))" strokeWidth={2} fill="url(#dashboardCancellationsFill)" dot={false} activeDot={{ fill: "hsl(var(--primary))", stroke: "hsl(var(--card))", strokeWidth: 2, r: 4 }} />
-                </AreaChart>
+                  <Bar
+                    dataKey="value"
+                    fill="hsl(var(--primary))"
+                    radius={[6, 6, 0, 0]}
+                    maxBarSize={44}
+                  />
+                </BarChart>
               </ResponsiveContainer>
             </div>
           </CardContent>
