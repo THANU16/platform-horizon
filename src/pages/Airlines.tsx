@@ -10,7 +10,7 @@ import { EmptyState } from "@/components/ui/EmptyState";
 import { SimplePagination } from "@/components/ui/SimplePagination";
 import { getAirlines, getCountries, updateAirlineStatus, adjustAirlineWallet } from "@/services/api";
 import { Airline } from "@/types";
-import { Eye, AlertTriangle, Plane, Plus, Minus, Receipt } from "lucide-react";
+import { Eye, AlertTriangle, Plane, Plus, Minus, Receipt, Wallet, CreditCard } from "lucide-react";
 // WalletTransactionsDialog removed — wallet history now opens on its own page
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
@@ -43,6 +43,7 @@ import {
 } from "@/components/ui/alert-dialog";
 import { useToast } from "@/hooks/use-toast";
 import { Card, CardContent } from "@/components/ui/card";
+import { KpiCard } from "@/components/ui/KpiCard";
 
 type WalletField = "walletBalance";
 
@@ -186,6 +187,10 @@ export default function Airlines() {
 
   useEffect(() => { setPage(1); }, [search, statusFilter, countryFilter, pageSize]);
 
+  const totalActiveAirlines = useMemo(
+    () => filteredAirlines.filter((a) => a.status === "active").length,
+    [filteredAirlines]
+  );
   const totalWalletBalance = useMemo(
     () => filteredAirlines.reduce((sum, a) => sum + (a.walletBalance ?? 0), 0),
     [filteredAirlines]
@@ -194,6 +199,10 @@ export default function Airlines() {
     () => filteredAirlines.reduce((sum, a) => sum + (a.creditLimit ?? 0), 0),
     [filteredAirlines]
   );
+
+  const formatMoney = (value: number) =>
+    new Intl.NumberFormat("en-US", { style: "currency", currency: "USD" }).format(value);
+
 
 
   const handleToggleStatus = async (airline: Airline) => {
@@ -257,22 +266,7 @@ export default function Airlines() {
 
   return (
     <MainLayout>
-      <Header title="Airlines" subtitle="Manage all registered airlines">
-        <div className="flex items-stretch divide-x divide-border rounded-lg border bg-muted/40 px-1">
-          <div className="px-4 py-2 text-center">
-            <p className="text-[11px] uppercase tracking-wide text-muted-foreground">Total Wallet Balance</p>
-            <p className="text-lg font-bold text-primary tabular-nums">
-              {new Intl.NumberFormat("en-US", { style: "currency", currency: "USD" }).format(totalWalletBalance)}
-            </p>
-          </div>
-          <div className="px-4 py-2 text-center">
-            <p className="text-[11px] uppercase tracking-wide text-muted-foreground">Total Credit Limit</p>
-            <p className="text-lg font-bold text-primary tabular-nums">
-              {new Intl.NumberFormat("en-US", { style: "currency", currency: "USD" }).format(totalCreditLimit)}
-            </p>
-          </div>
-        </div>
-      </Header>
+      <Header title="Airlines" subtitle="Manage all registered airlines" />
 
       <FilterBar
         searchPlaceholder="Search airlines..."
@@ -304,6 +298,26 @@ export default function Airlines() {
         ]}
         onClear={handleClearFilters}
       />
+
+      <div className="grid grid-cols-1 sm:grid-cols-3 gap-4 mb-6">
+        <KpiCard
+          title="Total Active Airlines"
+          value={totalActiveAirlines}
+          icon={Plane}
+        />
+        <KpiCard
+          title="Total Wallet Balance"
+          value={formatMoney(totalWalletBalance)}
+          icon={Wallet}
+        />
+        <KpiCard
+          title="Total Credit Limit"
+          value={formatMoney(totalCreditLimit)}
+          icon={CreditCard}
+        />
+      </div>
+
+
 
 
       {filteredAirlines.length === 0 ? (
