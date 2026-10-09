@@ -13,7 +13,6 @@ export const VENDORS: Vendor[] = [
   { id: "hotelbeds", name: "Hotelbeds" },
   { id: "ratehawk", name: "RateHawk" },
   { id: "booking-com", name: "Booking.com" },
-  { id: "temp-test", name: "Temp Test Vendor" },
 ];
 
 // Semantic accent tokens, cycled by position, so a new vendor never needs a colour decision.
