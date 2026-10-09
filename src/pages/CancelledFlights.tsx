@@ -201,7 +201,7 @@ export default function CancelledFlights() {
                   <TableHead>Date</TableHead>
                   <TableHead className="text-right">Passengers</TableHead>
                   <TableHead className="text-right">Cost</TableHead>
-                  <TableHead className="text-right">Revenue</TableHead>
+                  <TableHead className="text-right">Earnings</TableHead>
                   <TableHead>Status</TableHead>
                 </TableRow>
               </TableHeader>
@@ -262,7 +262,7 @@ export default function CancelledFlights() {
                       <p className="font-medium">{formatCurrency(flight.totalCost)}</p>
                     </div>
                     <div>
-                      <p className="text-muted-foreground">Revenue</p>
+                      <p className="text-muted-foreground">Earnings</p>
                       <p className="font-medium text-success">
                         {formatCurrency(flight.totalCost * PLATFORM_FEE_RATE)}
                       </p>
