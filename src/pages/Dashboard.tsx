@@ -17,15 +17,13 @@ import {
   SelectValue,
 } from "@/components/ui/select";
 import {
-  LineChart,
-  Line,
+  AreaChart,
+  Area,
   XAxis,
   YAxis,
   CartesianGrid,
   Tooltip,
   ResponsiveContainer,
-  BarChart,
-  Bar,
 } from "recharts";
 
 type KpiRange = "today" | "yesterday" | "this_week" | "this_month" | "this_year";
@@ -255,12 +253,23 @@ export default function Dashboard() {
         <CardContent>
           <div className="h-[300px]">
             <ResponsiveContainer width="100%" height="100%">
-              <LineChart data={revenueSeries}>
-                <CartesianGrid strokeDasharray="3 3" stroke="hsl(var(--border))" />
-                <XAxis dataKey="label" stroke="hsl(var(--muted-foreground))" fontSize={12} />
+              <AreaChart data={revenueSeries} margin={{ top: 12, right: 12, left: 0, bottom: 0 }}>
+                <defs>
+                  <linearGradient id="dashboardRevenueFill" x1="0" y1="0" x2="0" y2="1">
+                    <stop offset="0%" stopColor="hsl(var(--primary))" stopOpacity={0.2} />
+                    <stop offset="100%" stopColor="hsl(var(--primary))" stopOpacity={0} />
+                  </linearGradient>
+                </defs>
+                <CartesianGrid vertical={false} strokeDasharray="3 3" stroke="hsl(var(--border))" />
+                <XAxis dataKey="label" stroke="hsl(var(--muted-foreground))" fontSize={12} axisLine={false} tickLine={false} tickMargin={10} minTickGap={24} />
                 <YAxis
                   stroke="hsl(var(--muted-foreground))"
                   fontSize={12}
+                  axisLine={false}
+                  tickLine={false}
+                  tickMargin={8}
+                  tickCount={5}
+                  domain={[0, "auto"]}
                   tickFormatter={(value) => `$${value / 1000}k`}
                 />
                 <Tooltip
@@ -271,14 +280,16 @@ export default function Dashboard() {
                     borderRadius: "8px",
                   }}
                 />
-                <Line
+                <Area
                   type="monotone"
                   dataKey="value"
-                  stroke="hsl(var(--success))"
+                  stroke="hsl(var(--primary))"
                   strokeWidth={2}
-                  dot={{ fill: "hsl(var(--success))", strokeWidth: 0, r: 4 }}
+                  fill="url(#dashboardRevenueFill)"
+                  dot={false}
+                  activeDot={{ fill: "hsl(var(--primary))", stroke: "hsl(var(--card))", strokeWidth: 2, r: 4 }}
                 />
-              </LineChart>
+              </AreaChart>
             </ResponsiveContainer>
           </div>
         </CardContent>
@@ -293,10 +304,16 @@ export default function Dashboard() {
           <CardContent>
             <div className="h-[320px]">
               <ResponsiveContainer width="100%" height="100%">
-                <BarChart data={cancellationSeries}>
-                  <CartesianGrid strokeDasharray="3 3" stroke="hsl(var(--border))" />
-                  <XAxis dataKey="label" stroke="hsl(var(--muted-foreground))" fontSize={12} />
-                  <YAxis stroke="hsl(var(--muted-foreground))" fontSize={12} />
+                <AreaChart data={cancellationSeries} margin={{ top: 12, right: 12, left: 0, bottom: 0 }}>
+                  <defs>
+                    <linearGradient id="dashboardCancellationsFill" x1="0" y1="0" x2="0" y2="1">
+                      <stop offset="0%" stopColor="hsl(var(--primary))" stopOpacity={0.2} />
+                      <stop offset="100%" stopColor="hsl(var(--primary))" stopOpacity={0} />
+                    </linearGradient>
+                  </defs>
+                  <CartesianGrid vertical={false} strokeDasharray="3 3" stroke="hsl(var(--border))" />
+                  <XAxis dataKey="label" stroke="hsl(var(--muted-foreground))" fontSize={12} axisLine={false} tickLine={false} tickMargin={10} minTickGap={24} />
+                  <YAxis stroke="hsl(var(--muted-foreground))" fontSize={12} axisLine={false} tickLine={false} tickMargin={8} tickCount={5} domain={[0, "auto"]} allowDecimals={false} />
                   <Tooltip
                     contentStyle={{
                       backgroundColor: "hsl(var(--card))",
@@ -305,8 +322,8 @@ export default function Dashboard() {
                     }}
                     formatter={(value: number) => [value, "Flights"]}
                   />
-                  <Bar dataKey="value" fill="hsl(var(--primary))" radius={[4, 4, 0, 0]} />
-                </BarChart>
+                  <Area type="monotone" dataKey="value" stroke="hsl(var(--primary))" strokeWidth={2} fill="url(#dashboardCancellationsFill)" dot={false} activeDot={{ fill: "hsl(var(--primary))", stroke: "hsl(var(--card))", strokeWidth: 2, r: 4 }} />
+                </AreaChart>
               </ResponsiveContainer>
             </div>
           </CardContent>
