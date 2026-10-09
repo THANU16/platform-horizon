@@ -72,6 +72,17 @@ export default function Bookings() {
     });
   }, [bookings, search, country, airline, vendor, startDate, endDate]);
 
+  const totals = useMemo(() => {
+    return filtered.reduce(
+      (acc, b) => ({
+        totalCost: acc.totalCost + b.totalCost,
+        hotelCost: acc.hotelCost + b.hotelCost,
+        earnings: acc.earnings + b.earnings,
+      }),
+      { totalCost: 0, hotelCost: 0, earnings: 0 }
+    );
+  }, [filtered]);
+
   useEffect(() => setPage(1), [search, country, airline, vendor, startDate, endDate, pageSize]);
   const paged = filtered.slice((page - 1) * pageSize, page * pageSize);
 
