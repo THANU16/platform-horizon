@@ -4,6 +4,7 @@ import { Header } from "@/components/layout/Header";
 import { KpiCard } from "@/components/ui/KpiCard";
 import { LoadingState } from "@/components/ui/Spinner";
 import { getDashboardStats, getAirlines } from "@/services/api";
+import { VENDORS, vendorAccent } from "@/services/vendors";
 import { DashboardStats, Airline } from "@/types";
 import { Plane, PlaneTakeoff, DollarSign, TrendingUp, CreditCard, Wallet, Building2 } from "lucide-react";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
@@ -89,8 +90,6 @@ function buildSeries(range: KpiRange, total: number, salt: number): SeriesPoint[
   return years.map((label, i) => ({ label, value: Math.round((total * weights[i]) / sum) }));
 }
 
-const VENDORS = ["Hotelbeds", "RateHawk", "Booking.com"] as const;
-
 export default function Dashboard() {
   const [stats, setStats] = useState<DashboardStats | null>(null);
   const [airlines, setAirlines] = useState<Airline[]>([]);
@@ -149,16 +148,18 @@ export default function Dashboard() {
     [kpiRange, scaledFlights]
   );
 
-  // Vendor performance: bookings, commission earned, share of earnings
+  // Vendor performance: one row per vendor in the shared registry
   const vendorStats = useMemo(() => {
     const totalBookings = airlines.reduce((s, a) => s + (a.totalBookings ?? 0), 0);
     const weights = VENDORS.map((_, i) => 0.6 + seeded(i, 21));
     const wSum = weights.reduce((a, b) => a + b, 0);
-    return VENDORS.map((name, i) => {
+    return VENDORS.map((vendor, i) => {
       const share = weights[i] / wSum;
       const commission = scaledEarnings * share * 0.55; // commission portion of earnings
       return {
-        name,
+        id: vendor.id,
+        name: vendor.name,
+        accent: vendorAccent(i),
         bookings: Math.round(totalBookings * f * share),
         commission,
         shareOfEarnings: share * 100,
@@ -358,7 +359,7 @@ export default function Dashboard() {
         </Card>
       </div>
 
-      {/* Row 5 — Vendor performance */}
+      {/* Row 5 — Vendor performance: one row per vendor, so new vendors just stack */}
       <Card className="animate-fade-in">
         <CardHeader>
           <CardTitle className="text-base font-medium flex items-center gap-2">
@@ -367,37 +368,64 @@ export default function Dashboard() {
           </CardTitle>
         </CardHeader>
         <CardContent>
-          <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+          <div className="divide-y">
             {vendorStats.map((vendor) => (
-              <div key={vendor.name} className="rounded-lg border p-4 space-y-3">
-                <div className="flex items-center justify-between">
-                  <p className="text-sm font-semibold">{vendor.name}</p>
-                  <Badge variant="secondary" className="rounded-full text-xs">
-                    {vendor.shareOfEarnings.toFixed(1)}% of earnings
-                  </Badge>
-                </div>
-                <div className="flex items-end justify-between">
-                  <div>
-                    <p className="text-xs text-muted-foreground">Total bookings</p>
-                    <p className="text-lg font-semibold tabular-nums">
-                      {vendor.bookings.toLocaleString()}
-                    </p>
+              <div key={vendor.id} className="py-4 first:pt-0 last:pb-0">
+                <div className="flex flex-wrap items-center justify-between gap-x-8 gap-y-3">
+                  <div className="flex items-center gap-3">
+                    <span
+                      className="h-2.5 w-2.5 shrink-0 rounded-full"
+                      style={{ backgroundColor: vendor.accent }}
+                    />
+                    <div>
+                      <p className="text-sm font-semibold">{vendor.name}</p>
+                      <p className="text-xs text-muted-foreground">
+                        {vendor.shareOfEarnings.toFixed(1)}% of earnings
+                      </p>
+                    </div>
                   </div>
-                  <div className="text-right">
-                    <p className="text-xs text-muted-foreground">Commission earned</p>
-                    <p className="text-lg font-semibold tabular-nums text-success">
-                      {formatCurrency(vendor.commission)}
-                    </p>
+                  <div className="flex items-center gap-10">
+                    <div className="min-w-[110px] text-right">
+                      <p className="text-xs text-muted-foreground">Total bookings</p>
+                      <p className="text-lg font-semibold tabular-nums">
+                        {vendor.bookings.toLocaleString()}
+                      </p>
+                    </div>
+                    <div className="min-w-[130px] text-right">
+                      <p className="text-xs text-muted-foreground">Commission earned</p>
+                      <p className="text-lg font-semibold tabular-nums text-success">
+                        {formatCurrency(vendor.commission)}
+                      </p>
+                    </div>
                   </div>
                 </div>
-                <div className="h-1.5 w-full rounded-full bg-muted overflow-hidden">
+                <div className="mt-3 h-1.5 w-full overflow-hidden rounded-full bg-muted">
                   <div
-                    className="h-full rounded-full bg-primary"
-                    style={{ width: `${vendor.shareOfEarnings}%` }}
+                    className="h-full rounded-full"
+                    style={{ width: `${vendor.shareOfEarnings}%`, backgroundColor: vendor.accent }}
                   />
                 </div>
               </div>
             ))}
+          </div>
+          <div className="mt-4 flex flex-wrap items-center justify-between gap-x-8 border-t pt-4">
+            <p className="text-sm font-medium">
+              All vendors ({vendorStats.length})
+            </p>
+            <div className="flex items-center gap-10">
+              <div className="min-w-[110px] text-right">
+                <p className="text-xs text-muted-foreground">Total bookings</p>
+                <p className="text-lg font-semibold tabular-nums">
+                  {vendorStats.reduce((s, v) => s + v.bookings, 0).toLocaleString()}
+                </p>
+              </div>
+              <div className="min-w-[130px] text-right">
+                <p className="text-xs text-muted-foreground">Commission earned</p>
+                <p className="text-lg font-semibold tabular-nums text-success">
+                  {formatCurrency(vendorStats.reduce((s, v) => s + v.commission, 0))}
+                </p>
+              </div>
+            </div>
           </div>
         </CardContent>
       </Card>
