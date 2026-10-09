@@ -149,7 +149,6 @@ export default function Bookings() {
       {filtered.length === 0 ? (
         <EmptyState icon={Hotel} title="No bookings found" description="No bookings match your current filters." />
       ) : (
-      ) : (
         <>
           <div className="hidden lg:block border rounded-lg overflow-x-auto">
             <Table>
