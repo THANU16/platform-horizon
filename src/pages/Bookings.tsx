@@ -37,6 +37,7 @@ export default function Bookings() {
   const [country, setCountry] = useState("all");
   const [airline, setAirline] = useState("all");
   const [vendor, setVendor] = useState("all");
+  const [status, setStatus] = useState("all");
   const [startDate, setStartDate] = useState("");
   const [endDate, setEndDate] = useState("");
   const [page, setPage] = useState(1);
@@ -67,11 +68,12 @@ export default function Bookings() {
         (country === "all" || b.country === country) &&
         (airline === "all" || b.airlineId === airline) &&
         (vendor === "all" || b.vendor === vendor) &&
+        (status === "all" || b.status === status) &&
         (s === null || ts >= s) &&
         (e === null || ts <= e)
       );
     });
-  }, [bookings, search, country, airline, vendor, startDate, endDate]);
+  }, [bookings, search, country, airline, vendor, status, startDate, endDate]);
 
   const totals = useMemo(() => {
     return filtered.reduce(
@@ -84,11 +86,11 @@ export default function Bookings() {
     );
   }, [filtered]);
 
-  useEffect(() => setPage(1), [search, country, airline, vendor, startDate, endDate, pageSize]);
+  useEffect(() => setPage(1), [search, country, airline, vendor, status, startDate, endDate, pageSize]);
   const paged = filtered.slice((page - 1) * pageSize, page * pageSize);
 
   const clear = () => {
-    setSearch(""); setCountry("all"); setAirline("all"); setVendor("all"); setStartDate(""); setEndDate("");
+    setSearch(""); setCountry("all"); setAirline("all"); setVendor("all"); setStatus("all"); setStartDate(""); setEndDate("");
   };
 
   if (loading) return <MainLayout><LoadingState message="Loading bookings..." /></MainLayout>;
@@ -109,6 +111,8 @@ export default function Bookings() {
             options: [{ value: "all", label: "All Airlines" }, ...airlines.map(([v, l]) => ({ value: v, label: l }))] },
           { name: "Vendor", value: vendor, onChange: setVendor, placeholder: "All Vendors",
             options: [{ value: "all", label: "All Vendors" }, ...vendors.map((v) => ({ value: v, label: v }))] },
+          { name: "Status", value: status, onChange: setStatus, placeholder: "All Statuses",
+            options: [{ value: "all", label: "All Statuses" }, { value: "completed", label: "Completed" }, { value: "pending", label: "Pending" }, { value: "failed", label: "Failed" }] },
         ]}
       >
         <div className="flex items-end gap-2">
@@ -159,6 +163,7 @@ export default function Bookings() {
                   <TableHead className="text-right">Rooms</TableHead>
                   <TableHead className="text-right">Total Cost</TableHead>
                   <TableHead className="text-right">Earnings</TableHead>
+                  <TableHead>Status</TableHead>
                   <TableHead className="text-right">Actions</TableHead>
                 </TableRow>
               </TableHeader>
@@ -175,6 +180,7 @@ export default function Bookings() {
                     <TableCell className="text-right">{b.rooms}</TableCell>
                     <TableCell className="text-right">{money(b.totalCost)}</TableCell>
                     <TableCell className="text-right text-success">{money(b.earnings)}</TableCell>
+                    <TableCell><StatusBadge status={b.status} /></TableCell>
                     <TableCell className="text-right">
                       <Button variant="ghost" size="sm" onClick={() => setSelected(b)}>
                         <Eye className="w-4 h-4 mr-1" /> View
