@@ -7,6 +7,7 @@ import { EmptyState } from "@/components/ui/EmptyState";
 import { KpiCard } from "@/components/ui/KpiCard";
 import { getCancelledFlights, getAirlines } from "@/services/api";
 import { Airline, CancelledFlight } from "@/types";
+import { StatusBadge } from "@/components/ui/StatusBadge";
 import { PlaneTakeoff, Users, DollarSign } from "lucide-react";
 import {
   Table,
@@ -22,6 +23,14 @@ import { Label } from "@/components/ui/label";
 
 const PLATFORM_FEE_RATE = 0.05;
 
+const STATUS_OPTIONS = [
+  { value: "all", label: "All Statuses" },
+  { value: "pending", label: "Pending" },
+  { value: "processing", label: "Processing" },
+  { value: "completed", label: "Completed" },
+  { value: "failed", label: "Failed" },
+];
+
 export default function CancelledFlights() {
   const [flights, setFlights] = useState<CancelledFlight[]>([]);
   const [airlines, setAirlines] = useState<Airline[]>([]);
@@ -30,6 +39,7 @@ export default function CancelledFlights() {
   const [search, setSearch] = useState("");
   const [countryFilter, setCountryFilter] = useState("all");
   const [airlineFilter, setAirlineFilter] = useState("all");
+  const [statusFilter, setStatusFilter] = useState("all");
   const [startDate, setStartDate] = useState("");
   const [endDate, setEndDate] = useState("");
 
@@ -50,6 +60,7 @@ export default function CancelledFlights() {
     setSearch("");
     setCountryFilter("all");
     setAirlineFilter("all");
+    setStatusFilter("all");
     setStartDate("");
     setEndDate("");
   };
@@ -71,12 +82,20 @@ export default function CancelledFlights() {
         flight.departureAirport.toLowerCase().includes(q);
       const matchesCountry = countryFilter === "all" || flight.country === countryFilter;
       const matchesAirline = airlineFilter === "all" || flight.airlineId === airlineFilter;
+      const matchesStatus = statusFilter === "all" || flight.status === statusFilter;
       const ts = new Date(flight.scheduledDate).getTime();
       const matchesStart = startTs === null || ts >= startTs;
       const matchesEnd = endTs === null || ts <= endTs;
-      return matchesSearch && matchesCountry && matchesAirline && matchesStart && matchesEnd;
+      return (
+        matchesSearch &&
+        matchesCountry &&
+        matchesAirline &&
+        matchesStatus &&
+        matchesStart &&
+        matchesEnd
+      );
     });
-  }, [flights, search, countryFilter, airlineFilter, startDate, endDate]);
+  }, [flights, search, countryFilter, airlineFilter, statusFilter, startDate, endDate]);
 
   const stats = useMemo(() => {
     const totalPassengers = filteredFlights.reduce((s, f) => s + f.passengers, 0);
@@ -134,6 +153,13 @@ export default function CancelledFlights() {
               { value: "all", label: "All Airlines" },
               ...airlines.map((a) => ({ value: a.id, label: `${a.name} (${a.iataCode})` })),
             ],
+          },
+          {
+            name: "Status",
+            value: statusFilter,
+            onChange: setStatusFilter,
+            placeholder: "All Statuses",
+            options: STATUS_OPTIONS,
           },
         ]}
         onClear={handleClearFilters}
@@ -201,6 +227,7 @@ export default function CancelledFlights() {
                   <TableHead className="text-right">Rooms</TableHead>
                   <TableHead className="text-right">Cost</TableHead>
                   <TableHead className="text-right">Earnings</TableHead>
+                  <TableHead>Status</TableHead>
                 </TableRow>
               </TableHeader>
               <TableBody>
@@ -222,6 +249,9 @@ export default function CancelledFlights() {
                     <TableCell className="text-right text-success">
                       {formatCurrency(flight.totalCost * PLATFORM_FEE_RATE)}
                     </TableCell>
+                    <TableCell>
+                      <StatusBadge status={flight.status} />
+                    </TableCell>
                   </TableRow>
                 ))}
               </TableBody>
@@ -238,7 +268,10 @@ export default function CancelledFlights() {
                       <h3 className="font-mono font-medium">{flight.flightNumber}</h3>
                       <p className="text-sm text-muted-foreground">{flight.airlineName}</p>
                     </div>
-                    <p className="font-mono text-xs text-muted-foreground">#{flight.id}</p>
+                    <div className="flex flex-col items-end gap-1">
+                      <StatusBadge status={flight.status} />
+                      <p className="font-mono text-xs text-muted-foreground">#{flight.id}</p>
+                    </div>
                   </div>
                   <div className="grid grid-cols-2 gap-3 text-sm">
                     <div>
