@@ -210,50 +210,40 @@ export default function Dashboard() {
       </div>
 
       {/* Row 1 */}
-      <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4 mb-4">
+      <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4 mb-6">
         <KpiCard
           title="Total Revenue"
           value={formatCurrency(scaledRevenue)}
           icon={DollarSign}
-          trend={{ value: stats.revenueChangePercent, label: "vs prior period" }}
-          subtext="Total booking value"
         />
         <KpiCard
           title="Total Cancelled Flights"
           value={scaledFlights}
           icon={PlaneTakeoff}
-          trend={{ value: stats.flightChangePercent, label: "vs prior period" }}
-          subtext={RANGE_LABEL[kpiRange]}
         />
         <KpiCard
           title="Total Earnings"
           value={formatCurrency(scaledEarnings)}
           icon={TrendingUp}
-          trend={{ value: stats.revenueChangePercent, label: "vs prior period" }}
-          subtext="Platform fees earned"
         />
       </div>
 
       {/* Row 2 */}
-      <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4 mb-8">
+      <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4 mb-6">
         <KpiCard
           title="Total Airlines"
           value={scaledTotalAirlines}
           icon={Plane}
-          trend={{ value: stats.airlineGrowthPercent, label: "vs prior period" }}
-          subtext={RANGE_LABEL[kpiRange]}
         />
         <KpiCard
           title="Total Credit Issued"
           value={formatCurrency(stats.totalCreditIssued)}
           icon={CreditCard}
-          subtext="Max outstanding fees allowed"
         />
         <KpiCard
           title="Total Wallet Balance"
           value={formatCurrency(totalWalletBalance)}
           icon={Wallet}
-          subtext="All airline wallets (bank balance)"
         />
       </div>
 
