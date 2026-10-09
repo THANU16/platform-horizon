@@ -227,6 +227,7 @@ export default function CancelledFlights() {
                   <TableHead className="text-right">Rooms</TableHead>
                   <TableHead className="text-right">Cost</TableHead>
                   <TableHead className="text-right">Earnings</TableHead>
+                  <TableHead>Status</TableHead>
                 </TableRow>
               </TableHeader>
               <TableBody>
@@ -248,6 +249,9 @@ export default function CancelledFlights() {
                     <TableCell className="text-right text-success">
                       {formatCurrency(flight.totalCost * PLATFORM_FEE_RATE)}
                     </TableCell>
+                    <TableCell>
+                      <StatusBadge status={flight.status} />
+                    </TableCell>
                   </TableRow>
                 ))}
               </TableBody>
@@ -264,7 +268,10 @@ export default function CancelledFlights() {
                       <h3 className="font-mono font-medium">{flight.flightNumber}</h3>
                       <p className="text-sm text-muted-foreground">{flight.airlineName}</p>
                     </div>
-                    <p className="font-mono text-xs text-muted-foreground">#{flight.id}</p>
+                    <div className="flex flex-col items-end gap-1">
+                      <StatusBadge status={flight.status} />
+                      <p className="font-mono text-xs text-muted-foreground">#{flight.id}</p>
+                    </div>
                   </div>
                   <div className="grid grid-cols-2 gap-3 text-sm">
                     <div>
