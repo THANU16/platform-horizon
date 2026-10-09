@@ -107,27 +107,6 @@ export default function CancelledFlights() {
         subtitle="Read-only oversight of all cancelled flights across airlines"
       />
 
-      <div className="grid grid-cols-1 sm:grid-cols-3 gap-4 mb-6">
-        <KpiCard
-          title="Total Cancellations"
-          value={stats.totalCancellations}
-          icon={PlaneTakeoff}
-          subtext="Matching current filters"
-        />
-        <KpiCard
-          title="Total Passengers"
-          value={stats.totalPassengers.toLocaleString()}
-          icon={Users}
-          subtext="Across cancelled flights"
-        />
-        <KpiCard
-          title="Platform Revenue"
-          value={formatCurrency(stats.totalRevenue)}
-          icon={DollarSign}
-          subtext="5% of total cost"
-        />
-      </div>
-
       <FilterBar
         searchPlaceholder="Search flights, airlines, airports..."
         searchValue={search}
@@ -181,6 +160,28 @@ export default function CancelledFlights() {
         </div>
       </FilterBar>
 
+      <div className="grid grid-cols-1 sm:grid-cols-3 gap-4 mb-6">
+        <KpiCard
+          title="Total Cancellations"
+          value={stats.totalCancellations}
+          icon={PlaneTakeoff}
+          subtext="Matching current filters"
+        />
+        <KpiCard
+          title="Total Passengers"
+          value={stats.totalPassengers.toLocaleString()}
+          icon={Users}
+          subtext="Across cancelled flights"
+        />
+        <KpiCard
+          title="Platform Earnings"
+          value={formatCurrency(stats.totalRevenue)}
+          icon={DollarSign}
+          subtext="5% of total cost"
+        />
+      </div>
+
+
       {filteredFlights.length === 0 ? (
         <EmptyState
           icon={PlaneTakeoff}
@@ -200,7 +201,7 @@ export default function CancelledFlights() {
                   <TableHead>Date</TableHead>
                   <TableHead className="text-right">Passengers</TableHead>
                   <TableHead className="text-right">Cost</TableHead>
-                  <TableHead className="text-right">Revenue</TableHead>
+                  <TableHead className="text-right">Earnings</TableHead>
                   <TableHead>Status</TableHead>
                 </TableRow>
               </TableHeader>
@@ -261,7 +262,7 @@ export default function CancelledFlights() {
                       <p className="font-medium">{formatCurrency(flight.totalCost)}</p>
                     </div>
                     <div>
-                      <p className="text-muted-foreground">Revenue</p>
+                      <p className="text-muted-foreground">Earnings</p>
                       <p className="font-medium text-success">
                         {formatCurrency(flight.totalCost * PLATFORM_FEE_RATE)}
                       </p>
