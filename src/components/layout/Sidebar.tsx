@@ -14,6 +14,7 @@ import {
   ChevronRight,
   Menu,
   LogOut,
+  Hotel,
 } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { Button } from "@/components/ui/button";
@@ -23,6 +24,7 @@ const navItems = [
   { title: "Dashboard", icon: LayoutDashboard, path: "/" },
   { title: "Airlines", icon: Plane, path: "/airlines" },
   { title: "Cancelled Flights", icon: PlaneTakeoff, path: "/cancelled-flights" },
+  { title: "Bookings", icon: Hotel, path: "/bookings" },
   { title: "Payments & Revenue", icon: CreditCard, path: "/payments" },
   { title: "Invites & Onboarding", icon: UserPlus, path: "/invites" },
   { title: "System Settings", icon: Settings, path: "/settings" },
