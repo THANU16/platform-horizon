@@ -2,7 +2,6 @@ import { useEffect, useState, useMemo } from "react";
 import { MainLayout } from "@/components/layout/MainLayout";
 import { Header } from "@/components/layout/Header";
 import { FilterBar } from "@/components/ui/FilterBar";
-import { StatusBadge, StatusType } from "@/components/ui/StatusBadge";
 import { LoadingState } from "@/components/ui/Spinner";
 import { EmptyState } from "@/components/ui/EmptyState";
 import { KpiCard } from "@/components/ui/KpiCard";
@@ -29,7 +28,7 @@ export default function CancelledFlights() {
   const [loading, setLoading] = useState(true);
 
   const [search, setSearch] = useState("");
-  const [statusFilter, setStatusFilter] = useState("all");
+  const [countryFilter, setCountryFilter] = useState("all");
   const [airlineFilter, setAirlineFilter] = useState("all");
   const [startDate, setStartDate] = useState("");
   const [endDate, setEndDate] = useState("");
@@ -49,11 +48,16 @@ export default function CancelledFlights() {
 
   const handleClearFilters = () => {
     setSearch("");
-    setStatusFilter("all");
+    setCountryFilter("all");
     setAirlineFilter("all");
     setStartDate("");
     setEndDate("");
   };
+
+  const countries = useMemo(
+    () => Array.from(new Set(flights.map((f) => f.country))).filter(Boolean).sort(),
+    [flights]
+  );
 
   const filteredFlights = useMemo(() => {
     const q = search.toLowerCase();
@@ -64,16 +68,15 @@ export default function CancelledFlights() {
         !q ||
         flight.flightNumber.toLowerCase().includes(q) ||
         flight.airlineName.toLowerCase().includes(q) ||
-        flight.departureAirport.toLowerCase().includes(q) ||
-        flight.arrivalAirport.toLowerCase().includes(q);
-      const matchesStatus = statusFilter === "all" || flight.status === statusFilter;
+        flight.departureAirport.toLowerCase().includes(q);
+      const matchesCountry = countryFilter === "all" || flight.country === countryFilter;
       const matchesAirline = airlineFilter === "all" || flight.airlineId === airlineFilter;
       const ts = new Date(flight.scheduledDate).getTime();
       const matchesStart = startTs === null || ts >= startTs;
       const matchesEnd = endTs === null || ts <= endTs;
-      return matchesSearch && matchesStatus && matchesAirline && matchesStart && matchesEnd;
+      return matchesSearch && matchesCountry && matchesAirline && matchesStart && matchesEnd;
     });
-  }, [flights, search, statusFilter, airlineFilter, startDate, endDate]);
+  }, [flights, search, countryFilter, airlineFilter, startDate, endDate]);
 
   const stats = useMemo(() => {
     const totalPassengers = filteredFlights.reduce((s, f) => s + f.passengers, 0);
@@ -108,21 +111,18 @@ export default function CancelledFlights() {
       />
 
       <FilterBar
-        searchPlaceholder="Search flights, airlines, airports..."
+        searchPlaceholder="Search by flight, airline, or departure airport..."
         searchValue={search}
         onSearchChange={setSearch}
         filters={[
           {
-            name: "Status",
-            value: statusFilter,
-            onChange: setStatusFilter,
-            placeholder: "All Status",
+            name: "Country",
+            value: countryFilter,
+            onChange: setCountryFilter,
+            placeholder: "All Countries",
             options: [
-              { value: "all", label: "All Status" },
-              { value: "pending", label: "Pending" },
-              { value: "processing", label: "Processing" },
-              { value: "completed", label: "Completed" },
-              { value: "failed", label: "Failed" },
+              { value: "all", label: "All Countries" },
+              ...countries.map((c) => ({ value: c, label: c })),
             ],
           },
           {
@@ -165,22 +165,18 @@ export default function CancelledFlights() {
           title="Total Cancellations"
           value={stats.totalCancellations}
           icon={PlaneTakeoff}
-          subtext="Matching current filters"
         />
         <KpiCard
           title="Total Passengers"
           value={stats.totalPassengers.toLocaleString()}
           icon={Users}
-          subtext="Across cancelled flights"
         />
         <KpiCard
           title="Platform Earnings"
           value={formatCurrency(stats.totalRevenue)}
           icon={DollarSign}
-          subtext="5% of total cost"
         />
       </div>
-
 
       {filteredFlights.length === 0 ? (
         <EmptyState
@@ -195,19 +191,22 @@ export default function CancelledFlights() {
             <Table>
               <TableHeader>
                 <TableRow className="table-header">
+                  <TableHead>ID</TableHead>
                   <TableHead>Flight</TableHead>
                   <TableHead>Airline</TableHead>
                   <TableHead>Route</TableHead>
                   <TableHead>Date</TableHead>
                   <TableHead className="text-right">Passengers</TableHead>
+                  <TableHead className="text-right">Hotels</TableHead>
+                  <TableHead className="text-right">Rooms</TableHead>
                   <TableHead className="text-right">Cost</TableHead>
                   <TableHead className="text-right">Earnings</TableHead>
-                  <TableHead>Status</TableHead>
                 </TableRow>
               </TableHeader>
               <TableBody>
                 {filteredFlights.map((flight) => (
                   <TableRow key={flight.id} className="table-row-hover">
+                    <TableCell className="font-mono text-muted-foreground">{flight.id}</TableCell>
                     <TableCell className="font-mono font-medium">{flight.flightNumber}</TableCell>
                     <TableCell>{flight.airlineName}</TableCell>
                     <TableCell>
@@ -217,12 +216,11 @@ export default function CancelledFlights() {
                     </TableCell>
                     <TableCell>{new Date(flight.scheduledDate).toLocaleDateString()}</TableCell>
                     <TableCell className="text-right">{flight.passengers}</TableCell>
+                    <TableCell className="text-right">{flight.hotels}</TableCell>
+                    <TableCell className="text-right">{flight.rooms}</TableCell>
                     <TableCell className="text-right">{formatCurrency(flight.totalCost)}</TableCell>
                     <TableCell className="text-right text-success">
                       {formatCurrency(flight.totalCost * PLATFORM_FEE_RATE)}
-                    </TableCell>
-                    <TableCell>
-                      <StatusBadge status={flight.status as StatusType} />
                     </TableCell>
                   </TableRow>
                 ))}
@@ -240,7 +238,7 @@ export default function CancelledFlights() {
                       <h3 className="font-mono font-medium">{flight.flightNumber}</h3>
                       <p className="text-sm text-muted-foreground">{flight.airlineName}</p>
                     </div>
-                    <StatusBadge status={flight.status as StatusType} />
+                    <p className="font-mono text-xs text-muted-foreground">#{flight.id}</p>
                   </div>
                   <div className="grid grid-cols-2 gap-3 text-sm">
                     <div>
@@ -256,6 +254,14 @@ export default function CancelledFlights() {
                     <div>
                       <p className="text-muted-foreground">Passengers</p>
                       <p className="font-medium">{flight.passengers}</p>
+                    </div>
+                    <div>
+                      <p className="text-muted-foreground">Hotels</p>
+                      <p className="font-medium">{flight.hotels}</p>
+                    </div>
+                    <div>
+                      <p className="text-muted-foreground">Rooms</p>
+                      <p className="font-medium">{flight.rooms}</p>
                     </div>
                     <div>
                       <p className="text-muted-foreground">Cost</p>

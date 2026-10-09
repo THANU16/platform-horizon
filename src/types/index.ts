@@ -48,10 +48,13 @@ export interface CancelledFlight {
   flightNumber: string;
   airlineId: string;
   airlineName: string;
+  country: string;
   departureAirport: string;
   arrivalAirport: string;
   scheduledDate: string;
   passengers: number;
+  hotels: number;
+  rooms: number;
   totalCost: number;
   status: "pending" | "processing" | "completed" | "failed";
 }
