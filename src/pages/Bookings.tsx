@@ -34,7 +34,6 @@ export default function Bookings() {
   const [bookings, setBookings] = useState<Booking[]>([]);
   const [loading, setLoading] = useState(true);
   const [search, setSearch] = useState("");
-  const [country, setCountry] = useState("all");
   const [airline, setAirline] = useState("all");
   const [vendor, setVendor] = useState("all");
   const [status, setStatus] = useState("all");
@@ -49,7 +48,6 @@ export default function Bookings() {
   }, []);
 
   const uniq = (arr: string[]) => Array.from(new Set(arr)).filter(Boolean).sort();
-  const countries = useMemo(() => uniq(bookings.map((b) => b.country)), [bookings]);
   const vendors = useMemo(() => uniq(bookings.map((b) => b.vendor)), [bookings]);
   const airlines = useMemo(() => {
     const m = new Map<string, string>();
@@ -65,15 +63,15 @@ export default function Bookings() {
       const ts = new Date(b.createdAt).getTime();
       return (
         (!q || b.id.toLowerCase().includes(q) || b.hotelName.toLowerCase().includes(q)) &&
-        (country === "all" || b.country === country) &&
         (airline === "all" || b.airlineId === airline) &&
+
         (vendor === "all" || b.vendor === vendor) &&
         (status === "all" || b.status === status) &&
         (s === null || ts >= s) &&
         (e === null || ts <= e)
       );
     });
-  }, [bookings, search, country, airline, vendor, status, startDate, endDate]);
+  }, [bookings, search, airline, vendor, status, startDate, endDate]);
 
   const totals = useMemo(() => {
     return filtered.reduce(
@@ -86,11 +84,11 @@ export default function Bookings() {
     );
   }, [filtered]);
 
-  useEffect(() => setPage(1), [search, country, airline, vendor, status, startDate, endDate, pageSize]);
+  useEffect(() => setPage(1), [search, airline, vendor, status, startDate, endDate, pageSize]);
   const paged = filtered.slice((page - 1) * pageSize, page * pageSize);
 
   const clear = () => {
-    setSearch(""); setCountry("all"); setAirline("all"); setVendor("all"); setStatus("all"); setStartDate(""); setEndDate("");
+    setSearch(""); setAirline("all"); setVendor("all"); setStatus("all"); setStartDate(""); setEndDate("");
   };
 
   if (loading) return <MainLayout><LoadingState message="Loading bookings..." /></MainLayout>;
@@ -105,10 +103,9 @@ export default function Bookings() {
         onSearchChange={setSearch}
         onClear={clear}
         filters={[
-          { name: "Country", value: country, onChange: setCountry, placeholder: "All Countries",
-            options: [{ value: "all", label: "All Countries" }, ...countries.map((c) => ({ value: c, label: c }))] },
           { name: "Airline", value: airline, onChange: setAirline, placeholder: "All Airlines",
             options: [{ value: "all", label: "All Airlines" }, ...airlines.map(([v, l]) => ({ value: v, label: l }))] },
+
           { name: "Vendor", value: vendor, onChange: setVendor, placeholder: "All Vendors",
             options: [{ value: "all", label: "All Vendors" }, ...vendors.map((v) => ({ value: v, label: v }))] },
           { name: "Status", value: status, onChange: setStatus, placeholder: "All Statuses",
