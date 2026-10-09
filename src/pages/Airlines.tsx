@@ -10,7 +10,7 @@ import { EmptyState } from "@/components/ui/EmptyState";
 import { SimplePagination } from "@/components/ui/SimplePagination";
 import { getAirlines, getCountries, updateAirlineStatus, adjustAirlineWallet } from "@/services/api";
 import { Airline } from "@/types";
-import { Eye, AlertTriangle, Plane, Plus, Minus, Receipt } from "lucide-react";
+import { Eye, AlertTriangle, Plane, Plus, Minus, Receipt, Wallet, CreditCard } from "lucide-react";
 // WalletTransactionsDialog removed — wallet history now opens on its own page
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
@@ -43,6 +43,7 @@ import {
 } from "@/components/ui/alert-dialog";
 import { useToast } from "@/hooks/use-toast";
 import { Card, CardContent } from "@/components/ui/card";
+import { KpiCard } from "@/components/ui/KpiCard";
 
 type WalletField = "walletBalance";
 
@@ -186,6 +187,10 @@ export default function Airlines() {
 
   useEffect(() => { setPage(1); }, [search, statusFilter, countryFilter, pageSize]);
 
+  const totalActiveAirlines = useMemo(
+    () => filteredAirlines.filter((a) => a.status === "active").length,
+    [filteredAirlines]
+  );
   const totalWalletBalance = useMemo(
     () => filteredAirlines.reduce((sum, a) => sum + (a.walletBalance ?? 0), 0),
     [filteredAirlines]
@@ -194,6 +199,10 @@ export default function Airlines() {
     () => filteredAirlines.reduce((sum, a) => sum + (a.creditLimit ?? 0), 0),
     [filteredAirlines]
   );
+
+  const formatMoney = (value: number) =>
+    new Intl.NumberFormat("en-US", { style: "currency", currency: "USD" }).format(value);
+
 
 
   const handleToggleStatus = async (airline: Airline) => {
