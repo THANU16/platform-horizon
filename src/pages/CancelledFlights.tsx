@@ -107,27 +107,6 @@ export default function CancelledFlights() {
         subtitle="Read-only oversight of all cancelled flights across airlines"
       />
 
-      <div className="grid grid-cols-1 sm:grid-cols-3 gap-4 mb-6">
-        <KpiCard
-          title="Total Cancellations"
-          value={stats.totalCancellations}
-          icon={PlaneTakeoff}
-          subtext="Matching current filters"
-        />
-        <KpiCard
-          title="Total Passengers"
-          value={stats.totalPassengers.toLocaleString()}
-          icon={Users}
-          subtext="Across cancelled flights"
-        />
-        <KpiCard
-          title="Platform Revenue"
-          value={formatCurrency(stats.totalRevenue)}
-          icon={DollarSign}
-          subtext="5% of total cost"
-        />
-      </div>
-
       <FilterBar
         searchPlaceholder="Search flights, airlines, airports..."
         searchValue={search}
@@ -180,6 +159,28 @@ export default function CancelledFlights() {
           </div>
         </div>
       </FilterBar>
+
+      <div className="grid grid-cols-1 sm:grid-cols-3 gap-4 mb-6">
+        <KpiCard
+          title="Total Cancellations"
+          value={stats.totalCancellations}
+          icon={PlaneTakeoff}
+          subtext="Matching current filters"
+        />
+        <KpiCard
+          title="Total Passengers"
+          value={stats.totalPassengers.toLocaleString()}
+          icon={Users}
+          subtext="Across cancelled flights"
+        />
+        <KpiCard
+          title="Platform Earnings"
+          value={formatCurrency(stats.totalRevenue)}
+          icon={DollarSign}
+          subtext="5% of total cost"
+        />
+      </div>
+
 
       {filteredFlights.length === 0 ? (
         <EmptyState
